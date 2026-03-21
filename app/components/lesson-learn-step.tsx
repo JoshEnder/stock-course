@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { learnContent, type LearnContent } from "../lib/course-data";
 import { AlertCircleIcon, LightbulbIcon } from "./icons";
 import { LessonActivity } from "./lesson-activity";
@@ -43,6 +43,7 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
 
   const [panelIndex, setPanelIndex] = useState(0);
   const [readyPanels, setReadyPanels] = useState<Record<string, boolean>>({});
+  const panelBodyRef = useRef<HTMLDivElement>(null);
   const panel = panels[Math.min(panelIndex, panels.length - 1)];
   const hasInteractivePanel = Boolean(panel?.activityKind);
   const isPanelReady = readyPanels[panel?.id ?? ""] || !hasInteractivePanel;
@@ -59,77 +60,68 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       return;
     }
     setPanelIndex((current) => current + 1);
+    // Slide-in the next panel body
+    requestAnimationFrame(() => {
+      const el = panelBodyRef.current;
+      if (!el) return;
+      el.style.animation = "none";
+      // Force reflow so animation restarts
+      void el.offsetWidth;
+      el.style.animation = "ha-slam-in 300ms cubic-bezier(0.22,1,0.36,1) both";
+    });
   }
 
+  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fcf9_100%)] p-8 shadow-[0_24px_48px_rgba(15,23,42,0.07)] md:p-12">
-      <div className="mb-8 flex items-center justify-between gap-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
-          <span className="text-sm font-semibold text-emerald-700">
-            {panel.eyebrow ?? "Learn"}
-          </span>
-        </div>
-        <div className="flex items-center gap-3 text-sm font-semibold text-slate-400">
-          <span>
-            {panelIndex + 1} / {panels.length}
-          </span>
-          <div className="flex gap-2">
-            {panels.map((item, index) => (
-              <span
-                key={item.id}
-                className={`h-3 w-3 rounded-full transition ${
-                  index === panelIndex
-                    ? "bg-emerald-500 shadow-[0_0_0_6px_rgba(16,185,129,0.12)]"
-                    : index < panelIndex
-                      ? "bg-emerald-200"
-                      : "bg-emerald-100"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-8 h-2 rounded-full bg-slate-100">
-        <div
-          className="h-2 rounded-full bg-emerald-500 transition-all duration-300"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-
-      <div className="mb-8 max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">
+    <div style={{ fontFamily: font }}>
+      {/* Panel counter dots */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+        <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22c55e" }}>
           {panel.eyebrow ?? "Learn"}
-        </p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 md:text-5xl">
+        </span>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {panels.map((item, index) => (
+            <span key={item.id} style={{
+              width: index === panelIndex ? 20 : 10,
+              height: 10,
+              borderRadius: 99,
+              background: index <= panelIndex ? "#22c55e" : "#e5e7eb",
+              transition: "all 300ms",
+            }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div ref={panelBodyRef} style={{ marginBottom: 24 }}>
+        <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: "#172b4d", lineHeight: 1.2, letterSpacing: "-0.5px", marginBottom: 16 }}>
           {panel.title}
         </h2>
-        <p className="mt-4 text-lg leading-8 text-slate-600">{panel.copy}</p>
+        <p style={{ fontSize: 18, color: "#4b5563", lineHeight: 1.75 }}>{panel.copy}</p>
       </div>
 
       {panel.activityKind ? (
-        <div className="mb-6">
+        <div style={{ marginBottom: 20 }}>
           <LessonActivity
+            key={panel.id}
             activityData={panel.activityData}
             activityKind={panel.activityKind}
             activityStartValue={panel.activityStartValue}
             onReadyChange={(ready) =>
-              setReadyPanels((current) => ({
-                ...current,
-                [panel.id]: ready,
-              }))
+              setReadyPanels((current) => {
+                if (current[panel.id] === ready) return current;
+                return { ...current, [panel.id]: ready };
+              })
             }
           />
         </div>
       ) : null}
 
       {panel.highlights?.length ? (
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
           {panel.highlights.map((item) => (
-            <span
-              key={item}
-              className="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600"
-            >
+            <span key={item} style={{ background: "#f9fafb", border: "2px solid #e5e7eb", borderRadius: 99, padding: "6px 14px", fontSize: 14, color: "#4b5563", fontWeight: 600 }}>
               {item}
             </span>
           ))}
@@ -137,14 +129,12 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       ) : null}
 
       {panel.note ? (
-        <div className="mb-6 rounded-[1.6rem] border border-emerald-200 bg-emerald-50/70 p-5">
-          <div className="flex items-start gap-3">
-            <LightbulbIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+        <div style={{ background: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: 16, padding: 16, marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <LightbulbIcon style={{ width: 20, height: 20, color: "#16a34a", flexShrink: 0, marginTop: 2 }} />
             <div>
-              <p className="text-sm font-semibold text-slate-900">
-                {panel.noteLabel ?? "What this means"}
-              </p>
-              <p className="mt-1 text-sm leading-7 text-slate-600">{panel.note}</p>
+              <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>{panel.noteLabel ?? "What this means"}</p>
+              <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>{panel.note}</p>
             </div>
           </div>
         </div>
@@ -152,40 +142,62 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
 
       {!content.panels?.length ? (
         <>
-          <div className="mb-4 rounded-[1.6rem] border border-emerald-200 bg-emerald-50/70 p-5">
-            <div className="flex items-start gap-3">
-              <LightbulbIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <div style={{ background: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: 16, padding: 16, marginBottom: 12 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <LightbulbIcon style={{ width: 20, height: 20, color: "#16a34a", flexShrink: 0, marginTop: 2 }} />
               <div>
-                <p className="text-sm font-semibold text-slate-900">What this means</p>
-                <p className="mt-1 text-sm leading-7 text-slate-600">{content.whatThisMeans}</p>
+                <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>What this means</p>
+                <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>{content.whatThisMeans}</p>
               </div>
             </div>
           </div>
-
-          <div className="rounded-[1.6rem] border border-rose-200 bg-rose-50/70 p-5">
-            <div className="flex items-start gap-3">
-              <AlertCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
+          <div style={{ background: "#fff1f2", border: "2px solid #fecdd3", borderRadius: 16, padding: 16, marginBottom: 20 }}>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <AlertCircleIcon style={{ width: 20, height: 20, color: "#e11d48", flexShrink: 0, marginTop: 2 }} />
               <div>
-                <p className="text-sm font-semibold text-slate-900">Common mistake</p>
-                <p className="mt-1 text-sm leading-7 text-slate-600">{content.commonMistake}</p>
+                <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>Common mistake</p>
+                <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>{content.commonMistake}</p>
               </div>
             </div>
           </div>
         </>
       ) : null}
 
-      <div className="mt-8 flex items-center justify-end">
+      {/* Bottom CTA */}
+      <div style={{ marginTop: 32 }}>
         <button
-          className={`rounded-[1.4rem] px-6 py-4 text-base font-semibold text-white transition ${
-            isPanelReady
-              ? "bg-[linear-gradient(135deg,#34d399_0%,#22c55e_60%,#16a34a_100%)] shadow-[0_18px_34px_rgba(34,197,94,0.18)]"
-              : "bg-slate-300"
-          }`}
           disabled={!isPanelReady}
           onClick={handleAdvance}
           type="button"
+          style={{
+            width: "100%",
+            padding: "16px",
+            fontSize: 16,
+            fontFamily: font,
+            fontWeight: 800,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            color: "#fff",
+            background: isPanelReady ? "#22c55e" : "#d1d5db",
+            boxShadow: isPanelReady ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3",
+            border: "none",
+            borderRadius: 16,
+            cursor: isPanelReady ? "pointer" : "not-allowed",
+            transition: "background 200ms",
+          }}
+          onMouseDown={(e) => {
+            if (!isPanelReady) return;
+            const el = e.currentTarget;
+            el.style.transform = "translateY(3px)";
+            el.style.boxShadow = "0 2px 0 #16a34a";
+          }}
+          onMouseUp={(e) => {
+            const el = e.currentTarget;
+            el.style.transform = "";
+            el.style.boxShadow = isPanelReady ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3";
+          }}
         >
-          {isLastPanel ? "Start practice" : "Next idea"}
+          {isLastPanel ? "Start practice →" : "Continue →"}
         </button>
       </div>
     </div>

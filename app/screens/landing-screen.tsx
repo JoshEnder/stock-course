@@ -1,474 +1,411 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
-import { HeroAnimation } from "../components/HeroAnimation";
+import HeroScene from "@/app/components/HeroScene";
 
-// ─────────────────────────────────────────────────────────────
-// Scroll reveal hook — uses IntersectionObserver, no libraries
-// ─────────────────────────────────────────────────────────────
-function useReveal(ref: React.RefObject<Element | null>, options?: IntersectionObserverInit) {
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { obs.unobserve(el); } },
-      { threshold: 0.15, ...options }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [ref, options]);
+// ─── Stoked logo ──────────────────────────────────────────────────────────────
+function StokedLogo({ large = false }: { large?: boolean }) {
+  return (
+    <Link href="/" style={{ display: "inline-flex", alignItems: "flex-end", gap: 3, textDecoration: "none" }}>
+      <span style={{
+        fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+        fontWeight: 900,
+        fontSize: large ? 40 : 24,
+        color: "#172b4d",
+        letterSpacing: "-0.5px",
+        lineHeight: 1,
+      }}>stoked</span>
+      <span style={{
+        width: large ? 14 : 9,
+        height: large ? 14 : 9,
+        borderRadius: "50%",
+        backgroundColor: "#22c55e",
+        flexShrink: 0,
+        marginBottom: large ? 6 : 4,
+      }} />
+    </Link>
+  );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Stats counter — counts up when el enters viewport
-// ─────────────────────────────────────────────────────────────
-function StatCounter({ value, label }: { value: string; label: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const hasRun = useRef(false);
+// ─── Duolingo-style 3-D button ────────────────────────────────────────────────
+function DuoBtn({
+  href,
+  children,
+  variant = "primary",
+  big = false,
+  style: extraStyle = {},
+}: {
+  href?: string;
+  children: React.ReactNode;
+  variant?: "primary" | "outline" | "white-on-green";
+  big?: boolean;
+  style?: React.CSSProperties;
+}) {
+  const base: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+    fontWeight: 800,
+    fontSize: big ? 16 : 14,
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+    textDecoration: "none",
+    padding: big ? "16px 40px" : "12px 28px",
+    borderRadius: 16,
+    cursor: "pointer",
+    border: "none",
+    transition: "filter 80ms, transform 80ms",
+    userSelect: "none",
+    whiteSpace: "nowrap",
+    ...extraStyle,
+  };
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+  const variants: Record<string, React.CSSProperties> = {
+    primary: {
+      backgroundColor: "#22c55e",
+      color: "#fff",
+      boxShadow: "0 5px 0 #16a34a",
+    },
+    outline: {
+      backgroundColor: "#fff",
+      color: "#172b4d",
+      boxShadow: "0 5px 0 #d1d5db",
+      border: "2px solid #e5e7eb",
+    },
+    "white-on-green": {
+      backgroundColor: "#fff",
+      color: "#22c55e",
+      boxShadow: "0 5px 0 rgba(0,0,0,0.15)",
+    },
+  };
 
-    // Extract numeric part
-    const numMatch = value.match(/\d+/);
-    if (!numMatch) { el.textContent = value; return; }
-    const target = parseInt(numMatch[0], 10);
-    const prefix = value.slice(0, numMatch.index);
-    const suffix = value.slice((numMatch.index ?? 0) + numMatch[0].length);
+  const combinedStyle = { ...base, ...variants[variant] };
 
-    const obs = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting || hasRun.current) return;
-      hasRun.current = true;
-      obs.unobserve(el);
-
-      const duration = 1200;
-      const start = performance.now();
-      function tick(now: number) {
-        const p = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
-        el.textContent = prefix + Math.round(eased * target) + suffix;
-        if (p < 1) requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
-    }, { threshold: 0.5 });
-
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [value]);
-
+  if (href) {
+    return (
+      <Link href={href} style={combinedStyle}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.05)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+        onMouseDown={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(3px)"; el.style.boxShadow = (variants[variant].boxShadow as string)?.replace("5px", "2px") ?? ""; }}
+        onMouseUp={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; el.style.boxShadow = variants[variant].boxShadow as string; }}
+      >
+        {children}
+      </Link>
+    );
+  }
   return (
-    <div style={{ textAlign: "center", padding: "0 2rem" }}>
-      <span
-        ref={ref}
-        style={{
-          display: "block",
-          fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-          fontSize: "clamp(2.4rem, 5vw, 4rem)",
-          fontWeight: 400,
-          color: "#ffffff",
-          letterSpacing: "-0.02em",
-          lineHeight: 1,
-        }}
-      >
-        0
-      </span>
-      <span
-        style={{
-          display: "block",
-          fontFamily: "var(--font-dm-sans, 'DM Sans', system-ui, sans-serif)",
-          fontSize: "0.9rem",
-          color: "rgba(255,255,255,0.5)",
-          marginTop: "0.5rem",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
+    <button style={combinedStyle}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = "brightness(1.05)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = ""; }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ─── Streak illustration ──────────────────────────────────────────────────────
+function StreakCard() {
+  const days = ["M","T","W","T","F","S","S"];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+      <div style={{ fontSize: 80, lineHeight: 1 }}>🔥</div>
+      <div style={{ display: "flex", gap: 10 }}>
+        {days.map((d,i) => (
+          <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              backgroundColor: i < 5 ? "#ff9600" : "#f3f4f6",
+              color: i < 5 ? "#fff" : "#d1d5db",
+              fontWeight: 800, fontSize: 14,
+              boxShadow: i < 5 ? "0 4px 0 #e08500" : "0 4px 0 #e5e7eb",
+            }}>
+              {i < 5 ? "✓" : "·"}
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af" }}>{d}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{
+        background: "#fff7ed",
+        border: "2px solid #ff9600",
+        borderRadius: 20,
+        boxShadow: "0 5px 0 #e08500",
+        padding: "14px 32px",
+        textAlign: "center",
+      }}>
+        <div style={{ fontSize: 20, fontWeight: 900, color: "#ff9600" }}>5 day streak!</div>
+        <div style={{ fontSize: 13, color: "#9ca3af", marginTop: 4 }}>Keep learning every day</div>
+      </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Module roadmap data
-// ─────────────────────────────────────────────────────────────
-const MODULES = [
-  { n: 1,  name: "Foundations",          unlocked: true  },
-  { n: 2,  name: "Chart Basics",         unlocked: false },
-  { n: 3,  name: "Trend & Momentum",     unlocked: false },
-  { n: 4,  name: "Support & Resistance", unlocked: false },
-  { n: 5,  name: "Breakouts & Volume",   unlocked: false },
-  { n: 6,  name: "Business Fundamentals",unlocked: false },
-  { n: 7,  name: "Market Cap & Revenue", unlocked: false },
-  { n: 8,  name: "EPS & P/E Ratios",     unlocked: false },
-  { n: 9,  name: "Putting It Together",  unlocked: false },
-  { n: 10, name: "Final Mastery",        unlocked: false },
-];
+// ─── Lesson card illustration ─────────────────────────────────────────────────
+function LessonCard() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 360, width: "100%" }}>
+      <div style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 20, padding: 20, boxShadow: "0 5px 0 #e5e7eb" }}>
+        <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#22c55e", marginBottom: 8 }}>Module 1 · Lesson 3</div>
+        <div style={{ fontSize: 18, fontWeight: 900, color: "#172b4d", marginBottom: 8 }}>What is a stock?</div>
+        <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6, marginBottom: 12 }}>
+          A stock represents partial ownership in a company. When you buy a share, you become a shareholder.
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          {["ownership","shares","equity"].map(t => (
+            <span key={t} style={{ background: "#f0fdf4", color: "#16a34a", fontWeight: 700, fontSize: 12, borderRadius: 20, padding: "4px 10px" }}>{t}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 20, padding: 16, boxShadow: "0 5px 0 #e5e7eb" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+          <span style={{ color: "#172b4d" }}>Progress</span>
+          <span style={{ color: "#22c55e" }}>3 / 4 steps</span>
+        </div>
+        <div style={{ height: 14, background: "#f3f4f6", borderRadius: 99, overflow: "hidden" }}>
+          <div style={{ width: "75%", height: "100%", background: "#22c55e", borderRadius: 99 }} />
+        </div>
+      </div>
+      <div style={{ background: "#f0fdf4", border: "2px solid #22c55e", borderRadius: 20, padding: 16, boxShadow: "0 5px 0 #16a34a" }}>
+        <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#22c55e" }}>Your answer</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "#172b4d", marginTop: 4 }}>Partial ownership in a company</div>
+      </div>
+    </div>
+  );
+}
 
-// ─────────────────────────────────────────────────────────────
-// Main landing screen
-// ─────────────────────────────────────────────────────────────
+// ─── Progress illustration ────────────────────────────────────────────────────
+function ProgressCard() {
+  const mods = [
+    { name: "Foundations",      pct: 100, color: "#22c55e", shadow: "#16a34a" },
+    { name: "Chart Basics",     pct: 60,  color: "#3b82f6", shadow: "#2563eb" },
+    { name: "Trend & Momentum", pct: 0,   color: "#a855f7", shadow: "#9333ea" },
+  ];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 360, width: "100%" }}>
+      {mods.map(m => (
+        <div key={m.name} style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 20, padding: 20, boxShadow: `0 5px 0 #e5e7eb` }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <span style={{ fontWeight: 800, color: "#172b4d", fontSize: 15 }}>{m.name}</span>
+            <span style={{ fontWeight: 800, fontSize: 14, color: m.color }}>
+              {m.pct === 100 ? "Complete!" : m.pct === 0 ? "Locked" : `${m.pct}%`}
+            </span>
+          </div>
+          <div style={{ height: 14, background: "#f3f4f6", borderRadius: 99, overflow: "hidden" }}>
+            <div style={{ width: `${m.pct}%`, height: "100%", background: m.color, borderRadius: 99 }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Section wrapper ──────────────────────────────────────────────────────────
+function Section({
+  children,
+  bg = "#fff",
+  border = false,
+}: {
+  children: React.ReactNode;
+  bg?: string;
+  border?: boolean;
+}) {
+  return (
+    <section style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      background: bg,
+      borderTop: border ? "2px solid #f3f4f6" : undefined,
+      borderBottom: border ? "2px solid #f3f4f6" : undefined,
+    }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px", width: "100%" }}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+// ─── Feature row ──────────────────────────────────────────────────────────────
+function FeatureRow({
+  tag,
+  tagColor,
+  heading,
+  body,
+  illustration,
+  flip = false,
+}: {
+  tag: string;
+  tagColor: string;
+  heading: React.ReactNode;
+  body: string;
+  illustration: React.ReactNode;
+  flip?: boolean;
+}) {
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: flip ? "row-reverse" : "row",
+      alignItems: "center",
+      gap: 64,
+      flexWrap: "wrap",
+      justifyContent: "center",
+    }}>
+      <div style={{ flex: "1 1 300px", minWidth: 0, textAlign: "left" }}>
+        <div style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.15em", color: tagColor, marginBottom: 12 }}>{tag}</div>
+        <h2 style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)", fontWeight: 900, fontSize: "clamp(28px,4vw,40px)", color: "#172b4d", lineHeight: 1.15, marginBottom: 16, letterSpacing: "-0.5px" }}>
+          {heading}
+        </h2>
+        <p style={{ fontSize: 18, color: "#6b7280", lineHeight: 1.7, maxWidth: 420 }}>{body}</p>
+      </div>
+      <div style={{ flex: "1 1 300px", display: "flex", justifyContent: "center" }}>
+        {illustration}
+      </div>
+    </div>
+  );
+}
+
+// ─── Landing screen ───────────────────────────────────────────────────────────
 export function LandingScreen() {
-  const statsRef   = useRef<HTMLDivElement>(null);
-  const howRef     = useRef<HTMLDivElement>(null);
-  const roadmapRef = useRef<HTMLDivElement>(null);
-  const ctaRef     = useRef<HTMLDivElement>(null);
-
-  // Stagger scroll reveals
-  useEffect(() => {
-    function setupReveal(
-      container: Element | null,
-      selector: string,
-      staggerMs: number
-    ) {
-      if (!container) return;
-      const items = Array.from(container.querySelectorAll<HTMLElement>(selector));
-      items.forEach((el) => {
-        el.style.opacity    = "0";
-        el.style.transform  = "translateY(20px)";
-        el.style.transition = "none";
-      });
-
-      const obs = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        obs.unobserve(container);
-        items.forEach((el, i) => {
-          setTimeout(() => {
-            el.style.transition = "opacity 600ms ease-out, transform 600ms ease-out";
-            el.style.opacity    = "1";
-            el.style.transform  = "translateY(0)";
-          }, i * staggerMs);
-        });
-      }, { threshold: 0.1 });
-
-      obs.observe(container);
-      return () => obs.disconnect();
-    }
-
-    const cleanups = [
-      setupReveal(howRef.current,     ".how-step",    150),
-      setupReveal(roadmapRef.current, ".module-item", 80),
-    ];
-
-    // CTA fade+scale
-    const ctaEl = ctaRef.current;
-    if (ctaEl) {
-      ctaEl.style.opacity   = "0";
-      ctaEl.style.transform = "scale(0.97)";
-      ctaEl.style.transition = "none";
-      const obs = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) return;
-        obs.unobserve(ctaEl);
-        ctaEl.style.transition = "opacity 700ms ease-out, transform 700ms ease-out";
-        ctaEl.style.opacity    = "1";
-        ctaEl.style.transform  = "scale(1)";
-      }, { threshold: 0.2 });
-      obs.observe(ctaEl);
-      cleanups.push(() => obs.disconnect());
-    }
-
-    return () => cleanups.forEach((c) => c?.());
-  }, []);
+  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
   return (
-    <div style={{ background: "#ffffff", fontFamily: "var(--font-dm-sans, 'DM Sans', system-ui, sans-serif)" }}>
+    <div style={{ minHeight: "100vh", background: "#fff", fontFamily: font }}>
+
+      {/* ── NAV ──────────────────────────────────────────────── */}
+      <header style={{
+        position: "sticky", top: 0, zIndex: 50,
+        background: "#fff",
+        borderBottom: "2px solid #f3f4f6",
+      }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <StokedLogo />
+          <nav style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Link href="/course" style={{ fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", textDecoration: "none", padding: "8px 16px" }}>
+              Log in
+            </Link>
+            <DuoBtn href="/onboarding" variant="primary">Get Started</DuoBtn>
+          </nav>
+        </div>
+      </header>
+
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <HeroAnimation />
-
-      {/* ── STATS BAR ────────────────────────────────────────── */}
-      <div
-        ref={statsRef}
-        style={{
-          background: "#0f172a",
-          padding: "4rem 2rem",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "0",
-          flexWrap: "wrap",
-        }}
-      >
-        {[
-          { value: "100", label: "lessons"   },
-          { value: "10",  label: "modules"   },
-          { value: "0",   label: "confusion" },
-        ].map((stat, i) => (
-          <div key={stat.label} style={{ display: "flex", alignItems: "center" }}>
-            <StatCounter value={stat.value} label={stat.label} />
-            {i < 2 && (
-              <div style={{
-                width: "1px",
-                height: "3rem",
-                background: "rgba(255,255,255,0.12)",
-                margin: "0 1rem",
-              }} />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* ── HOW IT WORKS ─────────────────────────────────────── */}
-      <div
-        ref={howRef}
-        style={{
-          background: "#fafaf8",
-          padding: "7rem 2rem",
-        }}
-      >
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <h2 style={{
-            fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-            fontSize: "clamp(2rem, 4vw, 3.5rem)",
-            fontWeight: 400,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-            textAlign: "center",
-            marginBottom: "4rem",
-          }}>
-            Built different.
-          </h2>
-
-          {/* Steps with connecting line */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "0",
-            position: "relative",
-          }}>
-            {/* Connecting line */}
-            <div style={{
-              position: "absolute",
-              top: "2rem",
-              left: "calc(16.66% + 1rem)",
-              right: "calc(16.66% + 1rem)",
-              height: "1px",
-              background: "#e2e8f0",
-              zIndex: 0,
-            }} />
-
-            {[
-              { n: "01", title: "Learn",    copy: "One concept at a time. No walls of text, no overwhelm." },
-              { n: "02", title: "Practice", copy: "Real interactions that build instinct, not multiple-choice spam." },
-              { n: "03", title: "Level up",  copy: "Track your progress and earn your knowledge, step by step." },
-            ].map((step) => (
-              <div
-                key={step.n}
-                className="how-step"
-                style={{ textAlign: "center", padding: "0 2rem", position: "relative", zIndex: 1 }}
-              >
-                <div style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "4rem",
-                  height: "4rem",
-                  borderRadius: "50%",
-                  background: "#ffffff",
-                  border: "1px solid #f1f5f9",
-                  marginBottom: "1.5rem",
-                }}>
-                  <span style={{
-                    fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-                    fontSize: "1.5rem",
-                    color: "#22c55e",
-                    fontWeight: 400,
-                    opacity: 0.7,
-                  }}>
-                    {step.n}
-                  </span>
+      <section style={{ minHeight: "calc(100vh - 64px)", display: "flex", alignItems: "center", background: "#f0fdf4", borderBottom: "2px solid #dcfce7" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "72px 24px 80px", width: "100%", display: "flex", alignItems: "center", gap: 64, flexWrap: "wrap", justifyContent: "center" }}>
+          {/* Left text */}
+          <div style={{ flex: "1 1 340px", minWidth: 0 }}>
+            <h1 style={{
+              fontFamily: font,
+              fontWeight: 900,
+              fontSize: "clamp(40px,6vw,64px)",
+              color: "#172b4d",
+              lineHeight: 1.1,
+              letterSpacing: "-1.5px",
+              margin: 0,
+            }}>
+              Learn stocks.<br />
+              <span style={{ color: "#22c55e" }}>For free.</span>
+            </h1>
+            <p style={{ fontSize: 20, color: "#4b5563", marginTop: 20, marginBottom: 36, lineHeight: 1.6, maxWidth: 440 }}>
+              Fun, bite-sized lessons that make the stock market finally click. No jargon. No confusion.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <DuoBtn href="/onboarding" variant="primary" big>Get Started — It&apos;s Free</DuoBtn>
+              <DuoBtn href="/course" variant="outline" big>I Have an Account</DuoBtn>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 24, marginTop: 36 }}>
+              {[
+                { val: "10", sub: "Modules" },
+                { val: "100+", sub: "Lessons" },
+                { val: "Free", sub: "Always" },
+                { val: "5 min", sub: "Per day" },
+              ].map(s => (
+                <div key={s.sub}>
+                  <span style={{ fontWeight: 900, fontSize: 20, color: "#172b4d" }}>{s.val}</span>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: "#6b7280", marginLeft: 6 }}>{s.sub}</span>
                 </div>
-                <h3 style={{
-                  fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-                  fontSize: "1.4rem",
-                  fontWeight: 400,
-                  color: "#0f172a",
-                  marginBottom: "0.75rem",
-                  letterSpacing: "-0.01em",
-                }}>
-                  {step.title}
-                </h3>
-                <p style={{
-                  fontSize: "0.95rem",
-                  color: "#64748b",
-                  lineHeight: 1.6,
-                  maxWidth: "240px",
-                  margin: "0 auto",
-                }}>
-                  {step.copy}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          {/* Right 3D scene */}
+          <div style={{ flex: "1 1 420px", minHeight: 560, alignSelf: "stretch", display: "flex" }}>
+            <HeroScene width="100%" height="100%" />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── COURSE ROADMAP ───────────────────────────────────── */}
-      <div
-        ref={roadmapRef}
-        style={{
-          background: "#ffffff",
-          padding: "7rem 2rem",
-        }}
-      >
-        <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+      {/* ── FEATURE: Streak ──────────────────────────────────── */}
+      <Section>
+        <FeatureRow
+          tag="🔥 Build a habit"
+          tagColor="#ff9600"
+          heading={<>Make learning<br />a daily streak</>}
+          body="Just 5 minutes a day builds real knowledge. Track your streak, stay motivated, and watch your understanding compound — just like a good investment."
+          illustration={<StreakCard />}
+        />
+      </Section>
+
+      {/* ── FEATURE: Lessons ─────────────────────────────────── */}
+      <Section bg="#f9fafb" border>
+        <FeatureRow
+          flip
+          tag="📚 Learn → Practice → Check"
+          tagColor="#22c55e"
+          heading={<>Bite-sized lessons<br />that actually stick</>}
+          body="Every concept is taught in 3 steps: learn the idea, practice applying it, then check your understanding. No passive reading — active learning from day one."
+          illustration={<LessonCard />}
+        />
+      </Section>
+
+      {/* ── FEATURE: Progress ────────────────────────────────── */}
+      <Section>
+        <FeatureRow
+          tag="📈 Track everything"
+          tagColor="#3b82f6"
+          heading={<>See exactly how<br />far you&apos;ve come</>}
+          body="10 modules. 100 lessons. Track your progress from stock basics to reading earnings reports. Unlock each module as your confidence grows."
+          illustration={<ProgressCard />}
+        />
+      </Section>
+
+      {/* ── CTA BANNER ───────────────────────────────────────── */}
+      <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", background: "#22c55e", borderTop: "2px solid #16a34a" }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: "80px 24px", textAlign: "center", width: "100%" }}>
           <h2 style={{
-            fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-            fontSize: "clamp(2rem, 4vw, 3.5rem)",
-            fontWeight: 400,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-            textAlign: "center",
-            marginBottom: "0.75rem",
+            fontFamily: font, fontWeight: 900,
+            fontSize: "clamp(28px,5vw,48px)",
+            color: "#fff", letterSpacing: "-0.5px",
+            lineHeight: 1.15, marginBottom: 16,
           }}>
-            10 modules. One clear path.
+            Start learning today.<br />It&apos;s free, forever.
           </h2>
-          <p style={{
-            textAlign: "center",
-            color: "#94a3b8",
-            fontSize: "1rem",
-            marginBottom: "3.5rem",
-          }}>
-            Start at the foundation. Unlock as you grow.
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", marginBottom: 40, lineHeight: 1.6 }}>
+            No credit card. No account required. Just open a lesson and go.
           </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            {MODULES.map((mod, i) => (
-              <div
-                key={mod.n}
-                className="module-item"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                  padding: "1rem 1.25rem",
-                  borderRadius: "12px",
-                  border: mod.unlocked ? "1px solid #22c55e" : "1px solid #f1f5f9",
-                  background: mod.unlocked ? "#f0fdf4" : "#fafaf8",
-                  transition: "border-color 200ms",
-                  // stagger handled by JS reveal, but set initial for non-JS
-                  transitionDelay: `${i * 40}ms`,
-                }}
-              >
-                {/* Number */}
-                <span style={{
-                  fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-                  fontSize: "1.1rem",
-                  fontWeight: 400,
-                  color: mod.unlocked ? "#22c55e" : "#cbd5e1",
-                  minWidth: "2rem",
-                }}>
-                  {String(mod.n).padStart(2, "0")}
-                </span>
-
-                {/* Name */}
-                <span style={{
-                  flex: 1,
-                  fontSize: "0.975rem",
-                  fontWeight: mod.unlocked ? 500 : 400,
-                  color: mod.unlocked ? "#0f172a" : "#94a3b8",
-                }}>
-                  {mod.name}
-                </span>
-
-                {/* Lock / check icon */}
-                {mod.unlocked ? (
-                  <span style={{
-                    fontSize: "0.8rem",
-                    fontWeight: 600,
-                    color: "#22c55e",
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                  }}>
-                    Start
-                  </span>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="#cbd5e1" strokeWidth="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                )}
-              </div>
-            ))}
-          </div>
+          <DuoBtn href="/onboarding" variant="white-on-green" big>
+            Get Started For Free
+          </DuoBtn>
         </div>
-      </div>
-
-      {/* ── FINAL CTA ────────────────────────────────────────── */}
-      <div
-        ref={ctaRef}
-        style={{
-          background: "#0f172a",
-          padding: "8rem 2rem",
-          textAlign: "center",
-        }}
-      >
-        <h2 style={{
-          fontFamily: "var(--font-dm-serif, 'DM Serif Display', Georgia, serif)",
-          fontSize: "clamp(2rem, 4.5vw, 4rem)",
-          fontWeight: 400,
-          color: "#ffffff",
-          letterSpacing: "-0.025em",
-          marginBottom: "1rem",
-          lineHeight: 1.2,
-          maxWidth: "700px",
-          margin: "0 auto 1rem",
-        }}>
-          Ready to actually understand stocks?
-        </h2>
-        <p style={{
-          color: "#86efac",
-          fontSize: "1rem",
-          marginBottom: "2.5rem",
-          fontFamily: "var(--font-dm-sans, 'DM Sans', system-ui, sans-serif)",
-        }}>
-          Free to start. No account needed.
-        </p>
-        <Link
-          href="/onboarding"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            background: "#22c55e",
-            color: "#ffffff",
-            fontFamily: "var(--font-dm-sans, 'DM Sans', system-ui, sans-serif)",
-            fontWeight: 600,
-            fontSize: "1.1rem",
-            padding: "16px 44px",
-            borderRadius: "100px",
-            textDecoration: "none",
-            boxShadow: "0 4px 32px rgba(34,197,94,0.35)",
-            transition: "transform 200ms ease-out, box-shadow 200ms ease-out",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.transform  = "translateY(-2px)";
-            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 8px 40px rgba(34,197,94,0.55)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.transform  = "translateY(0)";
-            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 32px rgba(34,197,94,0.35)";
-          }}
-        >
-          Start Learning Free →
-        </Link>
-      </div>
+      </section>
 
       {/* ── FOOTER ───────────────────────────────────────────── */}
-      <footer style={{
-        background: "#0a1020",
-        padding: "2rem",
-        textAlign: "center",
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-      }}>
-        <p style={{
-          color: "rgba(255,255,255,0.3)",
-          fontSize: "0.85rem",
-          fontFamily: "var(--font-dm-sans, 'DM Sans', system-ui, sans-serif)",
+      <footer style={{ background: "#f9fafb", borderTop: "2px solid #f3f4f6" }}>
+        <div style={{
+          maxWidth: 1100, margin: "0 auto", padding: "40px 24px",
+          display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20,
         }}>
-          © 2025 Stoked. Stock learning that actually clicks.
-        </p>
+          <StokedLogo />
+          <span style={{ fontSize: 13, color: "#9ca3af" }}>© 2025 Stoked. Stock learning that actually clicks.</span>
+          <div style={{ display: "flex", gap: 24 }}>
+            {[["Learn", "/course"], ["Start", "/onboarding"]].map(([label, href]) => (
+              <Link key={label} href={href} style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", textDecoration: "none" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22c55e"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}
+              >{label}</Link>
+            ))}
+          </div>
+        </div>
       </footer>
     </div>
   );

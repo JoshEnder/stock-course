@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AnimatedNumber } from "./animated-number";
-import { FlameIcon, GraduationCapIcon, TrendingUpIcon } from "./icons";
+import { GraduationCapIcon, StarIcon, TrendingUpIcon } from "./icons";
 import { ProgressBar } from "./progress-bar";
 
 type CourseProgressHeaderProps = {
@@ -46,7 +46,7 @@ export function CourseProgressHeader({
 
           <div className="surface-lift hidden items-center gap-3 rounded-2xl border border-white/80 bg-white/92 px-4 py-3 shadow-[0_14px_30px_rgba(15,23,42,0.07)] xl:flex">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-              <FlameIcon className="h-5 w-5" />
+              <StarIcon className="h-5 w-5" />
             </span>
             <div>
               <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Streak</p>

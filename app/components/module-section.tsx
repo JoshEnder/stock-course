@@ -5,6 +5,7 @@ import type { DerivedLesson, DerivedModule } from "../lib/course-engine";
 import {
   BarChartIcon,
   BuildingIcon,
+  CircleIcon,
   CompassIcon,
   LayersIcon,
   LineChartIcon,
@@ -63,7 +64,7 @@ function buildCurvePath() {
 const pathD = buildCurvePath();
 
 export function ModuleSection({ module }: ModuleSectionProps) {
-  const Icon = moduleIcons[module.icon];
+  const Icon = moduleIcons[module.icon] ?? CircleIcon;
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [isReturnFocused, setIsReturnFocused] = useState(true);

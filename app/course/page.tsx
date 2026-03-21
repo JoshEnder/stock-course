@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CourseOverviewScreen } from "../screens/course-overview-screen";
+import { CourseMapScreen } from "../screens/course-map-screen";
 
 export const metadata: Metadata = {
   title: "Course Overview | Stock Academy",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function CoursePage() {
-  return <CourseOverviewScreen />;
+  return <CourseMapScreen />;
 }

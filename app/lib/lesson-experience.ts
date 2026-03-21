@@ -1,7 +1,5 @@
 import type { CourseLesson, CourseModule } from "../data/course-data";
-import { authoredLessonExperiences } from "../data/authored-lessons";
-import { advancedAuthoredLessonExperiences } from "../data/authored-lessons-advanced";
-import { synthesisAuthoredLessonExperiences } from "../data/authored-lessons-synthesis";
+import type { AuthoredLessonExperience } from "../data/authored-lessons";
 import {
   checkContent,
   learnContent,
@@ -49,11 +47,34 @@ type ThemeConfig = {
   reviewPrompt: string;
 };
 
-const mergedAuthoredLessonExperiences = {
-  ...authoredLessonExperiences,
-  ...advancedAuthoredLessonExperiences,
-  ...synthesisAuthoredLessonExperiences,
-};
+let authoredExperienceCache: Record<string, AuthoredLessonExperience> | null =
+  null;
+let authoredExperiencePromise:
+  | Promise<Record<string, AuthoredLessonExperience>>
+  | null = null;
+
+async function loadAuthoredExperiences() {
+  if (authoredExperienceCache) {
+    return authoredExperienceCache;
+  }
+
+  if (!authoredExperiencePromise) {
+    authoredExperiencePromise = Promise.all([
+      import("../data/authored-lessons"),
+      import("../data/authored-lessons-advanced"),
+      import("../data/authored-lessons-synthesis"),
+    ]).then(([core, advanced, synthesis]) => {
+      authoredExperienceCache = {
+        ...core.authoredLessonExperiences,
+        ...advanced.advancedAuthoredLessonExperiences,
+        ...synthesis.synthesisAuthoredLessonExperiences,
+      };
+      return authoredExperienceCache;
+    });
+  }
+
+  return authoredExperiencePromise;
+}
 
 const moduleThemes: Record<string, ThemeConfig> = {
   "chart-basics": {
@@ -593,7 +614,7 @@ function cloneCheckOptions(options?: CheckContent["options"]) {
 }
 
 function getFoundationsExperience(lesson: CourseLesson): LessonExperience {
-  const authored = mergedAuthoredLessonExperiences[lesson.id];
+  const authored = authoredExperienceCache?.[lesson.id];
 
   if (authored) {
     return {
@@ -641,7 +662,50 @@ function getThemedExperience(
   module: CourseModule,
   lesson: CourseLesson,
 ): LessonExperience {
-  const theme = moduleThemes[module.slug];
+  const fallbackTheme: ThemeConfig = {
+    visual: "sandbox",
+    activityKind: "chart-lab",
+    learnLead:
+      "This lesson builds a clean, beginner-first mental model before you apply it.",
+    whatThisMeans:
+      "Focus on the one idea being taught and the one action you're taking.",
+    commonMistake:
+      "Rushing the concept without checking the core signal being taught.",
+    labMoment:
+      "Use the interaction to make the concept feel concrete before you move on.",
+    supportActivities: ["Focus the signal", "Use the interaction", "Confirm the idea"],
+    practiceSummary:
+      "Apply the idea in a fresh way instead of repeating the same step.",
+    practicePrompt:
+      "Use the interaction to prove you understand the concept, not to guess.",
+    practiceQuestion: "Which statement best matches this lesson?",
+    practiceOptions: [
+      { id: "a", text: "The concept is applied carefully", correct: true, reviewPrompt: "" },
+      {
+        id: "b",
+        text: "The concept is skipped",
+        correct: false,
+        reviewPrompt: "Revisit the lesson and focus on the core signal.",
+      },
+    ],
+    practiceExplanation:
+      "Right. The practice step should confirm the concept, not bypass it.",
+    checkType: "multiple",
+    checkQuestion: "What is the core idea from this lesson?",
+    checkOptions: [
+      { id: "a", text: "The main concept being taught", correct: true, reviewPrompt: "" },
+      {
+        id: "b",
+        text: "A random detail",
+        correct: false,
+        reviewPrompt: "Focus on the lesson's core concept.",
+      },
+    ],
+    checkExplanation:
+      "Correct. The check confirms the lesson's core concept.",
+    reviewPrompt: "Review the core concept and try again.",
+  };
+  const theme = moduleThemes[module.slug] ?? fallbackTheme;
 
   return {
     learn: {
@@ -674,37 +738,51 @@ function getThemedExperience(
   };
 }
 
-export function getLessonExperience(
+function buildExperienceFromAuthored(
+  authored: AuthoredLessonExperience,
+): LessonExperience {
+  return {
+    objective: authored.objective,
+    rewardLine: authored.rewardLine,
+    masteryTags: [...authored.masteryTags],
+    learn: {
+      ...authored.learn,
+      supportActivities: [...authored.learn.supportActivities],
+      panels: cloneLearnPanels(authored.learn.panels),
+    },
+    practice: {
+      ...authored.practice,
+      options: cloneOptions(authored.practice.options),
+      supportActivities: [...authored.practice.supportActivities],
+    },
+    check: {
+      ...authored.check,
+      options: cloneCheckOptions(authored.check.options),
+    },
+  };
+}
+
+export function getLessonExperienceFallback(
   module: CourseModule,
   lesson: CourseLesson,
 ): LessonExperience {
-  const authored = mergedAuthoredLessonExperiences[lesson.id];
-
-  if (authored) {
-    return {
-      objective: authored.objective,
-      rewardLine: authored.rewardLine,
-      masteryTags: [...authored.masteryTags],
-      learn: {
-        ...authored.learn,
-        supportActivities: [...authored.learn.supportActivities],
-        panels: cloneLearnPanels(authored.learn.panels),
-      },
-      practice: {
-        ...authored.practice,
-        options: cloneOptions(authored.practice.options),
-        supportActivities: [...authored.practice.supportActivities],
-      },
-      check: {
-        ...authored.check,
-        options: cloneCheckOptions(authored.check.options),
-      },
-    };
-  }
-
   if (module.slug === "foundations") {
     return getFoundationsExperience(lesson);
   }
 
   return getThemedExperience(module, lesson);
+}
+
+export async function getLessonExperienceAsync(
+  module: CourseModule,
+  lesson: CourseLesson,
+): Promise<LessonExperience> {
+  const authoredExperiences = await loadAuthoredExperiences();
+  const authored = authoredExperiences[lesson.id];
+
+  if (authored) {
+    return buildExperienceFromAuthored(authored);
+  }
+
+  return getLessonExperienceFallback(module, lesson);
 }

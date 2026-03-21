@@ -1,9 +1,28 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { triggerProgressFill } from "../lib/animations";
+
 type ProgressBarProps = {
   value: number;
   className?: string;
 };
 
 export function ProgressBar({ value, className = "" }: ProgressBarProps) {
+  const fillRef = useRef<HTMLDivElement>(null);
+  const prevValueRef = useRef<number>(value);
+
+  useEffect(() => {
+    const fill = fillRef.current;
+    if (!fill) return;
+    const from = prevValueRef.current;
+    const to = Math.max(0, Math.min(value, 100));
+    if (from !== to) {
+      triggerProgressFill(fill, from, to);
+      prevValueRef.current = to;
+    }
+  }, [value]);
+
   return (
     <div
       aria-label={`Progress ${Math.round(value)} percent`}
@@ -14,7 +33,8 @@ export function ProgressBar({ value, className = "" }: ProgressBarProps) {
       role="progressbar"
     >
       <div
-        className="h-full rounded-full bg-primary transition-all duration-300"
+        ref={fillRef}
+        className="progress-fill h-full rounded-full bg-primary"
         style={{ width: `${Math.max(0, Math.min(value, 100))}%` }}
       />
     </div>

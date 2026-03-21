@@ -53,125 +53,104 @@ export function LessonRewardStep({
       : completionLine ?? "You cleared the final module."
     : completionLine ?? "Nice work. Your path is updated and the next lesson is ready.";
 
+  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+  const celebEmoji = moduleCompleted ? "🏆" : isBossLesson ? "⭐" : "🎉";
+
   return (
     <div
-      className={`reward-panel-enter reward-surface journey-milestone-panel rounded-[2rem] border border-white/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fcf9_100%)] p-8 shadow-[0_24px_48px_rgba(15,23,42,0.07)] md:p-12 ${
-        moduleCompleted ? "journey-milestone-panel--module" : isBossLesson ? "journey-milestone-panel--boss" : ""
-      }`}
+      className="reward-panel-enter reward-surface journey-milestone-panel"
       data-milestone={moduleCompleted ? "module" : isBossLesson ? "boss" : "lesson"}
+      style={{ fontFamily: font }}
     >
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
-        <span className="text-sm font-semibold text-emerald-700">{rewardEyebrow}</span>
+      {/* Celebration header */}
+      <div style={{ textAlign: "center", padding: "32px 0 24px" }}>
+        <div style={{ fontSize: 72, lineHeight: 1, marginBottom: 20 }}>{celebEmoji}</div>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: 99, padding: "6px 16px", marginBottom: 16 }}>
+          <SparklesIcon style={{ width: 16, height: 16, color: "#16a34a" }} />
+          <span style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#16a34a" }}>{rewardEyebrow}</span>
+        </div>
+        <h2 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 900, color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 12, lineHeight: 1.2 }}>
+          {rewardTitle}
+        </h2>
+        <p style={{ fontSize: 16, color: "#6b7280", lineHeight: 1.6, maxWidth: 480, margin: "0 auto" }}>{rewardSupport}</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div>
-          {(moduleCompleted || isBossLesson) ? (
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200/80 bg-white px-3.5 py-2 text-sm font-semibold text-emerald-700 shadow-[0_12px_26px_rgba(22,163,74,0.08)]">
-              <SparklesIcon className="h-4 w-4" />
-              {moduleCompleted ? "Major milestone reached" : "Checkpoint complete"}
-            </div>
-          ) : null}
-          <div
-            className="reward-badge-glow journey-milestone-medal mb-5 flex h-16 w-16 items-center justify-center rounded-[1.4rem] text-white shadow-[0_18px_34px_rgba(15,23,42,0.14)]"
-            style={{ backgroundColor: accentColor }}
-          >
-            <CheckCircleIcon className="h-8 w-8" />
-          </div>
-          <h2 className="text-3xl font-semibold tracking-[-0.04em] text-slate-950">
-            {rewardTitle}
-          </h2>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-            {rewardSupport}
-          </p>
-          {masteryTags.length ? (
-            <div className="mt-6 flex flex-wrap gap-2">
-              {masteryTags.slice(0, 4).map((tag, index) => (
-                <span
-                  key={tag}
-                  className="reward-chip inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800"
-                  style={{ animationDelay: `${index * 90}ms` }}
-                >
-                  <CheckCircleIcon className="h-3.5 w-3.5" />
-                  {tag.replace(/-/g, " ")}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          {nextUnlockTitle ? (
-            <div className="journey-unlock-card mt-6 rounded-[1.4rem] border border-emerald-200 bg-[linear-gradient(135deg,#ffffff_0%,#f0fff5_100%)] p-4 shadow-[0_16px_30px_rgba(22,163,74,0.08)]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                Next unlock
-              </p>
-              <p className="mt-2 text-lg font-semibold text-slate-950">{nextUnlockTitle}</p>
-              <p className="mt-1 text-sm text-slate-600">
-                Your next path is open and ready.
-              </p>
-            </div>
-          ) : null}
+      {/* Mastery tags */}
+      {masteryTags.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginBottom: 24 }}>
+          {masteryTags.slice(0, 4).map((tag, i) => (
+            <span key={tag} className="reward-chip" style={{ animationDelay: `${i * 90}ms`, display: "inline-flex", alignItems: "center", gap: 6, background: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: 99, padding: "6px 14px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#15803d" }}>
+              <CheckCircleIcon style={{ width: 12, height: 12 }} />
+              {tag.replace(/-/g, " ")}
+            </span>
+          ))}
         </div>
+      )}
 
-        <div
-          className="reward-progress-card rounded-[1.5rem] border border-slate-200 bg-slate-50/85 p-5"
-          data-milestone={moduleCompleted ? "module" : isBossLesson ? "boss" : "lesson"}
-        >
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-            Progress update
-          </p>
-          <div className="mt-4 space-y-4">
-            <div className="reward-progress-row" style={{ animationDelay: "70ms" }}>
-              <p className="text-xs text-slate-500">Course completion count</p>
-              <p className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-                <AnimatedNumber className="progress-value live" value={completedLessons} /> lessons
-              </p>
+      {/* Next unlock banner */}
+      {nextUnlockTitle && (
+        <div className="journey-unlock-card" style={{ background: "#f0fdf4", border: "2px solid #22c55e", borderRadius: 16, padding: 16, marginBottom: 24, boxShadow: "0 4px 0 #16a34a" }}>
+          <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22c55e", marginBottom: 6 }}>Next unlock</p>
+          <p style={{ fontSize: 18, fontWeight: 900, color: "#172b4d" }}>{nextUnlockTitle}</p>
+          <p style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>Your next path is open and ready.</p>
+        </div>
+      )}
+
+      {/* Progress stats */}
+      <div
+        className="reward-progress-card"
+        data-milestone={moduleCompleted ? "module" : isBossLesson ? "boss" : "lesson"}
+        style={{ background: "#f9fafb", border: "2px solid #e5e7eb", borderRadius: 16, padding: 20, marginBottom: 24 }}
+      >
+        <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "#9ca3af", marginBottom: 16 }}>Progress update</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="reward-progress-row" style={{ animationDelay: "70ms" }}>
+            <p style={{ fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>Total lessons completed</p>
+            <p style={{ fontSize: 24, fontWeight: 900, color: "#172b4d" }}>
+              <AnimatedNumber className="progress-value live" value={completedLessons} /> lessons
+            </p>
+          </div>
+          <div className="reward-progress-row" style={{ animationDelay: "130ms" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
+              <span style={{ color: "#6b7280", fontWeight: 600 }}>Course progress</span>
+              <AnimatedNumber className="progress-value live" suffix="%" value={courseCompletionPercent} style={{ fontWeight: 800, color: "#172b4d" }} />
             </div>
-            <div className="reward-progress-row space-y-2" style={{ animationDelay: "130ms" }}>
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>Course progress</span>
-                <AnimatedNumber
-                  className="progress-value live font-semibold text-slate-900"
-                  suffix="%"
-                  value={courseCompletionPercent}
-                />
-              </div>
+            <div style={{ height: 12, background: "#e5e7eb", borderRadius: 99, overflow: "hidden" }}>
               <ProgressBar className="reward-progress-bar" value={courseCompletionPercent} />
             </div>
-            <div className="reward-progress-row space-y-2" style={{ animationDelay: "190ms" }}>
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span>{moduleTitle}</span>
-                <AnimatedNumber
-                  className="progress-value live font-semibold text-slate-900"
-                  suffix="%"
-                  value={moduleProgressPercent}
-                />
-              </div>
+          </div>
+          <div className="reward-progress-row" style={{ animationDelay: "190ms" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
+              <span style={{ color: "#6b7280", fontWeight: 600 }}>{moduleTitle}</span>
+              <AnimatedNumber className="progress-value live" suffix="%" value={moduleProgressPercent} style={{ fontWeight: 800, color: "#172b4d" }} />
+            </div>
+            <div style={{ height: 12, background: "#e5e7eb", borderRadius: 99, overflow: "hidden" }}>
               <ProgressBar className="reward-progress-bar" value={moduleProgressPercent} />
             </div>
-            <div className="reward-progress-row" style={{ animationDelay: "250ms" }}>
-              <p className="text-xs text-slate-500">Module status</p>
-              <p className="text-sm font-semibold text-slate-900">{moduleProgressLabel}</p>
-            </div>
-            <div
-              className="reward-progress-row flex items-center gap-2 text-sm font-medium text-slate-700"
-              style={{ animationDelay: "310ms" }}
-            >
-              <TrendingUpIcon className="h-4 w-4 text-emerald-600" />
-              {rankLabel}
-            </div>
+          </div>
+          <div className="reward-progress-row" style={{ animationDelay: "310ms", display: "flex", alignItems: "center", gap: 8 }}>
+            <TrendingUpIcon style={{ width: 16, height: 16, color: "#22c55e" }} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#374151" }}>{rankLabel}</span>
           </div>
         </div>
       </div>
 
+      {/* Continue button */}
       <button
-        className="interactive-cta journey-forward-cta reward-cta mt-8 w-full rounded-2xl bg-[linear-gradient(135deg,#16a34a_0%,#22c55e_100%)] px-8 py-4 text-lg font-semibold text-white shadow-[0_18px_34px_rgba(22,163,74,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_40px_rgba(22,163,74,0.24)]"
-        data-ready="true"
-        data-success="true"
-        data-win="true"
+        className="interactive-cta journey-forward-cta reward-cta"
+        data-ready="true" data-success="true" data-win="true"
         data-milestone={moduleCompleted ? "module" : isBossLesson ? "boss" : "lesson"}
         onClick={onContinue}
         type="button"
+        style={{
+          width: "100%", padding: "18px", fontFamily: font, fontWeight: 800, fontSize: 17,
+          textTransform: "uppercase", letterSpacing: "0.08em", color: "#fff", border: "none",
+          borderRadius: 16, cursor: "pointer", background: "#22c55e", boxShadow: "0 5px 0 #16a34a",
+        }}
+        onMouseDown={(e) => { const el = e.currentTarget; el.style.transform = "translateY(3px)"; el.style.boxShadow = "0 2px 0 #16a34a"; }}
+        onMouseUp={(e) => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = "0 5px 0 #16a34a"; }}
       >
-        {nextUnlockTitle ? "Enter the next module" : "Start next lesson"}
+        {nextUnlockTitle ? "Enter the next module →" : "Start next lesson →"}
       </button>
     </div>
   );

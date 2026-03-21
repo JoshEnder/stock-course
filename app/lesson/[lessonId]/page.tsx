@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { LessonPlayerScreen } from "../../screens/lesson-player-screen";
+import { notFound, redirect } from "next/navigation";
+import { courseModules } from "../../data/course-data";
 
 type LessonPageProps = {
   params: Promise<{
@@ -16,13 +16,20 @@ export const metadata: Metadata = {
 export default async function LessonPage({ params }: LessonPageProps) {
   const { lessonId } = await params;
 
-  if (!["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"].includes(lessonId)) {
+  const lessonNumber = Number(lessonId);
+
+  if (!Number.isInteger(lessonNumber) || lessonNumber < 1 || lessonNumber > 10) {
     notFound();
   }
 
-  return (
-    <LessonPlayerScreen
-      lessonId={Number(lessonId) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}
-    />
+  const foundationsModule = courseModules.find((module) => module.slug === "foundations");
+  const lesson = foundationsModule?.lessons.find(
+    (item) => item.lessonNumber === lessonNumber,
   );
+
+  if (!foundationsModule || !lesson) {
+    notFound();
+  }
+
+  redirect(lesson.route);
 }

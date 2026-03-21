@@ -2,14 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AwardIcon,
-  BrainIcon,
-  ClockIcon,
-  DownloadIcon,
-  ShareIcon,
-} from "../components/icons";
-import { ScrollReveal } from "../components/scroll-reveal";
+import { AwardIcon, BrainIcon, ClockIcon, DownloadIcon, ShareIcon } from "../components/icons";
 import {
   getNickname,
   subscribeToCourseStorage,
@@ -42,115 +35,86 @@ export function CompletionScreen() {
       text: `${nickname} completed Beginner Stock Foundations.`,
       url: `${window.location.origin}/certificate`,
     };
-
     if (navigator.share) {
       await navigator.share(shareData);
       return;
     }
-
     await navigator.clipboard.writeText(shareData.url);
   }
 
+  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
-      {showConfetti ? (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="celebration-burst" />
-          {Array.from({ length: 36 }, (_, index) => (
+    <div style={{ minHeight: "100vh", background: "#f0fdf4", fontFamily: font, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", position: "relative", overflow: "hidden" }}>
+      {/* Confetti */}
+      {showConfetti && (
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+          {Array.from({ length: 36 }, (_, i) => (
             <span
-              key={index}
-              className={`confetti-dot ${index % 3 === 0 ? "confetti-rect" : index % 3 === 1 ? "confetti-dot--light" : "confetti-dot--leaf"}`}
-              style={
-                {
-                  left: `${(index / 36) * 100}%`,
-                  animationDelay: `${(index % 6) * 120}ms`,
-                  animationDuration: `${2600 + (index % 5) * 260}ms`,
-                } as React.CSSProperties
-              }
+              key={i}
+              className={`confetti-dot ${i % 3 === 0 ? "confetti-rect" : i % 3 === 1 ? "confetti-dot--light" : "confetti-dot--leaf"}`}
+              style={{
+                left: `${(i / 36) * 100}%`,
+                animationDelay: `${(i % 6) * 120}ms`,
+                animationDuration: `${2600 + (i % 5) * 260}ms`,
+              } as React.CSSProperties}
             />
           ))}
         </div>
-      ) : null}
+      )}
 
-      <div className="w-full max-w-2xl">
-        <div className="completion-card rounded-3xl bg-card p-8 text-center shadow-2xl md:p-12">
-          <div className="completion-medal-wrap mx-auto mb-6">
-            <div className="completion-medal mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-white">
-              <AwardIcon className="h-12 w-12" />
+      <div style={{ width: "100%", maxWidth: 600 }}>
+        {/* Main card */}
+        <div style={{ background: "#fff", borderRadius: 24, border: "2px solid #e5e7eb", boxShadow: "0 8px 0 #e5e7eb", padding: 40, textAlign: "center" }}>
+
+          {/* Trophy */}
+          <div style={{ fontSize: 72, lineHeight: 1, marginBottom: 20 }}>🏆</div>
+
+          {/* Eyebrow */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: 99, padding: "6px 16px", marginBottom: 16 }}>
+            <span style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "#16a34a" }}>Course complete</span>
+          </div>
+
+          <h1 style={{ fontSize: "clamp(24px,4vw,36px)", fontWeight: 900, color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 12, lineHeight: 1.2 }}>
+            Congratulations, {nickname}!
+          </h1>
+          <p style={{ fontSize: 18, color: "#6b7280", lineHeight: 1.6, marginBottom: 32 }}>
+            You&apos;ve completed Beginner Stock Foundations
+          </p>
+
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 32 }}>
+            <CompletionStat icon={<ClockIcon style={{ width: 20, height: 20, color: "#22c55e", margin: "0 auto 8px" }} />} label="Time" value="74 min" />
+            <CompletionStat icon={<BrainIcon style={{ width: 20, height: 20, color: "#22c55e", margin: "0 auto 8px" }} />} label="Lessons" value="10" />
+            <CompletionStat icon={<AwardIcon style={{ width: 20, height: 20, color: "#22c55e", margin: "0 auto 8px" }} />} label="Accuracy" value="96%" />
+          </div>
+
+          {/* Certificate card */}
+          <div style={{ background: "#f0fdf4", border: "2px solid #22c55e", borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: "0 4px 0 #16a34a" }}>
+            <p style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22c55e", marginBottom: 8 }}>Your achievement</p>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: "#172b4d", marginBottom: 8 }}>Certificate of Completion</h3>
+            <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.6, marginBottom: 20 }}>
+              This certifies that <strong style={{ color: "#172b4d" }}>{nickname}</strong> has successfully completed the Beginner Stock Foundations course
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
+              <DuoBtn onClick={() => router.push("/certificate")}>
+                <AwardIcon style={{ width: 16, height: 16 }} /> View certificate
+              </DuoBtn>
+              <DuoBtn secondary onClick={() => window.print()}>
+                <DownloadIcon style={{ width: 16, height: 16 }} /> Download
+              </DuoBtn>
+              <DuoBtn secondary onClick={handleShare}>
+                <ShareIcon style={{ width: 16, height: 16 }} /> Share
+              </DuoBtn>
             </div>
           </div>
 
-          <h1 className="mb-4 text-4xl font-semibold text-foreground md:text-5xl">
-            Congratulations, {nickname}! 🎉
-          </h1>
-          <p className="mb-10 text-xl text-muted-foreground">
-            You&apos;ve completed the Beginner Stock Foundations course
-          </p>
-
-          <ScrollReveal className="mb-10" delayMs={80}>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <CompletionStat
-                icon={<ClockIcon className="mx-auto mb-2 h-6 w-6 text-primary" />}
-                label="Completion time"
-                value="74 minutes"
-              />
-              <CompletionStat
-                icon={<BrainIcon className="mx-auto mb-2 h-6 w-6 text-primary" />}
-                label="Lessons completed"
-                value="10"
-              />
-              <CompletionStat
-                icon={<AwardIcon className="mx-auto mb-2 h-6 w-6 text-primary" />}
-                label="Accuracy"
-                value="96%"
-              />
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delayMs={130}>
-            <div className="mb-8 rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-accent to-primary/5 p-8">
-              <p className="mb-3 text-sm text-muted-foreground">
-                Your achievement
-              </p>
-              <h3 className="mb-4 text-2xl font-semibold text-foreground">
-                Certificate of Completion
-              </h3>
-              <p className="mb-6 text-muted-foreground">
-                This certifies that{" "}
-                <span className="font-semibold text-foreground">{nickname}</span>{" "}
-                has successfully completed the Beginner Stock Foundations course
-              </p>
-              <div className="flex flex-col justify-center gap-3 sm:flex-row">
-                <button
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-primary-foreground transition-all hover:bg-primary/90"
-                  onClick={() => router.push("/certificate")}
-                >
-                  <AwardIcon className="h-5 w-5" />
-                  View certificate
-                </button>
-                <button
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-6 py-3 text-secondary-foreground transition-all hover:bg-secondary/80"
-                  onClick={() => window.print()}
-                >
-                  <DownloadIcon className="h-5 w-5" />
-                  Download
-                </button>
-                <button
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-6 py-3 text-secondary-foreground transition-all hover:bg-secondary/80"
-                  onClick={handleShare}
-                >
-                  <ShareIcon className="h-5 w-5" />
-                  Share
-                </button>
-              </div>
-            </div>
-          </ScrollReveal>
-
           <button
-            className="text-muted-foreground transition-colors hover:text-foreground"
             onClick={() => router.push("/course")}
+            type="button"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 14, fontFamily: font }}
           >
-            ← Back to course overview
+            &larr; Back to course overview
           </button>
         </div>
       </div>
@@ -158,20 +122,46 @@ export function CompletionScreen() {
   );
 }
 
-function CompletionStat({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function CompletionStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-primary/20 bg-accent p-6">
+    <div style={{ background: "#f9fafb", border: "2px solid #e5e7eb", borderRadius: 16, padding: "16px 8px", textAlign: "center" }}>
       {icon}
-      <p className="text-2xl font-semibold text-foreground">{value}</p>
-      <p className="text-sm text-muted-foreground">{label}</p>
+      <p style={{ fontSize: 22, fontWeight: 900, color: "#172b4d", marginBottom: 2 }}>{value}</p>
+      <p style={{ fontSize: 12, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
     </div>
+  );
+}
+
+function DuoBtn({
+  children,
+  onClick,
+  secondary,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  secondary?: boolean;
+}) {
+  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+  const bg = secondary ? "#fff" : "#22c55e";
+  const shadow = secondary ? "0 4px 0 #e5e7eb" : "0 4px 0 #16a34a";
+  const color = secondary ? "#374151" : "#fff";
+  const border = secondary ? "2px solid #e5e7eb" : "2px solid transparent";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "10px 18px", borderRadius: 12, border,
+        background: bg, boxShadow: shadow, color,
+        fontFamily: font, fontWeight: 800, fontSize: 14,
+        cursor: "pointer", transition: "all 150ms",
+      }}
+      onMouseDown={(e) => { const el = e.currentTarget; el.style.transform = "translateY(2px)"; el.style.boxShadow = secondary ? "0 2px 0 #e5e7eb" : "0 2px 0 #16a34a"; }}
+      onMouseUp={(e) => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = shadow; }}
+    >
+      {children}
+    </button>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   CheckCircleIcon,
   ChevronRightIcon,
+  CircleIcon,
   LockIcon,
   StarIcon,
 } from "./icons";
@@ -36,6 +37,7 @@ export function LessonNode({
   state,
   title,
 }: LessonNodeProps) {
+  const ChevronIcon = ChevronRightIcon ?? CircleIcon;
   const [visible, setVisible] = useState(false);
   const [lockedNotice, setLockedNotice] = useState(false);
   const [transitionState, setTransitionState] = useState<
@@ -179,7 +181,7 @@ export function LessonNode({
           ) : isBoss ? (
             <StarIcon className="h-7 w-7" style={{ color: accentColor }} />
           ) : state === "current" ? (
-            <ChevronRightIcon className="h-7 w-7" style={{ color: accentColor }} />
+                <ChevronIcon className="h-7 w-7" style={{ color: accentColor }} />
           ) : (
             <span className="text-[1.15rem] font-semibold">{lessonNumber}</span>
           )}

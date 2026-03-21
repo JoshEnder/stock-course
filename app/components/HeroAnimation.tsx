@@ -3,40 +3,52 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 
-// Word trigger points mapped to animation progress
+// SVG viewBox 0 0 1000 700 → words use transform:translate(-50%,-50%)
+// so top = SVG_y / 700 * 100% gives perfect alignment at any viewport height.
+//
+// Bounce vertices (straight L segments):
+//   (20,  660) start   – bottom-left
+//   (190, 240) Stock   – left 19%, top 34.3%
+//   (370, 420) learning– left 37%, top 60%
+//   (550, 160) that    – left 55%, top 22.9%
+//   (720, 310) actually– left 72%, top 44.3%
+//   (900,  80) clicks. – left 90%, top 11.4%
+//   (960,  72) tail
+//
+// Cumulative arc lengths — EXACT for straight L segments:
+//   sqrt(170²+420²)=453.1  → 453.1/1603.2 = 0.2826  Stock
+//   +sqrt(180²+180²)=254.6 → 707.7/1603.2 = 0.4414  learning
+//   +sqrt(180²+260²)=316.2 → 1023.9/1603.2= 0.6387  that
+//   +sqrt(170²+150²)=226.7 → 1250.6/1603.2= 0.7801  actually
+//   +sqrt(180²+230²)=292.1 → 1542.7/1603.2= 0.9623  clicks.
+//
+// Using exact fractions ensures the line tip IS at the word when it snaps in.
+
 const WORDS = [
-  { id: "w-stock",    text: "Stock",            progress: 0.22, left: "22%", top: "50%" },
-  { id: "w-learning", text: "learning",         progress: 0.42, left: "42%", top: "37%" },
-  { id: "w-that",     text: "that",             progress: 0.62, left: "62%", top: "26%" },
-  { id: "w-clicks",   text: "actually clicks.", progress: 0.85, left: "78%", top: "8%", isClimax: true },
+  { id: "w-stock",    text: "Stock",    progress: 0.2826, left: "19%", top: "34.3%" },
+  { id: "w-learning", text: "learning", progress: 0.4414, left: "37%", top: "60%"   },
+  { id: "w-that",     text: "that",     progress: 0.6387, left: "55%", top: "22.9%" },
+  { id: "w-actually", text: "actually", progress: 0.7801, left: "72%", top: "44.3%" },
+  { id: "w-clicks",   text: "clicks.",  progress: 0.9623, left: "90%", top: "11.4%", isClimax: true },
 ] as const;
 
-// Real stock-chart feel: starts bottom-right (~980,640), ends upper-left (~20,80)
-// with authentic rises, dips, and micro-bounces along the way
 const PATH =
-  "M 980 640" +
-  " C 948 618, 922 598, 894 572" +
-  " C 866 546, 858 560, 832 534" +
-  " C 806 508, 800 488, 773 462" +
-  " C 746 436, 736 452, 710 426" +
-  " C 684 400, 678 376, 651 350" +
-  " C 624 324, 612 342, 586 316" +
-  " C 560 290, 553 266, 526 240" +
-  " C 499 214, 488 232, 461 208" +
-  " C 434 184, 426 158, 399 136" +
-  " C 372 114, 358 130, 330 110" +
-  " C 302 90, 290 72, 262 62" +
-  " C 234 52, 218 64, 190 56" +
-  " C 162 48, 144 54, 116 48" +
-  " C 88 42, 62 50, 20 80";
+  "M 20 660" +
+  " L 190 240" +   // → Stock     (rising)
+  " L 370 420" +   // → learning  (falling)
+  " L 550 160" +   // → that      (rising)
+  " L 720 310" +   // → actually  (falling)
+  " L 900 80"  +   // → clicks.   (rising — final peak)
+  " L 960 72";     // tail
 
-// Eased progress → raw progress to get natural cubic ease-in-out
-function easeInOut(t: number) {
+function easeInOut(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
 export function HeroAnimation() {
   const pathRef   = useRef<SVGPathElement>(null);
+  const arrowRef  = useRef<SVGGElement>(null);
+  const svgRef    = useRef<SVGSVGElement>(null);
   const dotRef    = useRef<SVGCircleElement>(null);
   const ringRef   = useRef<SVGCircleElement>(null);
   const rippleRef = useRef<SVGCircleElement>(null);
@@ -44,11 +56,15 @@ export function HeroAnimation() {
 
   useEffect(() => {
     const path = pathRef.current;
-    if (!path) return;
+    const svg  = svgRef.current;
+    if (!path || !svg) return;
 
+    // 1. Set dasharray/dashoffset so the line is invisible when drawn
     const totalLength = path.getTotalLength();
     path.style.strokeDasharray  = String(totalLength);
     path.style.strokeDashoffset = String(totalLength);
+    // 2. NOW reveal the SVG — line is hidden by dashoffset, not visibility hack
+    svg.style.opacity = "1";
 
     const DURATION = 3400;
     let startTime: number | null = null;
@@ -61,17 +77,15 @@ export function HeroAnimation() {
       el.style.opacity    = "1";
 
       if ("isClimax" in word && word.isClimax) {
-        // Scale pulse: 1 → 1.05 → 1
-        el.style.transform = "translateX(-50%) scale(1.05)";
+        el.style.transform = "translate(-50%, -50%) scale(1.05)";
         setTimeout(() => {
           el.style.transition = "transform 200ms ease-out";
-          el.style.transform  = "translateX(-50%) scale(1)";
+          el.style.transform  = "translate(-50%, -50%) scale(1)";
         }, 200);
 
-        // SVG ripple from the line's current touch point
         const ripple = rippleRef.current;
         if (ripple) {
-          const pt = path.getPointAtLength(totalLength * (1 - word.progress));
+          const pt = path.getPointAtLength(word.progress * totalLength);
           ripple.setAttribute("cx", String(pt.x));
           ripple.setAttribute("cy", String(pt.y));
           ripple.style.opacity = "1";
@@ -93,8 +107,21 @@ export function HeroAnimation() {
       const raw   = Math.min((now - startTime) / DURATION, 1);
       const eased = easeInOut(raw);
 
+      // Draw line
       path.style.strokeDashoffset = String(totalLength * (1 - eased));
 
+      // Move arrowhead to the current tip with correct direction
+      const arrow = arrowRef.current;
+      if (arrow && eased > 0.005) {
+        const tipLen    = eased * totalLength;
+        const tip       = path.getPointAtLength(tipLen);
+        const behind    = path.getPointAtLength(Math.max(0, tipLen - 3));
+        const angle     = Math.atan2(tip.y - behind.y, tip.x - behind.x) * 180 / Math.PI;
+        arrow.setAttribute("transform", `translate(${tip.x},${tip.y}) rotate(${angle})`);
+        arrow.style.opacity = "1";
+      }
+
+      // Snap words
       for (const word of WORDS) {
         if (!triggered.has(word.id) && eased >= word.progress) {
           triggered.add(word.id);
@@ -107,17 +134,17 @@ export function HeroAnimation() {
         return;
       }
 
-      // Animation complete — show live endpoint elements
-      const endpoint = path.getPointAtLength(0); // path ends at index 0 (upper-left)
+      // ── Animation complete ─────────────────────────────────────
+
+      // Endpoint dot + pulse ring
+      const endpoint = path.getPointAtLength(totalLength);
       const dot  = dotRef.current;
       const ring = ringRef.current;
-
       if (dot) {
         dot.setAttribute("cx", String(endpoint.x));
         dot.setAttribute("cy", String(endpoint.y));
         dot.style.opacity = "1";
       }
-
       if (ring) {
         ring.setAttribute("cx", String(endpoint.x));
         ring.setAttribute("cy", String(endpoint.y));
@@ -131,14 +158,30 @@ export function HeroAnimation() {
         requestAnimationFrame(animRing);
       }
 
-      // CTA fades up
+      // Fade out the entire SVG after a brief pause
       setTimeout(() => {
-        const cta = document.getElementById("ha-cta");
-        if (cta) {
-          cta.style.transition = "opacity 500ms ease-out, transform 500ms ease-out";
-          cta.style.opacity    = "1";
-          cta.style.transform  = "translateX(-50%) translateY(0)";
-        }
+        svg.style.transition = "opacity 600ms ease-out";
+        svg.style.opacity    = "0";
+
+        // After SVG fades: animate words to the center line (form the sentence)
+        setTimeout(() => {
+          const wordEls = document.querySelectorAll<HTMLElement>(".ha-word");
+          wordEls.forEach((el) => {
+            el.style.transition = "top 750ms cubic-bezier(0.4, 0, 0.2, 1), transform 750ms cubic-bezier(0.4, 0, 0.2, 1)";
+            el.style.top        = "50%";
+            el.style.transform  = "translate(-50%, -50%)";
+          });
+
+          // CTA fades in after words settle
+          setTimeout(() => {
+            const cta = document.getElementById("ha-cta");
+            if (cta) {
+              cta.style.transition = "opacity 500ms ease-out, transform 500ms ease-out";
+              cta.style.opacity    = "1";
+              cta.style.transform  = "translateX(-50%) translateY(0)";
+            }
+          }, 850);
+        }, 650);
       }, 500);
     }
 
@@ -164,21 +207,25 @@ export function HeroAnimation() {
           overflow: hidden;
         }
 
-        /* Subtle green glow at endpoint (upper-left) */
         .ha-glow {
           position: absolute;
           inset: 0;
-          background: radial-gradient(ellipse at 12% 12%, #f0fdf4 0%, transparent 52%);
+          background: radial-gradient(ellipse at 4% 90%, #f0fdf4 0%, transparent 46%);
           pointer-events: none;
         }
 
+        /* opacity:0 set here (in the stylesheet) so it's in the SSR HTML.
+           JS sets svg.style.opacity="1" (inline, higher specificity) after
+           dashoffset is configured — so the line is never visible before ready. */
         .ha-svg {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
+          opacity: 0;
         }
 
+        /* transition: none — words snap in instantly (both CSS and JS enforce this) */
         .ha-word {
           position: absolute;
           font-family: var(--font-dm-serif, 'DM Serif Display', Georgia, serif);
@@ -187,16 +234,17 @@ export function HeroAnimation() {
           letter-spacing: -0.025em;
           color: #0f172a;
           white-space: nowrap;
-          transform: translateX(-50%);
+          /* pivot at word centre — aligns with SVG coordinates */
+          transform: translate(-50%, -50%);
           line-height: 1.1;
           pointer-events: none;
           user-select: none;
-          /* No transition — words snap in instantly */
+          transition: none;
         }
 
         #ha-cta {
           position: absolute;
-          bottom: 10%;
+          bottom: 8%;
           left: 50%;
           transform: translateX(-50%) translateY(14px);
           opacity: 0;
@@ -224,15 +272,15 @@ export function HeroAnimation() {
         }
 
         @media (max-width: 640px) {
-          #w-clicks { left: 68% !important; }
-          .ha-word  { font-size: clamp(1.6rem, 6vw, 3rem); }
+          #w-actually { left: 64% !important; }
+          #w-clicks   { left: 82% !important; }
+          .ha-word    { font-size: clamp(1.6rem, 6vw, 3rem); }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .ha-word         { opacity: 1 !important; }
-          #ha-dot,
-          #ha-dot-ring,
-          #ha-cta          { opacity: 1 !important; transform: translateX(-50%) !important; }
+          .ha-word { opacity: 1 !important; transform: translate(-50%, -50%) !important; }
+          .ha-svg  { display: none; }
+          #ha-cta  { opacity: 1 !important; transform: translateX(-50%) !important; }
         }
       `}</style>
 
@@ -240,23 +288,34 @@ export function HeroAnimation() {
         <div className="ha-glow" />
 
         <svg
+          ref={svgRef}
           className="ha-svg"
           viewBox="0 0 1000 700"
           preserveAspectRatio="none"
           fill="none"
           aria-hidden="true"
         >
+          {/* Main line — hidden by dashoffset until animation starts */}
           <path
             ref={pathRef}
             d={PATH}
             stroke="#22c55e"
-            strokeWidth="2.5"
+            strokeWidth="3.5"
             strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeLinejoin="miter"
             vectorEffect="non-scaling-stroke"
           />
 
-          {/* Green ripple on "actually clicks." */}
+          {/* Arrowhead that tracks the live drawing tip */}
+          <g ref={arrowRef} style={{ opacity: 0 }}>
+            {/* Triangle: tip at origin (0,0), opening toward (-16,0) */}
+            <polygon
+              points="0,0 -16,-7 -16,7"
+              fill="#22c55e"
+            />
+          </g>
+
+          {/* Ripple burst when "clicks." snaps in */}
           <circle
             ref={rippleRef}
             r="0"
@@ -267,19 +326,17 @@ export function HeroAnimation() {
             style={{ opacity: 0 }}
           />
 
-          {/* Live indicator dot at endpoint */}
+          {/* Endpoint dot */}
           <circle
             ref={dotRef}
-            id="ha-dot"
             r="5"
             fill="#22c55e"
             style={{ opacity: 0, transition: "opacity 400ms ease-out" }}
           />
 
-          {/* Pulse ring around dot */}
+          {/* Pulse ring around endpoint */}
           <circle
             ref={ringRef}
-            id="ha-dot-ring"
             r="6"
             fill="none"
             stroke="#22c55e"
@@ -289,7 +346,7 @@ export function HeroAnimation() {
           />
         </svg>
 
-        {/* Tagline words — snap into existence as line touches them */}
+        {/* Words — snap in instantly as line reaches each vertex */}
         {WORDS.map((word) => (
           <div
             key={word.id}
@@ -301,7 +358,7 @@ export function HeroAnimation() {
           </div>
         ))}
 
-        {/* CTA — fades up after animation */}
+        {/* CTA — appears after words gather into the sentence */}
         <div id="ha-cta">
           <Link href="/onboarding" className="ha-cta-btn">
             Start Learning →

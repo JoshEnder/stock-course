@@ -3,6 +3,12 @@
 :root {
   --font-size: 16px;
   --background: #faf9f6;
+  --anim-correct: #22c55e;
+  --anim-incorrect: #ef4444;
+  --anim-xp: #22c55e;
+  --anim-duration-fast: 80ms;
+  --anim-duration-normal: 300ms;
+  --anim-duration-slow: 600ms;
   --foreground: #162033;
   --card: #ffffff;
   --card-foreground: #162033;
@@ -199,6 +205,75 @@ input {
     0 18px 40px rgba(22, 153, 76, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
   animation: medal-float 3.2s ease-in-out infinite;
+}
+
+@keyframes ha-pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes ha-shake {
+  0%, 100% { transform: translateX(0); }
+  14%       { transform: translateX(-6px); }
+  28%       { transform: translateX(6px); }
+  43%       { transform: translateX(-5px); }
+  57%       { transform: translateX(5px); }
+  71%       { transform: translateX(-3px); }
+  86%       { transform: translateX(3px); }
+}
+
+@keyframes ha-bounce {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.08); }
+  60%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ha-float-up {
+  0%   { opacity: 1;   transform: translateY(0) translateX(0); }
+  60%  { opacity: 1;   transform: translateY(-52px) translateX(18px); }
+  100% { opacity: 0;   transform: translateY(-80px) translateX(28px); }
+}
+
+@keyframes ha-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes ha-breathe-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.18);
+  }
+}
+
+@keyframes ha-slam-in {
+  0%   { opacity: 0; transform: scale(0.72) translateY(8px); }
+  65%  { transform: scale(1.06) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes ha-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg) translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(600deg) translateX(32px);
+    opacity: 0;
+  }
+}
+
+.anim-btn-pulse {
+  animation: ha-breathe-glow 2s ease-in-out infinite;
 }
 
 @keyframes confetti-fall {

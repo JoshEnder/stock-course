@@ -4,10 +4,11 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "reac
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CourseLesson, CourseModule } from "../data/course-data";
 import {
-  ArrowLeftIcon,
   ClockIcon,
+  HeartIcon,
   LockIcon,
   SparklesIcon,
+  XIcon,
 } from "../components/icons";
 import { JourneyLink } from "../components/journey-link";
 import { JourneySurface } from "../components/journey-surface";
@@ -46,7 +47,10 @@ import {
   deriveCourseState,
   getNextLessonRoute,
 } from "../lib/course-engine";
-import { getLessonExperience } from "../lib/lesson-experience";
+import {
+  getLessonExperienceAsync,
+  getLessonExperienceFallback,
+} from "../lib/lesson-experience";
 import {
   completeLesson,
   getServerCourseProgressSnapshot,
@@ -91,6 +95,12 @@ export function LessonShellScreen({
   const [phaseDirection, setPhaseDirection] = useState<"forward" | "back">("forward");
   const [phaseTransitionKey, setPhaseTransitionKey] = useState(0);
   const previousStepIndexRef = useRef(0);
+  const [hearts, setHearts] = useState(5);
+
+  function handleIncorrect() {
+    addReviewPrompt();
+    setHearts((h) => Math.max(0, h - 1));
+  }
 
   const courseState = useMemo(
     () => deriveCourseState(storedProgress),
@@ -102,10 +112,24 @@ export function LessonShellScreen({
   const derivedLesson = derivedModule?.lessons.find(
     (item) => item.id === lesson.id,
   ) as DerivedLesson | undefined;
-  const experience = useMemo(
-    () => getLessonExperience(module, lesson),
-    [lesson, module],
+  const [experience, setExperience] = useState(() =>
+    getLessonExperienceFallback(module, lesson),
   );
+
+  useEffect(() => {
+    let active = true;
+    setExperience(getLessonExperienceFallback(module, lesson));
+
+    getLessonExperienceAsync(module, lesson).then((nextExperience) => {
+      if (active) {
+        setExperience(nextExperience);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [lesson, module]);
   const currentStepIndex = stepSequence.indexOf(currentStep);
   const stepProgress = ((currentStepIndex + 1) / stepSequence.length) * 100;
   const nextModule = courseState.modules.find((item) => item.id === module.id + 1);
@@ -123,6 +147,7 @@ export function LessonShellScreen({
 
   useEffect(() => {
     setCurrentStep("learn");
+    setHearts(5);
     setFoundationsBossStep(0);
     setChartBossStep(0);
     setTrendBossStep(0);
@@ -173,19 +198,18 @@ export function LessonShellScreen({
 
     if (stepLesson.state === "locked" && !qaUnlocked) {
       return (
-        <div className="rounded-[1.4rem] border border-slate-200 bg-white px-6 py-8 text-center shadow-[0_16px_34px_rgba(15,23,42,0.06)]">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-            <LockIcon className="h-6 w-6" />
+        <div className="rounded-3xl border-2 border-gray-100 bg-white px-8 py-12 text-center shadow-[0_4px_0_#e5e5e5]">
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+            <LockIcon className="h-7 w-7" />
           </span>
-          <h2 className="mt-4 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+          <h2 className="mt-5 text-2xl font-black text-[#1a2b4a]">
             This lesson is still locked.
           </h2>
-          <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-slate-600">
-            Complete every lesson earlier in this module path before entering
-            this screen.
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">
+            Complete every lesson earlier in this module path before entering this screen.
           </p>
           <JourneyLink
-            className="interactive-cta mt-6 inline-flex rounded-2xl bg-[linear-gradient(135deg,#16a34a_0%,#22c55e_100%)] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(22,163,74,0.18)] transition hover:-translate-y-0.5"
+            className="mt-8 inline-flex rounded-2xl bg-[#22c55e] px-7 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#16a34a] transition-all hover:bg-[#1eb356] active:translate-y-[2px] active:shadow-[0_2px_0_#16a34a]"
             href="/course"
             intent="return"
             prefetch={false}
@@ -211,7 +235,7 @@ export function LessonShellScreen({
           <FoundationsBossPractice
             currentStep={Math.min(foundationsBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setFoundationsBossStep}
           />
         );
@@ -222,7 +246,7 @@ export function LessonShellScreen({
           <ChartBasicsBossPractice
             currentStep={Math.min(chartBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setChartBossStep}
           />
         );
@@ -233,7 +257,7 @@ export function LessonShellScreen({
           <TrendMomentumBossPractice
             currentStep={Math.min(trendBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setTrendBossStep}
           />
         );
@@ -244,7 +268,7 @@ export function LessonShellScreen({
           <SupportResistanceBossPractice
             currentStep={Math.min(supportBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setSupportBossStep}
           />
         );
@@ -255,7 +279,7 @@ export function LessonShellScreen({
           <BreakoutVolumeBossPractice
             currentStep={Math.min(breakoutBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setBreakoutBossStep}
           />
         );
@@ -266,7 +290,7 @@ export function LessonShellScreen({
           <BusinessFundamentalsBossPractice
             currentStep={Math.min(businessBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setBusinessBossStep}
           />
         );
@@ -277,7 +301,7 @@ export function LessonShellScreen({
           <MarketCapRevenueBossPractice
             currentStep={Math.min(marketCapBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setMarketCapBossStep}
           />
         );
@@ -288,7 +312,7 @@ export function LessonShellScreen({
           <EpsPeBossPractice
             currentStep={Math.min(epsBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setEpsBossStep}
           />
         );
@@ -299,7 +323,7 @@ export function LessonShellScreen({
           <PuttingItTogetherBossPractice
             currentStep={Math.min(puttingItTogetherBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setPuttingItTogetherBossStep}
           />
         );
@@ -310,7 +334,7 @@ export function LessonShellScreen({
           <FinalMasteryBossPractice
             currentStep={Math.min(finalMasteryBossStep, 3)}
             onAdvanceToCheck={() => setCurrentStep("check")}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onStepChange={setFinalMasteryBossStep}
           />
         );
@@ -320,7 +344,7 @@ export function LessonShellScreen({
         <LessonPracticeStep
           content={experience.practice}
           onContinue={() => setCurrentStep("check")}
-          onIncorrect={addReviewPrompt}
+          onIncorrect={handleIncorrect}
         />
       );
     }
@@ -333,7 +357,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setFoundationsBossStep(step);
               setCurrentStep("practice");
@@ -349,7 +373,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setChartBossStep(step);
               setCurrentStep("practice");
@@ -365,7 +389,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setTrendBossStep(step);
               setCurrentStep("practice");
@@ -381,7 +405,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setSupportBossStep(step);
               setCurrentStep("practice");
@@ -397,7 +421,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setBreakoutBossStep(step);
               setCurrentStep("practice");
@@ -413,7 +437,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setBusinessBossStep(step);
               setCurrentStep("practice");
@@ -429,7 +453,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setMarketCapBossStep(step);
               setCurrentStep("practice");
@@ -445,7 +469,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setEpsBossStep(step);
               setCurrentStep("practice");
@@ -461,7 +485,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setPuttingItTogetherBossStep(step);
               setCurrentStep("practice");
@@ -477,7 +501,7 @@ export function LessonShellScreen({
               completeLesson(lesson.id);
               setCurrentStep("reward");
             }}
-            onIncorrect={addReviewPrompt}
+            onIncorrect={handleIncorrect}
             onSetbackToPractice={(step) => {
               setFinalMasteryBossStep(step);
               setCurrentStep("practice");
@@ -493,7 +517,7 @@ export function LessonShellScreen({
             completeLesson(lesson.id);
             setCurrentStep("reward");
           }}
-          onIncorrect={addReviewPrompt}
+          onIncorrect={handleIncorrect}
         />
       );
     }
@@ -534,107 +558,80 @@ export function LessonShellScreen({
 
   return (
     <JourneySurface surface="lesson">
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f7f8fb_0%,#f4f7fb_50%,#f7f8fb_100%)] px-8 py-10">
-        <div className="mx-auto max-w-6xl">
-          <JourneyLink
-            className="interactive-cta mb-6 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-slate-950"
-            href="/course"
-            intent="return"
-            prefetch={false}
-          >
-            <ArrowLeftIcon className="h-4 w-4" />
-            Back to course map
-          </JourneyLink>
-
-          <div
-            className="lesson-journey-shell overflow-hidden rounded-[2rem] border border-white/80 bg-white/92 shadow-[0_28px_60px_rgba(15,23,42,0.08)]"
-            style={{
-              boxShadow: `0 28px 60px ${module.accentColor}12`,
-            }}
-          >
-            <div
-              className="course-grid relative overflow-hidden border-b border-slate-200 px-8 py-8"
-              style={{
-                background: `linear-gradient(135deg, ${module.accentSoft} 0%, #ffffff 46%, ${module.accentSoftAlt} 100%)`,
-              }}
+      <div
+        className="min-h-screen bg-white"
+        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
+      >
+        {/* ── Duolingo-style top bar ──────────────────────────── */}
+        <header className="sticky top-0 z-40 border-b-2 border-gray-100 bg-white">
+          <div className="mx-auto flex h-16 max-w-3xl items-center gap-4 px-4">
+            {/* X / close */}
+            <JourneyLink
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              href="/course"
+              intent="return"
+              prefetch={false}
+              aria-label="Back to course map"
             >
-              <div className="absolute inset-y-0 right-[-5rem] w-72 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.56)_0%,rgba(255,255,255,0)_72%)]" />
-              <div className="relative max-w-3xl">
-                  <p
-                    className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em]"
-                    style={{ color: module.accentColor }}
-                  >
-                    Module {module.id} · Lesson {lesson.lessonNumber}
-                  </p>
-                  <h1 className="text-4xl font-semibold tracking-[-0.04em] text-slate-950">
-                    {lesson.title}
-                  </h1>
-                  <p className="mt-3 max-w-xl text-base leading-7 text-slate-600">
-                    {experience.objective ?? "Learn it, try it, check it, move on."}
-                  </p>
-                  <div className="mt-4 flex flex-wrap items-center gap-2.5">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-700 shadow-[0_10px_20px_rgba(15,23,42,0.05)]">
-                      <SparklesIcon className="h-3.5 w-3.5" style={{ color: module.accentColor }} />
-                      {lessonStatusLabel}
-                    </span>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/82 px-3 py-1.5 text-sm text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.04)]">
-                      <ClockIcon className="h-4 w-4" />
-                      {lesson.estimatedTime}
-                    </span>
-                    <span className="inline-flex items-center rounded-full border border-white/80 bg-white/82 px-3 py-1.5 text-sm text-slate-600 shadow-[0_8px_18px_rgba(15,23,42,0.04)]">
-                      {lesson.xp} XP reward
-                    </span>
-                  </div>
-                </div>
+              <XIcon className="h-5 w-5" />
+            </JourneyLink>
+
+            {/* Progress bar */}
+            <div className={`lesson-phase-progress flex-1 ${phaseTransitionKey ? "is-shifting" : ""}`}>
+              <ProgressBar className="h-4 bg-gray-100" value={stepProgress} />
             </div>
 
-            <div className={`lesson-phase-rail border-b border-slate-200 px-8 py-5 ${phaseTransitionKey ? "is-shifting" : ""}`}>
-              <div className="mx-auto max-w-3xl">
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {stepSequence.map((step, index) => {
-                    const active = currentStep === step;
-                    const complete = index < currentStepIndex;
+            {/* Hearts */}
+            <div className="flex flex-shrink-0 items-center gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <HeartIcon
+                  key={n}
+                  className={`h-5 w-5 ${n <= hearts ? "text-[#ef4444]" : "text-gray-200"}`}
+                  style={{ fill: n <= hearts ? "#ef4444" : "#e5e7eb", stroke: "none" }}
+                />
+              ))}
+            </div>
+          </div>
 
-                    return (
-                      <div
-                        className={`lesson-step-pill rounded-full px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] ${
-                          active
-                            ? "active text-white"
-                            : complete
-                              ? "complete bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-500"
-                        }`}
-                        key={step}
-                        style={{
-                          background:
-                            active
-                              ? "linear-gradient(135deg,#16a34a 0%,#22c55e 100%)"
-                              : undefined,
-                        }}
-                      >
-                        {step}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="lesson-phase-progress">
-                  <ProgressBar className="mx-auto h-2.5 bg-slate-200/90" value={stepProgress} />
-                </div>
+          {/* Lesson meta strip */}
+          <div
+            className="border-t border-gray-50 px-4 py-2"
+            style={{ background: `linear-gradient(90deg, ${module.accentSoft} 0%, #ffffff 80%)` }}
+          >
+            <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <p className="text-xs font-black uppercase tracking-wider" style={{ color: module.accentColor }}>
+                  Module {module.id} · Lesson {lesson.lessonNumber}
+                </p>
+                <span className="hidden text-xs font-semibold text-gray-500 sm:block">
+                  {lesson.title}
+                </span>
               </div>
-            </div>
-
-            <div className="px-8 py-8">
-              <div
-                className="lesson-stage lesson-phase-stage mx-auto max-w-4xl"
-                data-direction={phaseDirection}
-                data-phase={currentStep}
-                key={`${currentStep}-${phaseTransitionKey}`}
-              >
-                {renderStep()}
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-1 text-xs font-bold text-gray-600 shadow-sm">
+                  <ClockIcon className="h-3 w-3" />
+                  {lesson.estimatedTime}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black" style={{ background: module.accentSoft, color: module.accentColor }}>
+                  <SparklesIcon className="h-3 w-3" />
+                  {lesson.xp} XP
+                </span>
               </div>
             </div>
           </div>
-        </div>
+        </header>
+
+        {/* ── Lesson content ───────────────────────────────────── */}
+        <main className="mx-auto max-w-3xl px-4 py-10">
+          <div
+            className="lesson-stage lesson-phase-stage"
+            data-direction={phaseDirection}
+            data-phase={currentStep}
+            key={`${currentStep}-${phaseTransitionKey}`}
+          >
+            {renderStep()}
+          </div>
+        </main>
       </div>
     </JourneySurface>
   );

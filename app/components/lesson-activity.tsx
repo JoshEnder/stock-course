@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PracticeActivityKind } from "../lib/course-data";
 
 type LessonActivityProps = {
@@ -53,6 +53,7 @@ export function LessonActivity({
   const [sequence, setSequence] = useState<string[]>([]);
   const [checked, setChecked] = useState<string[]>([]);
   const [meterValue, setMeterValue] = useState(activityStartValue ?? 50);
+  const lastReadyRef = useRef<boolean | null>(null);
 
   const buckets = asArray<string>(data.buckets);
   const cards = asArray<BucketCard>(data.cards);
@@ -70,9 +71,16 @@ export function LessonActivity({
   const matches = asArray<{ clue: string; answer: string }>(data.matches);
   const evidenceCards = asArray<string>(data.evidence);
 
+  // Two data patterns for sequence-lab:
+  // Pattern A: `steps` is objects with proper `id` fields, `orderedSteps` is only slot labels.
+  //            Correct order = steps order, options = steps items.
+  // Pattern B: `steps` is strings or empty, `orderedSteps` has real IDs + labels.
+  //            Correct order = orderedSteps order, options = orderedSteps items.
+  const stepsHaveIds = steps.length > 0 && typeof (steps[0] as { id?: unknown }).id === "string";
+  const sequenceItems = stepsHaveIds ? steps : orderedSteps;
   const sequenceTarget = useMemo(
-    () => (orderedSteps.length ? orderedSteps.map((step) => step.id) : steps.map((step) => step.id)),
-    [orderedSteps, steps],
+    () => sequenceItems.map((step) => step.id),
+    [sequenceItems],
   );
 
   const ready = useMemo(() => {
@@ -118,6 +126,10 @@ export function LessonActivity({
   ]);
 
   useEffect(() => {
+    if (lastReadyRef.current === ready) {
+      return;
+    }
+    lastReadyRef.current = ready;
     onReadyChange?.(ready);
   }, [onReadyChange, ready]);
 
@@ -236,7 +248,7 @@ export function LessonActivity({
 
   if (activityKind === "sequence-lab") {
     const sequenceOptions = [
-      ...steps.map((step) => ({ id: step.id, label: step.label })),
+      ...sequenceItems.map((step) => ({ id: step.id, label: step.label })),
       ...asArray<string>(data.distractors).map((item) => ({ id: item, label: item })),
     ];
 
@@ -260,7 +272,9 @@ export function LessonActivity({
               >
                 {sequence[index]
                   ? sequenceOptions.find((option) => option.id === sequence[index])?.label
-                  : orderedSteps[index]?.label ?? `Step ${index + 1}`}
+                  : stepsHaveIds
+                    ? (orderedSteps[index]?.label ?? `Step ${index + 1}`)
+                    : `Step ${index + 1}`}
               </button>
             ))}
           </div>
