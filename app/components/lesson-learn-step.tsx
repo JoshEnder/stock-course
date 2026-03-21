@@ -22,10 +22,13 @@ type LessonLearnStepProps =
   | ModernLessonLearnStepProps;
 
 export function LessonLearnStep(props: LessonLearnStepProps) {
-  const content =
-    "content" in props
-      ? props.content
-      : learnContent[props.stepId] ?? learnContent["1-1"];
+  let content: LearnContent;
+
+  if ("stepId" in props && typeof props.stepId === "string") {
+    content = learnContent[props.stepId] ?? learnContent["1-1"];
+  } else {
+    content = props.content;
+  }
 
   const panels = content.panels?.length
     ? content.panels

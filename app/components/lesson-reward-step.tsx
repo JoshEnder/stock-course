@@ -111,7 +111,9 @@ export function LessonRewardStep({
           <div className="reward-progress-row" style={{ animationDelay: "130ms" }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
               <span style={{ color: "#6b7280", fontWeight: 600 }}>Course progress</span>
-              <AnimatedNumber className="progress-value live" suffix="%" value={courseCompletionPercent} style={{ fontWeight: 800, color: "#172b4d" }} />
+              <span style={{ fontWeight: 800, color: "#172b4d" }}>
+                <AnimatedNumber className="progress-value live" suffix="%" value={courseCompletionPercent} />
+              </span>
             </div>
             <div style={{ height: 12, background: "#e5e7eb", borderRadius: 99, overflow: "hidden" }}>
               <ProgressBar className="reward-progress-bar" value={courseCompletionPercent} />
@@ -120,7 +122,9 @@ export function LessonRewardStep({
           <div className="reward-progress-row" style={{ animationDelay: "190ms" }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
               <span style={{ color: "#6b7280", fontWeight: 600 }}>{moduleTitle}</span>
-              <AnimatedNumber className="progress-value live" suffix="%" value={moduleProgressPercent} style={{ fontWeight: 800, color: "#172b4d" }} />
+              <span style={{ fontWeight: 800, color: "#172b4d" }}>
+                <AnimatedNumber className="progress-value live" suffix="%" value={moduleProgressPercent} />
+              </span>
             </div>
             <div style={{ height: 12, background: "#e5e7eb", borderRadius: 99, overflow: "hidden" }}>
               <ProgressBar className="reward-progress-bar" value={moduleProgressPercent} />

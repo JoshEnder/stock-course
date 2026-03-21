@@ -28,10 +28,13 @@ type LessonCheckStepProps =
   | ModernLessonCheckStepProps;
 
 export function LessonCheckStep(props: LessonCheckStepProps) {
-  const content =
-    "content" in props
-      ? props.content
-      : checkContent[props.stepId] ?? checkContent["1-3"];
+  let content: CheckContent;
+
+  if ("stepId" in props && typeof props.stepId === "string") {
+    content = checkContent[props.stepId] ?? checkContent["1-3"];
+  } else {
+    content = props.content;
+  }
 
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | string | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);

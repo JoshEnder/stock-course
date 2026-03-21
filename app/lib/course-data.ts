@@ -95,11 +95,27 @@ export type PracticeContent = {
   activityData?: Record<string, unknown>;
 };
 
+export type RapidFireCheckCase = {
+  id: string;
+  prompt: string;
+  options: PracticeOption[];
+  explanation: string;
+  reviewPrompt: string;
+};
+
 export type CheckContent = {
   question: string;
-  type: "truefalse" | "multiple";
+  type: "truefalse" | "multiple" | "typed" | "multiselect";
+  variant?: "standard" | "rapid-fire";
   correctAnswer?: boolean;
   options?: PracticeOption[];
+  rapidFireCases?: RapidFireCheckCase[];
+  expectedKeywords?: string[];
+  discouragedKeywords?: string[];
+  minimumSelections?: number;
+  placeholder?: string;
+  coachTip?: string;
+  voiceReady?: boolean;
   explanation: string;
   reviewPrompt: string;
 };

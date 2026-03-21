@@ -129,12 +129,16 @@ export default function HeroCanvas({ onScrollProgress }: Props) {
   useEffect(() => { cbRef.current = onScrollProgress; }, [onScrollProgress]);
 
   useEffect(() => {
-    const textCanvas  = textCanvasRef.current;
+    const textCanvas = textCanvasRef.current;
     const grainCanvas = grainCanvasRef.current;
     if (!textCanvas || !grainCanvas) return;
-    const ctx      = textCanvas.getContext('2d');
-    const grainCtx = grainCanvas.getContext('2d');
-    if (!ctx || !grainCtx) return;
+    const textContext = textCanvas.getContext('2d');
+    const grainContext = grainCanvas.getContext('2d');
+    if (!textContext || !grainContext) return;
+    const textCanvasElement: HTMLCanvasElement = textCanvas;
+    const grainCanvasElement: HTMLCanvasElement = grainCanvas;
+    const ctx: CanvasRenderingContext2D = textContext;
+    const grainCtx: CanvasRenderingContext2D = grainContext;
 
     // ── offscreen grain texture (created once) ────────────────────────────
     const og    = document.createElement('canvas');
@@ -153,8 +157,10 @@ export default function HeroCanvas({ onScrollProgress }: Props) {
     function resize() {
       dpr = window.devicePixelRatio || 1;
       const W = window.innerWidth, H = window.innerHeight;
-      textCanvas.width  = W * dpr; textCanvas.height  = H * dpr;
-      grainCanvas.width = W * dpr; grainCanvas.height = H * dpr;
+      textCanvasElement.width  = W * dpr; textCanvasElement.height  = H * dpr;
+      grainCanvasElement.width = W * dpr; grainCanvasElement.height = H * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      grainCtx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
       grainCtx.scale(dpr, dpr);
     }

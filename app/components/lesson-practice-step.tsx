@@ -24,10 +24,13 @@ type LessonPracticeStepProps =
   | ModernLessonPracticeStepProps;
 
 export function LessonPracticeStep(props: LessonPracticeStepProps) {
-  const content =
-    "content" in props
-      ? props.content
-      : practiceContent[props.stepId] ?? practiceContent["1-2"];
+  let content: PracticeContent;
+
+  if ("stepId" in props && typeof props.stepId === "string") {
+    content = practiceContent[props.stepId] ?? practiceContent["1-2"];
+  } else {
+    content = props.content;
+  }
 
   const [activityReady, setActivityReady] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
