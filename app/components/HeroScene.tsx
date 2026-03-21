@@ -144,7 +144,6 @@ function makeDashboardIcon(): THREE.Group {
   const screen = mat(0x0f1a2e, 0.18, 0, 0x1e40af, 0.45);
   const G      = mat(0x22c55e, 0.25, 0, 0x22c55e, 0.45);
   const Y      = mat(0xfbbf24, 0.18, 0.2, 0xfbbf24, 0.45);
-  const R      = mat(0xef4444, 0.25, 0, 0xef4444, 0.35);
   const C      = mat(0x06b6d4, 0.18, 0, 0x06b6d4, 0.45);
 
   // Monitor body
@@ -197,7 +196,6 @@ function makeBullIcon(): THREE.Group {
   const g = new THREE.Group();
   const G   = mat(0x22c55e, 0.5);
   const LG  = mat(0x4ade80, 0.4);
-  const DG  = mat(0x16a34a, 0.5);
   const NK  = mat(0x172b4d, 0.5, 0.2);
   const EW  = mat(0xffffff, 0.4);
   const EB  = mat(0x1d4ed8, 0.1, 0, 0x3b82f6, 0.55);
@@ -681,7 +679,7 @@ export default function HeroScene({ width = "100%", height = "100%" }: { width?:
     const animate = () => {
       animId = requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
-      const dt = Math.min(clock.getDelta(), 0.05);
+      clock.getDelta();
 
       // Mouse smooth (fast lerp for responsiveness)
       smoothX += (rawX - smoothX) * 0.075;

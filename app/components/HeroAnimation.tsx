@@ -58,13 +58,15 @@ export function HeroAnimation() {
     const path = pathRef.current;
     const svg  = svgRef.current;
     if (!path || !svg) return;
+    const pathEl = path;
+    const svgEl = svg;
 
     // 1. Set dasharray/dashoffset so the line is invisible when drawn
-    const totalLength = path.getTotalLength();
-    path.style.strokeDasharray  = String(totalLength);
-    path.style.strokeDashoffset = String(totalLength);
+    const totalLength = pathEl.getTotalLength();
+    pathEl.style.strokeDasharray  = String(totalLength);
+    pathEl.style.strokeDashoffset = String(totalLength);
     // 2. NOW reveal the SVG — line is hidden by dashoffset, not visibility hack
-    svg.style.opacity = "1";
+    svgEl.style.opacity = "1";
 
     const DURATION = 3400;
     let startTime: number | null = null;
@@ -85,16 +87,17 @@ export function HeroAnimation() {
 
         const ripple = rippleRef.current;
         if (ripple) {
-          const pt = path.getPointAtLength(word.progress * totalLength);
-          ripple.setAttribute("cx", String(pt.x));
-          ripple.setAttribute("cy", String(pt.y));
-          ripple.style.opacity = "1";
-          ripple.setAttribute("r", "0");
+          const rippleEl = ripple;
+          const pt = pathEl.getPointAtLength(word.progress * totalLength);
+          rippleEl.setAttribute("cx", String(pt.x));
+          rippleEl.setAttribute("cy", String(pt.y));
+          rippleEl.style.opacity = "1";
+          rippleEl.setAttribute("r", "0");
           const rs = performance.now();
           function animRipple(now: number) {
             const p = Math.min((now - rs) / 700, 1);
-            ripple.setAttribute("r", String(p * 80));
-            ripple.style.opacity = String(1 - p);
+            rippleEl.setAttribute("r", String(p * 80));
+            rippleEl.style.opacity = String(1 - p);
             if (p < 1) requestAnimationFrame(animRipple);
           }
           requestAnimationFrame(animRipple);
@@ -108,14 +111,14 @@ export function HeroAnimation() {
       const eased = easeInOut(raw);
 
       // Draw line
-      path.style.strokeDashoffset = String(totalLength * (1 - eased));
+      pathEl.style.strokeDashoffset = String(totalLength * (1 - eased));
 
       // Move arrowhead to the current tip with correct direction
       const arrow = arrowRef.current;
       if (arrow && eased > 0.005) {
         const tipLen    = eased * totalLength;
-        const tip       = path.getPointAtLength(tipLen);
-        const behind    = path.getPointAtLength(Math.max(0, tipLen - 3));
+        const tip       = pathEl.getPointAtLength(tipLen);
+        const behind    = pathEl.getPointAtLength(Math.max(0, tipLen - 3));
         const angle     = Math.atan2(tip.y - behind.y, tip.x - behind.x) * 180 / Math.PI;
         arrow.setAttribute("transform", `translate(${tip.x},${tip.y}) rotate(${angle})`);
         arrow.style.opacity = "1";
@@ -137,7 +140,7 @@ export function HeroAnimation() {
       // ── Animation complete ─────────────────────────────────────
 
       // Endpoint dot + pulse ring
-      const endpoint = path.getPointAtLength(totalLength);
+      const endpoint = pathEl.getPointAtLength(totalLength);
       const dot  = dotRef.current;
       const ring = ringRef.current;
       if (dot) {
@@ -146,13 +149,14 @@ export function HeroAnimation() {
         dot.style.opacity = "1";
       }
       if (ring) {
+        const ringEl = ring;
         ring.setAttribute("cx", String(endpoint.x));
         ring.setAttribute("cy", String(endpoint.y));
         const rs = performance.now();
         function animRing(now: number) {
           const p = Math.min((now - rs) / 800, 1);
-          ring.setAttribute("r", String(6 + p * 14));
-          ring.style.opacity = String(0.55 * (1 - p));
+          ringEl.setAttribute("r", String(6 + p * 14));
+          ringEl.style.opacity = String(0.55 * (1 - p));
           if (p < 1) requestAnimationFrame(animRing);
         }
         requestAnimationFrame(animRing);
@@ -160,8 +164,8 @@ export function HeroAnimation() {
 
       // Fade out the entire SVG after a brief pause
       setTimeout(() => {
-        svg.style.transition = "opacity 600ms ease-out";
-        svg.style.opacity    = "0";
+        svgEl.style.transition = "opacity 600ms ease-out";
+        svgEl.style.opacity    = "0";
 
         // After SVG fades: animate words to the center line (form the sentence)
         setTimeout(() => {

@@ -386,20 +386,20 @@ export function getModuleBySlug(moduleSlug: string) {
 }
 
 export function getLessonBySlug(moduleSlug: string, lessonSlug: string) {
-  const module = getModuleBySlug(moduleSlug);
+  const courseModule = getModuleBySlug(moduleSlug);
 
-  if (!module) {
+  if (!courseModule) {
     return null;
   }
 
-  const lesson = module.lessons.find((item) => item.slug === lessonSlug);
+  const lesson = courseModule.lessons.find((item) => item.slug === lessonSlug);
 
   if (!lesson) {
     return null;
   }
 
   return {
-    module,
+    module: courseModule,
     lesson,
   };
 }

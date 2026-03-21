@@ -6,10 +6,13 @@ import { FinalAchievementCard } from "../components/final-achievement-card";
 import { JourneySurface } from "../components/journey-surface";
 import { ModulePreviewCard } from "../components/module-preview-card";
 import { ModuleSection } from "../components/module-section";
+import { useAuth } from "../lib/auth-context";
 import { deriveCourseState, getNextLessonRoute } from "../lib/course-engine";
 import {
+  getEffectiveHearts,
   getServerCourseProgressSnapshot,
   getStoredCourseProgress,
+  refreshStoredHearts,
   subscribeToCourseProgress,
 } from "../lib/course-progress";
 import { getNickname, subscribeToCourseStorage } from "../lib/course-storage";
@@ -31,17 +34,16 @@ function StokedLogo() {
 
 // ─── Left sidebar ─────────────────────────────────────────────────────────────
 type SidebarProps = {
+  hearts: number;
   streak: number;
   completedLessons: number;
-  totalLessons: number;
-  nickname: string;
 };
 
-function LeftSidebar({ streak, completedLessons, totalLessons, nickname }: SidebarProps) {
+function LeftSidebar({ hearts, streak, completedLessons }: SidebarProps) {
   const navItems = [
     { label: "Learn",          icon: "📚", href: "/course",     active: true  },
     { label: "Leaderboards",   icon: "🏆", href: "/course",     active: false },
-    { label: "Profile",        icon: "👤", href: "/course",     active: false },
+    { label: "Profile",        icon: "👤", href: "/profile",    active: false },
   ];
 
   return (
@@ -88,7 +90,7 @@ function LeftSidebar({ streak, completedLessons, totalLessons, nickname }: Sideb
         <div className="flex items-center gap-3 rounded-2xl border-2 border-gray-100 bg-white px-4 py-3 shadow-[0_3px_0_#e5e5e5]">
           <span className="text-2xl">❤️</span>
           <div>
-            <div className="text-lg font-black text-[#ef4444]">5 / 5</div>
+            <div className="text-lg font-black text-[#ef4444]">{hearts} / 5</div>
             <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Hearts left</div>
           </div>
         </div>
@@ -101,6 +103,10 @@ function LeftSidebar({ streak, completedLessons, totalLessons, nickname }: Sideb
 type RightPanelProps = {
   completionPercent: number;
   completedLessons: number;
+  isSignedIn: boolean;
+  onGoogleSignIn: () => void;
+  profileHref: string;
+  signedInEmail: string | null;
   totalLessons: number;
   rank: string;
   resumeHref: string;
@@ -110,6 +116,10 @@ type RightPanelProps = {
 function RightPanel({
   completionPercent,
   completedLessons,
+  isSignedIn,
+  onGoogleSignIn,
+  profileHref,
+  signedInEmail,
   totalLessons,
   rank,
   resumeHref,
@@ -156,6 +166,39 @@ function RightPanel({
         <div className="mt-1 text-xs text-gray-400">Keep completing lessons to advance</div>
       </div>
 
+      <div className={`rounded-3xl p-5 shadow-[0_4px_0_#e5e5e5] ${isSignedIn ? "border-2 border-[#bbf7d0] bg-[#f0fdf4]" : "border-2 border-gray-100 bg-white"}`}>
+        <div className="mb-2 flex items-center gap-2">
+          <span className="text-xl">{isSignedIn ? "☁️" : "🔐"}</span>
+          <span className="text-xs font-black uppercase tracking-wider text-gray-400">
+            {isSignedIn ? "Synced progress" : "Save your progress"}
+          </span>
+        </div>
+        <div className="text-base font-black text-[#1a2b4a]">
+          {isSignedIn ? "Google account connected" : "Keep your lessons across visits"}
+        </div>
+        <div className="mt-2 text-xs leading-5 text-gray-500">
+          {isSignedIn
+            ? signedInEmail ?? "Your course progress now syncs to your account."
+            : "Sign in with Google so your course path, nickname, and login metadata follow your account."}
+        </div>
+        {isSignedIn ? (
+          <Link
+            href={profileHref}
+            className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-[#22c55e] px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#16a34a]"
+          >
+            Open profile
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={onGoogleSignIn}
+            className="mt-4 inline-flex w-full items-center justify-center rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-sm font-black uppercase tracking-wide text-[#172b4d] shadow-[0_4px_0_#e5e5e5]"
+          >
+            Log in with Google
+          </button>
+        )}
+      </div>
+
       {/* Resume CTA */}
       <Link
         href={resumeHref}
@@ -194,6 +237,13 @@ function MobileTopBar({ streak, completionPercent, resumeHref }: MobileBarProps)
             </div>
           </div>
           <Link
+            href="/profile"
+            className="rounded-xl border-2 border-gray-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-wide text-[#172b4d] shadow-[0_3px_0_#e5e7eb]"
+            prefetch={false}
+          >
+            Profile
+          </Link>
+          <Link
             href={resumeHref}
             className="rounded-xl bg-[#22c55e] px-4 py-2 text-xs font-black uppercase tracking-wide text-white shadow-[0_3px_0_#16a34a] active:translate-y-[1px] active:shadow-[0_1px_0_#16a34a]"
             prefetch={false}
@@ -209,6 +259,7 @@ function MobileTopBar({ streak, completionPercent, resumeHref }: MobileBarProps)
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function CourseMapScreen() {
   const moduleAnchorRef = useRef<HTMLDivElement | null>(null);
+  const { signInWithGoogle, user } = useAuth();
   const nickname = useSyncExternalStore(
     subscribeToCourseStorage,
     getNickname,
@@ -220,10 +271,39 @@ export function CourseMapScreen() {
     getServerCourseProgressSnapshot,
   );
   const courseState = useMemo(() => deriveCourseState(storedProgress), [storedProgress]);
+  const hearts = getEffectiveHearts(storedProgress, Boolean(user));
   const currentModule  = courseState.modules.find((m) => m.id === courseState.currentModuleId);
   const completedMods  = courseState.modules.filter((m) => m.id < courseState.currentModuleId);
   const upcomingMods   = courseState.modules.filter((m) => m.id > courseState.currentModuleId);
   const resumeHref     = useMemo(() => getNextLessonRoute(storedProgress), [storedProgress]);
+
+  async function handleGoogleSignIn() {
+    try {
+      await signInWithGoogle("/course");
+    } catch (error) {
+      console.error("Failed to start Google sign-in from the course map", error);
+    }
+  }
+
+  useEffect(() => {
+    if (user) {
+      refreshStoredHearts(true);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      return () => undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      refreshStoredHearts(true);
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [user]);
 
   useEffect(() => {
     const section = moduleAnchorRef.current;
@@ -243,10 +323,9 @@ export function CourseMapScreen() {
       >
         {/* Left sidebar */}
         <LeftSidebar
+          hearts={hearts}
           streak={courseState.streak}
           completedLessons={courseState.completedLessons}
-          totalLessons={courseState.totalLessons}
-          nickname={nickname}
         />
 
         {/* Center content */}
@@ -331,6 +410,10 @@ export function CourseMapScreen() {
         <RightPanel
           completionPercent={courseState.completionPercent}
           completedLessons={courseState.completedLessons}
+          isSignedIn={Boolean(user)}
+          onGoogleSignIn={handleGoogleSignIn}
+          profileHref="/profile"
+          signedInEmail={user?.email ?? null}
           totalLessons={courseState.totalLessons}
           rank={courseState.rank}
           resumeHref={resumeHref}

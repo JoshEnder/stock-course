@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { learnContent, type LearnContent } from "../lib/course-data";
 import { AlertCircleIcon, LightbulbIcon } from "./icons";
 import { LessonActivity } from "./lesson-activity";
@@ -48,11 +48,6 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
   const hasInteractivePanel = Boolean(panel?.activityKind);
   const isPanelReady = readyPanels[panel?.id ?? ""] || !hasInteractivePanel;
   const isLastPanel = panelIndex === panels.length - 1;
-
-  const progressPercent = useMemo(
-    () => ((panelIndex + 1) / panels.length) * 100,
-    [panelIndex, panels.length],
-  );
 
   function handleAdvance() {
     if (isLastPanel) {

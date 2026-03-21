@@ -2,6 +2,90 @@
 
 import Link from "next/link";
 import HeroScene from "@/app/components/HeroScene";
+import { useAuth } from "../lib/auth-context";
+
+function GoogleAccountButton({
+  disabled = false,
+  onClick,
+  photoUrl,
+  signedInHref,
+  signedIn,
+}: {
+  disabled?: boolean;
+  onClick: () => void;
+  photoUrl?: string | null;
+  signedInHref?: string;
+  signedIn: boolean;
+}) {
+  const sharedStyle: React.CSSProperties = {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    border: "2px solid #e5e7eb",
+    background: "#fff",
+    boxShadow: "0 4px 0 #e5e7eb",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.7 : 1,
+    overflow: "hidden",
+    textDecoration: "none",
+  };
+
+  const icon = signedIn && photoUrl ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={photoUrl}
+      alt="Google account"
+      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+    />
+  ) : signedIn ? (
+    <span style={{ fontSize: 20 }}>👤</span>
+  ) : (
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-flex",
+        width: 22,
+        height: 22,
+        borderRadius: "50%",
+        alignItems: "center",
+        justifyContent: "center",
+        background:
+          "conic-gradient(from 180deg, #34a853 0 25%, #fbbc05 25% 50%, #ea4335 50% 75%, #4285f4 75% 100%)",
+      }}
+    >
+      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fff" }} />
+    </span>
+  );
+
+  if (signedIn && signedInHref) {
+    return (
+      <Link
+        href={signedInHref}
+        style={sharedStyle}
+        aria-label="Open account"
+        title="Open account"
+      >
+        {icon}
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={sharedStyle}
+      aria-label={signedIn ? "Open account" : "Log in with Google"}
+      title={signedIn ? "Open account" : "Log in with Google"}
+    >
+      {icon}
+    </button>
+  );
+}
 
 // ─── Stoked logo ──────────────────────────────────────────────────────────────
 function StokedLogo({ large = false }: { large?: boolean }) {
@@ -268,7 +352,27 @@ function FeatureRow({
 
 // ─── Landing screen ───────────────────────────────────────────────────────────
 export function LandingScreen() {
+  const { loading: authLoading, signInWithGoogle, user } = useAuth();
   const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+  const photoUrl =
+    typeof user?.user_metadata?.avatar_url === "string"
+      ? user.user_metadata.avatar_url
+      : typeof user?.user_metadata?.picture === "string"
+        ? user.user_metadata.picture
+        : null;
+
+  async function handleGoogleLogin() {
+    try {
+      if (user) {
+        window.location.href = "/profile";
+        return;
+      }
+
+      await signInWithGoogle("/course");
+    } catch (error) {
+      console.error("Failed to start Google sign-in", error);
+    }
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: font }}>
@@ -282,10 +386,13 @@ export function LandingScreen() {
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <StokedLogo />
           <nav style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Link href="/course" style={{ fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", textDecoration: "none", padding: "8px 16px" }}>
-              Log in
-            </Link>
-            <DuoBtn href="/onboarding" variant="primary">Get Started</DuoBtn>
+            <GoogleAccountButton
+              disabled={authLoading && !user}
+              onClick={handleGoogleLogin}
+              photoUrl={photoUrl}
+              signedInHref="/profile"
+              signedIn={Boolean(user)}
+            />
           </nav>
         </div>
       </header>
@@ -311,8 +418,42 @@ export function LandingScreen() {
               Fun, bite-sized lessons that make the stock market finally click. No jargon. No confusion.
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              <DuoBtn href="/onboarding" variant="primary" big>Get Started — It&apos;s Free</DuoBtn>
-              <DuoBtn href="/course" variant="outline" big>I Have an Account</DuoBtn>
+              {user ? (
+                <DuoBtn href="/course" variant="primary" big>Proceed to Course</DuoBtn>
+              ) : (
+                <>
+                  <DuoBtn href="/onboarding" variant="primary" big>Continue as Guest</DuoBtn>
+                  <button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    disabled={authLoading}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: font,
+                      fontWeight: 800,
+                      fontSize: 16,
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                      textDecoration: "none",
+                      padding: "16px 40px",
+                      borderRadius: 16,
+                      cursor: authLoading ? "not-allowed" : "pointer",
+                      border: "2px solid #e5e7eb",
+                      transition: "filter 80ms, transform 80ms",
+                      userSelect: "none",
+                      whiteSpace: "nowrap",
+                      backgroundColor: "#fff",
+                      color: "#172b4d",
+                      boxShadow: "0 5px 0 #d1d5db",
+                      opacity: authLoading ? 0.7 : 1,
+                    }}
+                  >
+                    Log in with Google
+                  </button>
+                </>
+              )}
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 24, marginTop: 36 }}>
               {[
@@ -381,10 +522,10 @@ export function LandingScreen() {
             Start learning today.<br />It&apos;s free, forever.
           </h2>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", marginBottom: 40, lineHeight: 1.6 }}>
-            No credit card. No account required. Just open a lesson and go.
+            Continue as a guest right away, or sign in with Google to keep your progress across visits.
           </p>
           <DuoBtn href="/onboarding" variant="white-on-green" big>
-            Get Started For Free
+            Continue as Guest
           </DuoBtn>
         </div>
       </section>
@@ -398,7 +539,7 @@ export function LandingScreen() {
           <StokedLogo />
           <span style={{ fontSize: 13, color: "#9ca3af" }}>© 2025 Stoked. Stock learning that actually clicks.</span>
           <div style={{ display: "flex", gap: 24 }}>
-            {[["Learn", "/course"], ["Start", "/onboarding"]].map(([label, href]) => (
+            {[["Learn", "/course"], ["Guest", "/onboarding"]].map(([label, href]) => (
               <Link key={label} href={href} style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", textDecoration: "none" }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22c55e"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}

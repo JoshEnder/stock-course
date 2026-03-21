@@ -53,12 +53,16 @@ import {
 } from "../lib/lesson-experience";
 import {
   completeLesson,
+  getEffectiveHearts,
   getServerCourseProgressSnapshot,
   getStoredCourseProgress,
   openLesson,
+  refreshStoredHearts,
+  spendHeart,
   subscribeToCourseProgress,
 } from "../lib/course-progress";
 import { addReviewPrompt } from "../lib/course-storage";
+import { useAuth } from "../lib/auth-context";
 import { navigateWithJourney } from "../lib/journey-motion";
 
 type LessonShellScreenProps = {
@@ -76,6 +80,7 @@ export function LessonShellScreen({
 }: LessonShellScreenProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
   const storedProgress = useSyncExternalStore(
     subscribeToCourseProgress,
     getStoredCourseProgress,
@@ -95,11 +100,11 @@ export function LessonShellScreen({
   const [phaseDirection, setPhaseDirection] = useState<"forward" | "back">("forward");
   const [phaseTransitionKey, setPhaseTransitionKey] = useState(0);
   const previousStepIndexRef = useRef(0);
-  const [hearts, setHearts] = useState(5);
+  const hearts = getEffectiveHearts(storedProgress, Boolean(user));
 
-  function handleIncorrect() {
-    addReviewPrompt();
-    setHearts((h) => Math.max(0, h - 1));
+  function handleIncorrect(reviewPrompt: string) {
+    addReviewPrompt(reviewPrompt);
+    spendHeart(Boolean(user));
   }
 
   const courseState = useMemo(
@@ -147,7 +152,6 @@ export function LessonShellScreen({
 
   useEffect(() => {
     setCurrentStep("learn");
-    setHearts(5);
     setFoundationsBossStep(0);
     setChartBossStep(0);
     setTrendBossStep(0);
@@ -160,6 +164,26 @@ export function LessonShellScreen({
     setFinalMasteryBossStep(0);
     previousStepIndexRef.current = 0;
   }, [lesson.id]);
+
+  useEffect(() => {
+    if (user) {
+      refreshStoredHearts(true);
+    }
+  }, [user, lesson.id]);
+
+  useEffect(() => {
+    if (!user) {
+      return () => undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      refreshStoredHearts(true);
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [user]);
 
   useEffect(() => {
     const previousIndex = previousStepIndexRef.current;
@@ -186,8 +210,6 @@ export function LessonShellScreen({
   if (!derivedLesson) {
     return null;
   }
-
-  const lessonStatusLabel = derivedLesson.state === "completed" ? "Completed review" : "Active lesson";
 
   function renderStep() {
     const stepLesson = derivedLesson;

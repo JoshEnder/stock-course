@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { BrainIcon, CheckCircleIcon, ClockIcon, TrendingUpIcon } from "../components/icons";
@@ -41,10 +42,10 @@ export function FinalAnalysisScreen() {
       <div style={{ borderBottom: "2px solid #e5e7eb", background: "#fff" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
           {/* Logo */}
-          <a href="/course" style={{ display: "inline-flex", alignItems: "flex-end", gap: 3, textDecoration: "none" }}>
+          <Link href="/course" style={{ display: "inline-flex", alignItems: "flex-end", gap: 3, textDecoration: "none" }}>
             <span style={{ fontWeight: 900, fontSize: 20, color: "#172b4d", letterSpacing: "-0.5px", lineHeight: 1 }}>stoked</span>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", flexShrink: 0, marginBottom: 2 }} />
-          </a>
+          </Link>
         </div>
       </div>
 

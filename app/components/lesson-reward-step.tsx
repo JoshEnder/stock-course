@@ -22,7 +22,6 @@ type LessonRewardStepProps = {
 };
 
 export function LessonRewardStep({
-  accentColor,
   completedLessons,
   completionLine,
   courseCompletionPercent,
@@ -32,7 +31,6 @@ export function LessonRewardStep({
   moduleCompleted,
   moduleProgressPercent,
   moduleTitle,
-  moduleProgressLabel,
   nextUnlockTitle,
   onContinue,
   rankLabel,

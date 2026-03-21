@@ -36,6 +36,15 @@ export function setNickname(nickname: string) {
   window.dispatchEvent(new Event(storageEventName));
 }
 
+export function clearNickname() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(nicknameStorageKey);
+  window.dispatchEvent(new Event(storageEventName));
+}
+
 export function getCourseProgress(): CourseProgress {
   if (typeof window === "undefined") {
     return emptyProgressSnapshot;
@@ -126,6 +135,32 @@ export function getCertificateId() {
   window.localStorage.setItem(certificateIdKey, next);
   window.dispatchEvent(new Event(storageEventName));
   return next;
+}
+
+export function getStoredCertificateId() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.localStorage.getItem(certificateIdKey);
+}
+
+export function setCertificateId(certificateId: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(certificateIdKey, certificateId);
+  window.dispatchEvent(new Event(storageEventName));
+}
+
+export function clearCertificateId() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(certificateIdKey);
+  window.dispatchEvent(new Event(storageEventName));
 }
 
 export function subscribeToCourseStorage(onStoreChange: () => void) {

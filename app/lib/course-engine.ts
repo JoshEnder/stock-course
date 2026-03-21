@@ -8,8 +8,12 @@ import {
 
 export type CourseProgressRecord = {
   completedLessonIds: string[];
+  hearts: number;
   lastOpenedLessonId: string | null;
+  lastHeartRefillAt: string | null;
+  lastStreakActiveOn: string | null;
   seededDemo: boolean;
+  streakCount: number;
 };
 
 export type DerivedLesson = CourseLesson & {
@@ -26,8 +30,12 @@ export type DerivedModule = CourseModule & {
 
 export const defaultCourseProgress: CourseProgressRecord = {
   completedLessonIds: [],
+  hearts: 5,
   lastOpenedLessonId: null,
+  lastHeartRefillAt: null,
+  lastStreakActiveOn: null,
   seededDemo: false,
+  streakCount: 1,
 };
 
 export function createDemoCourseProgress(): CourseProgressRecord {
@@ -38,8 +46,12 @@ export function createDemoCourseProgress(): CourseProgressRecord {
 
   return {
     completedLessonIds,
+    hearts: 5,
     lastOpenedLessonId: courseModules[1]?.lessons[2]?.id ?? null,
+    lastHeartRefillAt: null,
+    lastStreakActiveOn: new Date().toISOString().slice(0, 10),
     seededDemo: true,
+    streakCount: 5,
   };
 }
 
@@ -61,13 +73,13 @@ function isModuleUnlocked(progress: CourseProgressRecord, moduleIndex: number) {
 
 function getCurrentLessonId(progress: CourseProgressRecord) {
   for (let moduleIndex = 0; moduleIndex < courseModules.length; moduleIndex += 1) {
-    const module = courseModules[moduleIndex];
+    const courseModule = courseModules[moduleIndex];
 
     if (!isModuleUnlocked(progress, moduleIndex)) {
       continue;
     }
 
-    const nextLesson = module.lessons.find(
+    const nextLesson = courseModule.lessons.find(
       (lesson) => !isLessonCompleted(progress, lesson.id),
     );
 
@@ -130,7 +142,7 @@ export function deriveCourseState(progress: CourseProgressRecord) {
     module.lessons.some((lesson) => lesson.id === currentLessonId),
   );
   const completionPercent = (completedLessons / courseLessonCount) * 100;
-  const streak = Math.max(1, Math.min(14, Math.floor(completedLessons / 3) + 1));
+  const streak = Math.max(1, progress.streakCount);
   const rank =
     completedLessons >= 90
       ? "Master Analyst"
@@ -165,25 +177,25 @@ export function getNextLessonRoute(progress: CourseProgressRecord) {
 }
 
 export function getLessonContext(moduleSlug: string, lessonSlug: string) {
-  const module = courseModules.find((item) => item.slug === moduleSlug);
+  const courseModule = courseModules.find((item) => item.slug === moduleSlug);
 
-  if (!module) {
+  if (!courseModule) {
     return null;
   }
 
-  const lesson = module.lessons.find((item) => item.slug === lessonSlug);
+  const lesson = courseModule.lessons.find((item) => item.slug === lessonSlug);
 
   if (!lesson) {
     return null;
   }
 
-  const moduleIndex = courseModules.findIndex((item) => item.slug === module.slug);
+  const moduleIndex = courseModules.findIndex((item) => item.slug === courseModule.slug);
 
   return {
-    module,
+    module: courseModule,
     lesson,
     moduleIndex,
-    lessonIndex: module.lessons.findIndex((item) => item.id === lesson.id),
+    lessonIndex: courseModule.lessons.findIndex((item) => item.id === lesson.id),
   };
 }
 
