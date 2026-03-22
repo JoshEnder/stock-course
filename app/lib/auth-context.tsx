@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { defaultCourseProgress } from "./course-engine";
 import {
   getStoredCertificateId,
   getNickname,
@@ -49,6 +50,7 @@ const AuthContext = createContext<AuthContextValue>({
 });
 const postAuthNextStorageKey = "stoked-post-auth-next";
 const postAuthNextCookie = "stoked-post-auth-next";
+const progressOwnerStorageKey = "stoked-progress-owner";
 
 export function useAuth() {
   return useContext(AuthContext);
@@ -60,6 +62,22 @@ function normalizePostAuthPath(next?: string) {
   }
 
   return next;
+}
+
+function getStoredProgressOwner() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.localStorage.getItem(progressOwnerStorageKey);
+}
+
+function setStoredProgressOwner(owner: string) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(progressOwnerStorageKey, owner);
 }
 
 function waitFor<T>(promise: Promise<T>, timeoutMs: number) {
@@ -91,13 +109,20 @@ async function mergeRemoteProgressForUser(user: User) {
   const remoteRow = await loadRemoteProgress(user.id);
   const remoteProgress = remoteRowToCourseProgress(remoteRow);
   const localProgress = getStoredCourseProgress();
-  const mergedProgress = mergeCourseProgress(localProgress, remoteProgress);
+  const localProgressOwner = getStoredProgressOwner();
+  const canMergeLocalProgress =
+    !localProgressOwner || localProgressOwner === "guest" || localProgressOwner === user.id;
+  const mergedProgress = canMergeLocalProgress
+    ? mergeCourseProgress(localProgress, remoteProgress)
+    : remoteProgress ?? defaultCourseProgress;
 
   applyRemoteIdentityDefaults(user, remoteRow);
 
   if (!courseProgressEquals(localProgress, mergedProgress)) {
     saveStoredCourseProgress(mergedProgress, { skipRemoteSync: true });
   }
+
+  setStoredProgressOwner(user.id);
 
   if (!remoteProgress || !courseProgressEquals(remoteProgress, mergedProgress)) {
     await syncProgressToSupabase(
@@ -242,6 +267,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     if (session?.user) {
+      setStoredProgressOwner(session.user.id);
+
       try {
         await waitFor(
           syncProgressToSupabase(session.user.id, getStoredCourseProgress()),
