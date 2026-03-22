@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AwardIcon, TrendingUpIcon } from "./icons";
+import { triggerConfetti } from "../lib/animations";
 
 type MilestoneModalProps = {
   lessonNumber: number;
@@ -17,6 +18,13 @@ export function MilestoneModal({
   const rank = 1840 - lessonNumber * 73;
   const newRank = rank - (110 + lessonNumber * 17);
   const [animatedRank, setAnimatedRank] = useState(rank);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      triggerConfetti(window.innerWidth / 2, window.innerHeight * 0.25, 55);
+    }, 180);
+    return () => window.clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const duration = 1500;
@@ -40,7 +48,7 @@ export function MilestoneModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm">
-      <div className="max-w-md rounded-3xl bg-card p-8 text-center shadow-2xl md:p-12">
+      <div className="max-w-md rounded-3xl bg-card p-8 text-center shadow-2xl md:p-12" style={{ animation: "bounceIn 420ms cubic-bezier(0.22,1,0.36,1) both" }}>
         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-primary to-primary/60 text-white">
           <AwardIcon className="h-10 w-10" />
         </div>

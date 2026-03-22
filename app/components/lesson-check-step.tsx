@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { checkContent, type CheckContent } from "../lib/course-data";
 import {
+  triggerConfetti,
   triggerCorrect,
   triggerIncorrect,
   triggerXP,
@@ -94,6 +95,12 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
         window.setTimeout(() => {
           if (cardEl) triggerXP(10, cardEl);
         }, 200);
+        window.setTimeout(() => {
+          if (cardEl) {
+            const rect = cardEl.getBoundingClientRect();
+            triggerConfetti(rect.left + rect.width / 2, rect.top + rect.height * 0.3, 26);
+          }
+        }, 280);
         window.setTimeout(() => {
           continueBtnRef.current?.classList.add("anim-btn-pulse");
         }, 350);
@@ -279,7 +286,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
       </h2>
 
       {answerType === "truefalse" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        <div key={`${prompt}-tf`} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           {[{ value: true, label: "True" }, { value: false, label: "False" }].map((option, idx) => {
             const active = selectedAnswer === option.value;
             const showCorrect = showFeedback && option.value === currentCorrectAnswer;
@@ -294,7 +301,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
                   setSelectedAnswer(option.value);
                   if (showFeedback) setShowFeedback(false);
                 }}
-                style={optionStyle(active, showCorrect, showIncorrect)}
+                style={{ ...optionStyle(active, showCorrect, showIncorrect), animation: !showFeedback ? `staggerFadeUp 220ms ${idx * 60}ms ease-out both` : undefined }}
                 type="button"
               >
                 <span style={badgeStyle(active, showCorrect, showIncorrect)}>
@@ -306,7 +313,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
           })}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        <div key={`${prompt}-${caseIndex}`} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
           {optionList.map((option, idx) => {
             const active = selectedAnswer === option.id;
             const showCorrect = showFeedback && option.correct;
@@ -321,7 +328,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
                   setSelectedAnswer(option.id);
                   if (showFeedback) setShowFeedback(false);
                 }}
-                style={optionStyle(active, showCorrect, showIncorrect)}
+                style={{ ...optionStyle(active, showCorrect, showIncorrect), animation: !showFeedback ? `staggerFadeUp 220ms ${idx * 60}ms ease-out both` : undefined }}
                 type="button"
               >
                 <span style={badgeStyle(active, showCorrect, showIncorrect)}>

@@ -322,6 +322,33 @@ input {
   }
 }
 
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.82) translateY(16px); }
+  55%  { transform: scale(1.06) translateY(-4px); }
+  80%  { transform: scale(0.97) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(36px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes staggerFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rippleExpand {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+  to   { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal,
   .scroll-reveal.is-visible,

@@ -239,15 +239,16 @@ export function OnboardingScreen() {
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
         <div style={{ width: "100%", maxWidth: 480 }}>
 
-          {/* Icon */}
+          {/* Logo */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              width: 80, height: 80, borderRadius: 24,
-              background: "#dcfce7", marginBottom: 24,
-              fontSize: 36,
-            }}>
-              📈
+            <div style={{ display: "inline-flex", alignItems: "flex-end", gap: 3, marginBottom: 24, background: "#dcfce7", borderRadius: 24, padding: "16px 24px" }}>
+              <span style={{
+                fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+                fontWeight: 900, fontSize: 40, color: "#172b4d", letterSpacing: "-1.5px", lineHeight: 1,
+              }}>
+                stoked
+              </span>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#22c55e", flexShrink: 0, marginBottom: 5, display: "inline-block" }} />
             </div>
             <h1 style={{ fontWeight: 900, fontSize: "clamp(28px,5vw,40px)", color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 12, lineHeight: 1.15 }}>
               What should we call you?

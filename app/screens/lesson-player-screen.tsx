@@ -9,6 +9,7 @@ import { MilestoneModal } from "../components/milestone-modal";
 import { ProgressBar } from "../components/progress-bar";
 import { lessonCatalog, lessonSteps, type LessonId } from "../lib/course-data";
 import { addReviewPrompt, markLessonComplete } from "../lib/course-storage";
+import { triggerLessonComplete } from "../lib/animations";
 
 type LessonPlayerScreenProps = {
   lessonId: LessonId;
@@ -45,6 +46,7 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
     }
 
     markLessonComplete(lessonId);
+    triggerLessonComplete();
     setShowMilestone(true);
   }
 
@@ -76,7 +78,7 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
       </div>
 
       <div className="flex flex-1 items-center justify-center px-6 py-12">
-        <div className="w-full max-w-3xl">
+        <div key={currentStepIndex} className="w-full max-w-3xl" style={{ animation: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both" }}>
           {currentStep.type === "learn" ? (
             <LessonLearnStep onContinue={handleNext} stepId={currentStep.id} />
           ) : null}

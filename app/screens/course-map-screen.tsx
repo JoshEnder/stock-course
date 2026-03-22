@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { SkillTreeRoadmap, type SkillLesson } from "../components/skill-tree-roadmap";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { FinalAchievementCard } from "../components/final-achievement-card";
 import { JourneySurface } from "../components/journey-surface";
-import { ModulePreviewCard } from "../components/module-preview-card";
 import { ModuleSection } from "../components/module-section";
 import { useAuth } from "../lib/auth-context";
-import { deriveCourseState, getNextLessonRoute } from "../lib/course-engine";
+import { deriveCourseState, getNextLessonRoute, type DerivedLesson, type DerivedModule } from "../lib/course-engine";
 import {
   getEffectiveHearts,
   getServerCourseProgressSnapshot,
@@ -256,8 +257,25 @@ function MobileTopBar({ streak, completionPercent, resumeHref }: MobileBarProps)
   );
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Maps a DerivedModule's lessons to the flat SkillLesson[] shape the roadmap needs. */
+function toSkillLessons(module: DerivedModule): SkillLesson[] {
+  return (module.lessons as DerivedLesson[]).map((lesson) => ({
+    id: lesson.id,
+    title: lesson.title,
+    xpReward: lesson.xp,
+    route: lesson.route,
+    state:
+      lesson.state === "completed" ? "completed" :
+      lesson.state === "current"   ? "current"   :
+      "locked",
+  }));
+}
+
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function CourseMapScreen() {
+  const router = useRouter();
   const [freeJumpEnabled, setFreeJumpEnabled] = useState(false);
   const moduleAnchorRef = useRef<HTMLDivElement | null>(null);
   const { signInWithGoogle, user } = useAuth();
@@ -273,10 +291,8 @@ export function CourseMapScreen() {
   );
   const courseState = useMemo(() => deriveCourseState(storedProgress), [storedProgress]);
   const hearts = getEffectiveHearts(storedProgress, Boolean(user));
-  const currentModule  = courseState.modules.find((m) => m.id === courseState.currentModuleId);
-  const completedMods  = courseState.modules.filter((m) => m.id < courseState.currentModuleId);
-  const upcomingMods   = courseState.modules.filter((m) => m.id > courseState.currentModuleId);
-  const resumeHref     = useMemo(() => getNextLessonRoute(storedProgress), [storedProgress]);
+  const currentModule = courseState.modules.find((m) => m.id === courseState.currentModuleId);
+  const resumeHref    = useMemo(() => getNextLessonRoute(storedProgress), [storedProgress]);
 
   async function handleGoogleSignIn() {
     try {
@@ -370,76 +386,132 @@ export function CourseMapScreen() {
               </div>
             </div>
 
-            <div className="space-y-10">
-              {freeJumpEnabled ? (
-                <section className="space-y-6">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#22c55e]">
-                      All modules
-                    </p>
-                    <h2 className="mt-1 text-xl font-black text-[#1a2b4a]">Open any lesson directly</h2>
+            {freeJumpEnabled ? (
+              /* ── Free-jump mode: lesson list view ── */
+              <div className="space-y-6">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#22c55e]">All modules</p>
+                  <h2 className="mt-1 text-xl font-black text-[#1a2b4a]">Open any lesson directly</h2>
+                </div>
+                {courseState.modules.map((module) => (
+                  <div key={module.id} id={`module-${module.slug}`}>
+                    <ModuleSection allowFreeJump module={module} />
                   </div>
-                  {courseState.modules.map((module) => (
-                    <div key={module.id} id={`module-${module.slug}`}>
-                      <ModuleSection allowFreeJump module={module} />
+                ))}
+              </div>
+            ) : (
+              /* ── Normal mode: one themed roadmap per world ── */
+              <div className="space-y-14">
+                {courseState.modules.map((module) => {
+                  const isCurrent = module.id === courseState.currentModuleId;
+                  return (
+                    <div
+                      key={module.id}
+                      id={`module-${module.slug}`}
+                      ref={isCurrent ? moduleAnchorRef : undefined}
+                      style={{ opacity: module.locked ? 0.52 : 1, transition: "opacity 400ms" }}
+                    >
+                      {/* World header */}
+                      <div className="mb-4 flex items-center gap-3">
+                        <div
+                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-sm font-black text-white"
+                          style={{
+                            background: module.locked ? "#cbd5e1" : module.accentColor,
+                            boxShadow: module.locked ? "0 3px 0 #b0bec5" : `0 3px 0 color-mix(in srgb, ${module.accentColor} 60%, #000)`,
+                          }}
+                        >
+                          {module.id}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <span className="text-base font-black text-[#1a2b4a]">{module.title}</span>
+                            <span className="text-xs text-gray-400">{module.subtitle}</span>
+                          </div>
+                          <div className="mt-0.5">
+                            {module.locked ? (
+                              <span className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                                Locked — finish the previous world first
+                              </span>
+                            ) : module.completed ? (
+                              <span className="text-xs font-bold uppercase tracking-wide text-[#22c55e]">
+                                ✓ World complete
+                              </span>
+                            ) : (
+                              <span
+                                className="text-xs font-bold uppercase tracking-wide"
+                                style={{ color: module.accentColor }}
+                              >
+                                {module.completionCount}/{module.lessons.length} lessons done
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Roadmap or locked placeholder */}
+                      {module.locked ? (
+                        <div
+                          style={{
+                            background: "#fafaf8",
+                            border: "2px solid #e5e7eb",
+                            borderRadius: 24,
+                            boxShadow: "0 4px 0 #e0e0dc",
+                            padding: "36px 24px",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 10,
+                            fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 48,
+                              height: 48,
+                              background: "#f1f5f9",
+                              borderRadius: 16,
+                              border: "2px solid #e2e8f0",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <svg width="22" height="26" viewBox="0 0 22 26" fill="none">
+                              <path d="M5 12V8a6 6 0 0 1 12 0v4" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" />
+                              <rect x="1" y="12" width="20" height="13" rx="4" fill="#cbd5e1" />
+                              <circle cx="11" cy="18.5" r="2.5" fill="#94a3b8" />
+                              <rect x="9.5" y="18.5" width="3" height="4" rx="1" fill="#94a3b8" />
+                            </svg>
+                          </div>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 800,
+                              color: "#94a3b8",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.07em",
+                              margin: 0,
+                            }}
+                          >
+                            Finish the previous world to unlock
+                          </p>
+                        </div>
+                      ) : (
+                        <SkillTreeRoadmap
+                          moduleName={module.title}
+                          moduleColor={module.accentColor}
+                          lessons={toSkillLessons(module)}
+                          onLessonClick={(lesson) => router.push(lesson.route ?? "/course")}
+                        />
+                      )}
                     </div>
-                  ))}
-                </section>
-              ) : (
-                <>
-                  {/* Current module */}
-                  {currentModule && (
-                    <div id={`module-${currentModule.slug}`} ref={moduleAnchorRef}>
-                      <div className="mb-3">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#22c55e]">
-                          Current path
-                        </p>
-                        <h2 className="text-xl font-black text-[#1a2b4a]">
-                          {currentModule.title}
-                        </h2>
-                      </div>
-                      <ModuleSection module={currentModule} />
-                    </div>
-                  )}
+                  );
+                })}
 
-                  {/* Upcoming modules */}
-                  {upcomingMods.length > 0 && (
-                    <section className="space-y-3">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          Locked ahead
-                        </p>
-                        <h3 className="mt-1 text-lg font-black text-[#1a2b4a]">Next worlds</h3>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {upcomingMods.map((mod) => (
-                          <ModulePreviewCard key={mod.id} module={mod} variant="locked" />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
-                  {/* Completed modules */}
-                  {completedMods.length > 0 && (
-                    <section className="space-y-3">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          Completed
-                        </p>
-                        <h3 className="mt-1 text-lg font-black text-[#1a2b4a]">Finished worlds</h3>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {completedMods.map((mod) => (
-                          <ModulePreviewCard key={mod.id} module={mod} variant="completed" />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                </>
-              )}
-
-              <FinalAchievementCard completionPercent={courseState.completionPercent} />
-            </div>
+                <FinalAchievementCard completionPercent={courseState.completionPercent} />
+              </div>
+            )}
           </main>
         </div>
 
