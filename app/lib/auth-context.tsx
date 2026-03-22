@@ -47,9 +47,19 @@ const AuthContext = createContext<AuthContextValue>({
   signOut: async () => undefined,
   user: null,
 });
+const postAuthNextStorageKey = "stoked-post-auth-next";
+const postAuthNextCookie = "stoked-post-auth-next";
 
 export function useAuth() {
   return useContext(AuthContext);
+}
+
+function normalizePostAuthPath(next?: string) {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/course";
+  }
+
+  return next;
 }
 
 function waitFor<T>(promise: Promise<T>, timeoutMs: number) {
@@ -211,6 +221,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session?.user, supabase]);
 
   async function signInWithGoogle(next = "/course") {
+    const safeNext = normalizePostAuthPath(next);
+
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(postAuthNextStorageKey, safeNext);
+      document.cookie = `${postAuthNextCookie}=${encodeURIComponent(safeNext)}; path=/; max-age=600; samesite=lax`;
+    }
+
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -218,7 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           access_type: "offline",
           prompt: "select_account",
         },
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
   }

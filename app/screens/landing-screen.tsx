@@ -541,8 +541,8 @@ export function LandingScreen() {
         }}>
           <StokedLogo />
           <span style={{ fontSize: 13, color: "#9ca3af" }}>© 2025 Stoked. Stock learning that actually clicks.</span>
-          <div style={{ display: "flex", gap: 24 }}>
-            {[["Learn", "/course"], ["Guest", "/onboarding"]].map(([label, href]) => (
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+            {[["Learn", "/course"], ["Guest", "/onboarding"], ["Privacy", "/privacy"]].map(([label, href]) => (
               <Link key={label} href={href} style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", textDecoration: "none" }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22c55e"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}
