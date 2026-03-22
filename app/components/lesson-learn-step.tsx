@@ -95,10 +95,10 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
 
       {/* Content */}
       <div ref={panelBodyRef} style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: "clamp(24px,3.5vw,36px)", fontWeight: 900, color: "#172b4d", lineHeight: 1.2, letterSpacing: "-0.5px", marginBottom: 16 }}>
+        <h2 style={{ fontSize: "clamp(20px,3.5vw,36px)", fontWeight: 900, color: "#172b4d", lineHeight: 1.2, letterSpacing: "-0.5px", marginBottom: 12 }}>
           {capitalizeLead(panel.title)}
         </h2>
-        <p style={{ fontSize: 18, color: "#4b5563", lineHeight: 1.75 }}>{capitalizeLead(panel.copy)}</p>
+        <p style={{ fontSize: "clamp(14px,2.5vw,18px)" as string, color: "#4b5563", lineHeight: 1.55 }}>{capitalizeLead(panel.copy)}</p>
       </div>
 
       {panel.activityKind ? (
@@ -129,7 +129,7 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       ) : null}
 
       {panel.note ? (
-        <div style={{ background: "#f0fdf4", borderRadius: 16, padding: 16, marginBottom: 20, boxShadow: "inset 0 0 0 1px #bbf7d0" }}>
+        <div style={{ background: "#f0fdf4", borderRadius: 16, padding: 12, marginBottom: 16, boxShadow: "inset 0 0 0 1px #bbf7d0" }}>
           <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
             <LightbulbIcon style={{ width: 20, height: 20, color: "#16a34a", flexShrink: 0, marginTop: 2 }} />
             <div>
@@ -142,16 +142,16 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
 
       {!content.panels?.length ? (
         <>
-          <div style={{ background: "#f0fdf4", borderRadius: 16, padding: 16, marginBottom: 12, boxShadow: "inset 0 0 0 1px #bbf7d0" }}>
+          <div style={{ background: "#f0fdf4", borderRadius: 16, padding: 12, marginBottom: 10, boxShadow: "inset 0 0 0 1px #bbf7d0" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <LightbulbIcon style={{ width: 20, height: 20, color: "#16a34a", flexShrink: 0, marginTop: 2 }} />
               <div>
                 <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>What this means</p>
-                <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>{capitalizeLead(content.whatThisMeans)}</p>
+                <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.5 }}>{capitalizeLead(content.whatThisMeans)}</p>
               </div>
             </div>
           </div>
-          <div style={{ background: "#fff1f2", borderRadius: 16, padding: 16, marginBottom: 20, boxShadow: "inset 0 0 0 1px #fecdd3" }}>
+          <div style={{ background: "#fff1f2", borderRadius: 16, padding: 12, marginBottom: 16, boxShadow: "inset 0 0 0 1px #fecdd3" }}>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <AlertCircleIcon style={{ width: 20, height: 20, color: "#e11d48", flexShrink: 0, marginTop: 2 }} />
               <div>
@@ -164,7 +164,7 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       ) : null}
 
       {/* Bottom CTA */}
-      <div style={{ marginTop: 32 }}>
+      <div style={{ marginTop: 20 }}>
         <button
           disabled={!isPanelReady}
           onClick={handleAdvance}

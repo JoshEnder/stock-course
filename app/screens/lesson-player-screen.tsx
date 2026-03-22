@@ -77,7 +77,7 @@ export function LessonPlayerScreen({ lessonId }: LessonPlayerScreenProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-6 py-12">
+      <div className="flex flex-1 items-start justify-center px-4 pt-4 pb-8 sm:items-center sm:px-6 sm:py-12">
         <div key={currentStepIndex} className="w-full max-w-3xl" style={{ animation: "slideInRight 280ms cubic-bezier(0.22,1,0.36,1) both" }}>
           {currentStep.type === "learn" ? (
             <LessonLearnStep onContinue={handleNext} stepId={currentStep.id} />

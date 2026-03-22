@@ -102,11 +102,13 @@ const ICON_CONFIGS: IconCfg[] = [
 
 // ─── Main component ────────────────────────────────────────────────────────────
 export default function HeroScene({
-  width  = "100%",
-  height = "100%",
+  width     = "100%",
+  height    = "100%",
+  minHeight = 0,
 }: {
   width?: string;
   height?: string;
+  minHeight?: number;
 }) {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -200,14 +202,13 @@ export default function HeroScene({
       const cW = 1024, cH = 640;
 
       // Target draw width = 62% of canvas; derive height from natural ratio
-      const targetW = cW * 0.62;
       const naturalAspect = logoImg.naturalWidth / logoImg.naturalHeight;
-      const targetH = targetW / naturalAspect;
 
-      // If derived height would overflow (very tall logo), clamp to 60% of cH
-      const maxH = cH * 0.60;
-      const drawW = targetH > maxH ? maxH * naturalAspect : targetW;
-      const drawH = targetH > maxH ? maxH : targetH;
+      // Contain-fit: fill 90% of canvas height or 92% of width, whichever is smaller
+      const byWidth  = cW * 0.92;
+      const byHeight = cH * 0.90;
+      const drawW = Math.min(byWidth, byHeight * naturalAspect);
+      const drawH = drawW / naturalAspect;
 
       const drawX = (cW - drawW) / 2;
       const drawY = (cH - drawH) / 2;
@@ -484,7 +485,7 @@ export default function HeroScene({
       style={{
         width,
         height,
-        minHeight: 640,
+        minHeight,
         position: "relative",
         cursor: "grab",
       }}

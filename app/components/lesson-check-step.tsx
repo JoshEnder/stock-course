@@ -171,17 +171,18 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     return {
       display: "flex",
       alignItems: "center",
-      gap: 14,
+      gap: 12,
       width: "100%",
+      minHeight: 44,
       textAlign: "left",
-      padding: "14px 16px",
+      padding: "12px 14px",
       background: bg,
       border: `2px solid ${border}`,
       borderRadius: 16,
       boxShadow: shadow,
       color,
       fontFamily: font,
-      fontSize: 16,
+      fontSize: "clamp(14px, 2vw, 16px)" as string,
       fontWeight: 600,
       cursor: "pointer",
       transition: "all 150ms",
@@ -286,7 +287,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
       </h2>
 
       {answerType === "truefalse" ? (
-        <div key={`${prompt}-tf`} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        <div key={`${prompt}-tf`} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {[{ value: true, label: "True" }, { value: false, label: "False" }].map((option, idx) => {
             const active = selectedAnswer === option.value;
             const showCorrect = showFeedback && option.value === currentCorrectAnswer;
@@ -313,7 +314,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
           })}
         </div>
       ) : (
-        <div key={`${prompt}-${caseIndex}`} style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+        <div key={`${prompt}-${caseIndex}`} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {optionList.map((option, idx) => {
             const active = selectedAnswer === option.id;
             const showCorrect = showFeedback && option.correct;
@@ -345,8 +346,8 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
         <div
           style={{
             borderRadius: 16,
-            padding: "14px 16px",
-            marginBottom: 20,
+            padding: "12px 14px",
+            marginBottom: 16,
             background: isCorrect ? "#f0fdf4" : "#fff1f2",
             border: `2px solid ${isCorrect ? "#22c55e" : "#f43f5e"}`,
           }}

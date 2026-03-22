@@ -126,6 +126,8 @@ export function triggerConfetti(
   originY: number,
   count = 40
 ): void {
+  // Skip on mobile — canvas confetti is expensive on low-end devices
+  if (typeof window !== "undefined" && window.innerWidth <= 640) return;
   const canvas = document.createElement("canvas");
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
