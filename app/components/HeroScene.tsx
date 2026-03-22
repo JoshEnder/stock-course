@@ -131,15 +131,14 @@ export default function HeroScene({
 
     // ── Scene / Camera ────────────────────────────────────────────────────
     const scene  = new THREE.Scene();
-    // Camera pulled back and shifted up to frame the laptop comfortably.
-    // FOV 44 gives a natural perspective without distortion.
+    // On mobile (narrow containers) bring the camera closer and centre it.
+    // On desktop keep the original offset so the scene clears the text column.
+    const isMobileScene = W < 600;
+    const camZ     = isMobileScene ? 9  : 14;
+    const camLookX = isMobileScene ? 0  : -1.5;
     const camera = new THREE.PerspectiveCamera(44, W / H, 0.1, 200);
-    // Camera sits at x=0; lookAt aimed at x=-1.5 so the scene content (at
-    // root x=0) projects ~100px right of canvas centre — clear of the left
-    // text column.  FOV 44 at z=14: half-width ≈ 5.66 wu, so 1.5 wu ≈ 27%
-    // of half-width → ~80-110px on a 600-800px wide column.
-    camera.position.set(0, 3.2, 14);
-    camera.lookAt(-1.5, 0.8, 0);
+    camera.position.set(0, 3.2, camZ);
+    camera.lookAt(camLookX, 0.8, 0);
 
     // ── Lights ────────────────────────────────────────────────────────────
     scene.add(new THREE.AmbientLight(0xffffff, 0.55));

@@ -663,7 +663,7 @@ export function LandingScreen() {
           {/* Right — 3D hero scene */}
           <div style={{
             flex: isMobile ? "none" : "1 1 660px",
-            height: isMobile ? 220 : "min(740px, calc(100vh - 100px))",
+            height: isMobile ? 260 : "min(740px, calc(100vh - 100px))",
             minHeight: isMobile ? 0 : 600,
             width: isMobile ? "100%" : undefined,
             position: "relative",
