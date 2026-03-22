@@ -42,7 +42,6 @@ export function ModulePreviewCard({
   variant,
 }: ModulePreviewCardProps) {
   const Icon = moduleIcons[module.icon];
-  const isCurrent = variant === "current";
   const isLocked = variant === "locked";
 
   // Locked: "territory ahead" — muted, foggy, feels like future zone
