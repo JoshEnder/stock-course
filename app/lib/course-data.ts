@@ -127,8 +127,6 @@ export type CheckContent = {
   voiceReady?: boolean;
   explanation: string;
   reviewPrompt: string;
-  variant?: "rapid-fire";
-  rapidFireCases?: RapidFireCase[];
 };
 
 export const lessonCatalog: LessonMeta[] = [
