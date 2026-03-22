@@ -13,7 +13,7 @@ import {
 } from "../lib/course-storage";
 import { resetCourseProgress } from "../lib/course-progress";
 import { getSupabaseBrowserClient } from "../lib/supabase-browser";
-import { syncNicknameForCurrentUser } from "../lib/remote-progress";
+import { saveNicknameForCurrentUser } from "../lib/remote-progress";
 
 function StokedLogo() {
   return (
@@ -97,26 +97,22 @@ export function ProfileScreen() {
         return;
       }
 
+      await saveNicknameForCurrentUser(nextNickname);
+
       const supabase = getSupabaseBrowserClient();
-      void (async () => {
-        const { error: authError } = await supabase.auth.updateUser({
+      void supabase.auth
+        .updateUser({
           data: {
             nickname: nextNickname,
           },
+        })
+        .catch((error) => {
+          console.warn("Auth metadata nickname update failed.", error);
         });
-
-        if (authError) {
-          throw authError;
-        }
-
-        await syncNicknameForCurrentUser(nextNickname);
-      })().catch((error) => {
-        console.warn("Nickname sync failed after local save.", error);
-        setMessage("Nickname updated on this device. Account sync may take a moment.");
-      });
     } catch (error) {
+      console.warn("Nickname save failed after local update.", error);
       setErrorMessage(
-        error instanceof Error ? error.message : "Unable to update your nickname.",
+        "Nickname updated on this device, but cloud save did not finish. Try again in a moment if the leaderboard name stays stale.",
       );
     } finally {
       setSaveLoading(false);

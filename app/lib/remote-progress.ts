@@ -11,6 +11,8 @@ import {
 } from "./course-storage";
 import { getSupabaseBrowserClient } from "./supabase-browser";
 
+export const leaderboardRefreshEventName = "stoked-leaderboard-refresh";
+
 export type RemoteUserProgressRow = {
   certificate_id: string | null;
   completed_lesson_ids: string[] | null;
@@ -106,6 +108,14 @@ function markUnavailableUserProgressBackend(error: unknown) {
     "Remote progress sync is disabled because the Supabase user_progress backend is unavailable. Apply the latest migration and confirm authenticated read/write access.",
     error,
   );
+}
+
+function dispatchLeaderboardRefresh() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new Event(leaderboardRefreshEventName));
 }
 
 export function normalizeCourseProgress(
@@ -400,6 +410,56 @@ export async function syncNicknameForCurrentUser(nickname: string) {
 
     throw error;
   }
+
+  dispatchLeaderboardRefresh();
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function waitFor<T>(promise: Promise<T>, timeoutMs: number) {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      window.setTimeout(() => {
+        reject(new Error(`Timed out after ${timeoutMs}ms.`));
+      }, timeoutMs);
+    }),
+  ]);
+}
+
+export async function saveNicknameForCurrentUser(
+  nickname: string,
+  options?: {
+    attempts?: number;
+    retryDelayMs?: number;
+    timeoutMs?: number;
+  },
+) {
+  const attempts = options?.attempts ?? 3;
+  const retryDelayMs = options?.retryDelayMs ?? 1200;
+  const timeoutMs = options?.timeoutMs ?? 2500;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      await waitFor(syncNicknameForCurrentUser(nickname), timeoutMs);
+      return true;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < attempts) {
+        await sleep(retryDelayMs);
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Unable to save nickname remotely.");
 }
 
 export function mapRealtimePayloadToRow(

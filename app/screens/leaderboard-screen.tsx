@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useAuth } from "../lib/auth-context";
 import {
+  getNickname,
+  subscribeToCourseStorage,
+} from "../lib/course-storage";
+import {
   getServerCourseProgressSnapshot,
   getStoredCourseProgress,
   subscribeToCourseProgress,
@@ -14,6 +18,7 @@ import {
   type LeaderboardEntry,
 } from "../lib/leaderboard";
 import {
+  leaderboardRefreshEventName,
   serializeRemoteProgressError,
   syncCurrentUserProgressIfAuthenticated,
 } from "../lib/remote-progress";
@@ -50,6 +55,11 @@ function formatUpdatedAt(value: string | null) {
 
 export function LeaderboardScreen() {
   const { loading: authLoading, signInWithGoogle, user } = useAuth();
+  const localNickname = useSyncExternalStore(
+    subscribeToCourseStorage,
+    getNickname,
+    () => "Learner",
+  );
   const storedProgress = useSyncExternalStore(
     subscribeToCourseProgress,
     getStoredCourseProgress,
@@ -109,13 +119,20 @@ export function LeaderboardScreen() {
 
     void load();
 
+    const handleRefresh = () => {
+      void load();
+    };
     const intervalId = window.setInterval(() => {
       void load();
     }, 60_000);
+    window.addEventListener("focus", handleRefresh);
+    window.addEventListener(leaderboardRefreshEventName, handleRefresh);
 
     return () => {
       active = false;
       window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleRefresh);
+      window.removeEventListener(leaderboardRefreshEventName, handleRefresh);
     };
   }, [storedProgress, user]);
 
@@ -213,7 +230,7 @@ export function LeaderboardScreen() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <p className="truncate text-base font-black text-[#172b4d]">
-                                {entry.nickname}
+                                {isCurrentUser ? localNickname : entry.nickname}
                               </p>
                               {isCurrentUser ? (
                                 <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#15803d]">
@@ -246,7 +263,7 @@ export function LeaderboardScreen() {
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-gray-500">
                     {currentUserEntry
-                      ? `${currentUserEntry.total_xp} XP across ${currentUserEntry.completed_lessons} completed lessons.`
+                      ? `${currentUserEntry.total_xp} XP across ${currentUserEntry.completed_lessons} completed lessons as ${localNickname}.`
                       : storedProgress.totalXp > 0
                         ? `You have ${storedProgress.totalXp} XP locally. We are syncing your rank now.`
                         : "Complete your next signed-in lesson to appear in the standings."}
