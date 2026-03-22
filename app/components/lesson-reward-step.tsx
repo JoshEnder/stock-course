@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { AnimatedNumber } from "./animated-number";
 import { CheckCircleIcon, SparklesIcon, TrendingUpIcon } from "./icons";
 import { ProgressBar } from "./progress-bar";
+import { triggerBossComplete, triggerLessonComplete, triggerModuleUnlock } from "../lib/animations";
 
 type LessonRewardStepProps = {
   accentColor: string;
@@ -35,6 +37,8 @@ export function LessonRewardStep({
   onContinue,
   rankLabel,
 }: LessonRewardStepProps) {
+  const milestoneRef = useRef<HTMLDivElement | null>(null);
+  const firedCelebrationRef = useRef(false);
   const rewardEyebrow = moduleCompleted
     ? "Module complete"
     : isBossLesson
@@ -54,8 +58,28 @@ export function LessonRewardStep({
   const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
   const celebEmoji = moduleCompleted ? "🏆" : isBossLesson ? "⭐" : "🎉";
 
+  useEffect(() => {
+    if (firedCelebrationRef.current) {
+      return;
+    }
+
+    firedCelebrationRef.current = true;
+
+    if (moduleCompleted && milestoneRef.current) {
+      triggerModuleUnlock(milestoneRef.current);
+    }
+
+    if (isBossLesson || moduleCompleted) {
+      triggerBossComplete();
+      return;
+    }
+
+    triggerLessonComplete();
+  }, [isBossLesson, moduleCompleted]);
+
   return (
     <div
+      ref={milestoneRef}
       className="reward-panel-enter reward-surface journey-milestone-panel"
       data-milestone={moduleCompleted ? "module" : isBossLesson ? "boss" : "lesson"}
       style={{ fontFamily: font }}

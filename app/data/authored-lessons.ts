@@ -2421,18 +2421,44 @@ const authoredLearnPanelsByLesson: Record<string, LearnPanel[]> = {
       "You buy shares in a mock company. Your first job is to recognize that this creates ownership, not a loan or a paycheck.",
       {
         eyebrow: "Boss setup",
-        activityKind: "ownership-board",
-        activityStartValue: 18,
+        activityKind: "tap-sort",
         activityData: {
-          shareLabel: "Mock company shares",
-          min: 5,
-          max: 80,
+          buckets: ["Ownership", "Not what buying shares means"],
           cards: [
-            "Buying shares = ownership",
-            "Ownership can grow with more shares",
-            "Owning shares is not the same as controlling everything",
+            {
+              id: "boss-own-part",
+              label: "You own part of the company",
+              target: "Ownership",
+              description: "A stock share represents ownership.",
+            },
+            {
+              id: "boss-loan",
+              label: "You made a loan to the company",
+              target: "Not what buying shares means",
+              description: "A bond is lending. A stock is not.",
+            },
+            {
+              id: "boss-paycheck",
+              label: "You now get a company salary",
+              target: "Not what buying shares means",
+              description: "Owning shares does not create a paycheck.",
+            },
+            {
+              id: "boss-more-shares",
+              label: "More shares can mean a bigger ownership slice",
+              target: "Ownership",
+              description: "More shares in the same company can increase your ownership.",
+            },
+            {
+              id: "boss-control",
+              label: "Owning shares means you control every decision",
+              target: "Not what buying shares means",
+              description: "Ownership is not the same thing as total control.",
+            },
           ],
         },
+        noteLabel: "Checkpoint",
+        note: "Start the boss by separating real ownership from common beginner mistakes.",
       },
     ),
     learnPanel(

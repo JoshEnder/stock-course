@@ -713,16 +713,23 @@ export function LessonShellScreen({
         onContinue={() => {
           const completedProgress = completeLesson(lesson.id);
           const latestCourseState = deriveCourseState(completedProgress);
+          const latestModule = latestCourseState.modules.find((item) => item.id === module.id);
+          const latestNextModule = latestCourseState.modules.find((item) => item.id === module.id + 1);
 
           if (latestCourseState.allLessonsCompleted) {
             navigateWithJourney(router, "/completion", "milestone");
             return;
           }
 
+          if (latestModule?.completed && latestNextModule?.lessons[0]?.route) {
+            navigateWithJourney(router, latestNextModule.lessons[0].route, "milestone");
+            return;
+          }
+
           navigateWithJourney(
             router,
             getNextLessonRoute(completedProgress),
-            rewardDerivedModule?.completed ? "milestone" : "lesson",
+            latestModule?.completed ? "milestone" : "lesson",
           );
         }}
         rankLabel={rewardCourseState.rank}

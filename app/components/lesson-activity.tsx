@@ -372,14 +372,19 @@ export function LessonActivity({
 }: LessonActivityProps) {
   const data = asObject(activityData);
   const variant = stringOr(data.variant, "");
+  const initialMeter = activityStartValue ?? numberOr(data.sell, numberOr(data.buy, 50));
+  const initialSecondaryValue = numberOr(
+    data.shareCount,
+    numberOr(data.costs, numberOr(data.shares, numberOr(data.eps, 4))),
+  );
   const [revealed, setRevealed] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<Record<string, string>>({});
   const [sequence, setSequence] = useState<string[]>([]);
   const [checked, setChecked] = useState<string[]>([]);
-  const [meterValue, setMeterValue] = useState(
-    activityStartValue ?? numberOr(data.sell, numberOr(data.buy, 50)),
-  );
+  const [fallbackSeenIds, setFallbackSeenIds] = useState<string[]>([]);
+  const [meterValue, setMeterValue] = useState(initialMeter);
+  const [secondaryMeterValue, setSecondaryMeterValue] = useState(initialSecondaryValue);
   const lastReadyRef = useRef<boolean | null>(null);
 
   useEffect(() => {
@@ -388,9 +393,11 @@ export function LessonActivity({
     setAssignments({});
     setSequence([]);
     setChecked([]);
-    setMeterValue(activityStartValue ?? numberOr(data.sell, numberOr(data.buy, 50)));
+    setFallbackSeenIds([]);
+    setMeterValue(initialMeter);
+    setSecondaryMeterValue(initialSecondaryValue);
     lastReadyRef.current = null;
-  }, [activityKind, activityData, activityStartValue, data.buy, data.sell]);
+  }, [activityKind, activityData, initialMeter, initialSecondaryValue]);
 
   const buckets = asArray<string>(data.buckets);
   const cards = asArray<BucketCard>(data.cards);
@@ -412,6 +419,18 @@ export function LessonActivity({
   const frames = asArray<FadeFrame>(data.frames);
   const checklist = asArray<string>(data.checklist);
   const chartPoints = asArray<number>(data.chartPoints);
+  const fallbackCards = [
+    ...cards.map((card) => ({
+      id: card.id,
+      label: card.label,
+      detail: card.description,
+    })),
+    ...checklistItems.map((item, index) => ({
+      id: `item-${index}`,
+      label: item,
+      detail: undefined,
+    })),
+  ];
 
   const stepsHaveIds = steps.length > 0 && typeof steps[0]?.id === "string";
   const sequenceItems = stepsHaveIds ? steps : orderedSteps;
@@ -477,7 +496,6 @@ export function LessonActivity({
   const walkthroughReady = checklist.length > 0 && checked.length === checklist.length;
   const trendClinicReady = clues.length > 0 && checked.length === clues.length;
   const highLowReady = checked.includes("peak") && checked.includes("low");
-  const initialMeter = activityStartValue ?? numberOr(data.sell, numberOr(data.buy, 50));
 
   const ready = useMemo(() => {
     switch (activityKind) {
@@ -498,6 +516,10 @@ export function LessonActivity({
         return Boolean(selectedId);
       case "funding-simulator":
         return meterValue !== initialMeter;
+      case "market-cap-board":
+      case "business-builder":
+      case "ratio-builder":
+        return Boolean(selectedId) || meterValue !== initialMeter || secondaryMeterValue !== initialSecondaryValue;
       case "news-chart":
         return Boolean(selectedId);
       case "return-builder":
@@ -516,7 +538,9 @@ export function LessonActivity({
       case "confidence-meter":
         return Boolean(selectedId || checked.length || revealed || meterValue !== initialMeter);
       default:
-        return true;
+        return fallbackCards.length > 0
+          ? fallbackSeenIds.length === fallbackCards.length
+          : Boolean(selectedId || revealed);
     }
   }, [
     activityKind,
@@ -530,11 +554,15 @@ export function LessonActivity({
     revealed,
     meterValue,
     initialMeter,
+    secondaryMeterValue,
+    initialSecondaryValue,
     variant,
     highLowReady,
     walkthroughReady,
     trendClinicReady,
     checked.length,
+    fallbackCards.length,
+    fallbackSeenIds.length,
   ]);
 
   useEffect(() => {
@@ -1874,6 +1902,17 @@ export function LessonActivity({
   if (activityKind === "news-chart" && (variant === "pressure-balance" || variant === "pressure-crowd")) {
     const activeScenario = selectedId ?? null;
     const normalizedScenario = activeScenario?.toLowerCase() ?? "";
+    const isBalancedScenario =
+      normalizedScenario.includes("balanced") || normalizedScenario.includes("mixed");
+    const isBuyerHeavyScenario =
+      normalizedScenario.includes("many eager buyers") ||
+      normalizedScenario.includes("demand jumps after good news") ||
+      normalizedScenario.includes("good news");
+    const isSellerHeavyScenario =
+      normalizedScenario.includes("many sellers") ||
+      normalizedScenario.includes("heavy selling after bad results") ||
+      normalizedScenario.includes("bad results");
+
     const pressureState = !activeScenario
       ? {
           buyerStrength: 0,
@@ -1885,7 +1924,7 @@ export function LessonActivity({
           sellerDots: 0,
           summary: "Choose a scenario first to see how the pressure shifts.",
         }
-      : normalizedScenario.includes("balanced") || normalizedScenario.includes("mixed")
+      : isBalancedScenario
         ? {
             buyerStrength: 50,
             sellerStrength: 50,
@@ -1896,18 +1935,19 @@ export function LessonActivity({
             sellerDots: 4,
             summary: "Neither side has a clean edge yet, so pressure stays mixed.",
           }
-        : normalizedScenario.includes("many eager buyers")
+        : isBuyerHeavyScenario
           ? {
-              buyerStrength: 78,
-              sellerStrength: 22,
-              pressureLabel: "Upward",
-              accent: "#16a34a",
-              chartPoints: [24, 30, 39, 52, 63, 75, 88],
-              buyerDots: 6,
-              sellerDots: 2,
-              summary: "Buyers are crowding in faster than sellers are stepping away.",
-            }
-          : {
+            buyerStrength: 78,
+            sellerStrength: 22,
+            pressureLabel: "Upward",
+            accent: "#16a34a",
+            chartPoints: [24, 30, 39, 52, 63, 75, 88],
+            buyerDots: 6,
+            sellerDots: 2,
+            summary: "Buyers are crowding in faster than sellers are stepping away.",
+          }
+          : isSellerHeavyScenario
+            ? {
               buyerStrength: 26,
               sellerStrength: 74,
               pressureLabel: "Downward",
@@ -1916,7 +1956,17 @@ export function LessonActivity({
               buyerDots: 2,
               sellerDots: 6,
               summary: "Sellers are pressing harder while buyers hold back.",
-            };
+              }
+            : {
+                buyerStrength: 0,
+                sellerStrength: 0,
+                pressureLabel: "None",
+                accent: "#94a3b8",
+                chartPoints: [],
+                buyerDots: 0,
+                sellerDots: 0,
+                summary: "Choose a scenario first to see how the pressure shifts.",
+              };
     const buyerSurface =
       pressureState.pressureLabel === "Upward"
         ? "rounded-2xl bg-emerald-50 p-3 shadow-[inset_0_0_0_1px_rgba(134,239,172,0.95)]"
@@ -2355,6 +2405,321 @@ export function LessonActivity({
     );
   }
 
+  if (activityKind === "business-builder") {
+    const sections = asArray<{ label: string; value: string }>(data.sections);
+    const companies = asArray<Record<string, unknown>>(data.companies);
+
+    if (variant === "snapshot-board" && sections.length) {
+      const activeSection = sections.find((section) => section.label === selectedId) ?? sections[0];
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-3">
+            {sections.map((section) => {
+              const isActive = activeSection.label === section.label;
+              return (
+                <button
+                  key={section.label}
+                  type="button"
+                  onClick={() => setSelectedId(section.label)}
+                  className={`rounded-2xl border px-4 py-4 text-left transition ${
+                    isActive ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-200"
+                  }`}
+                >
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    {capitalizeLead(section.label)}
+                  </p>
+                  <p className="mt-2 text-base font-semibold text-slate-900">{capitalizeLead(section.value)}</p>
+                </button>
+              );
+            })}
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Focus now</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">{capitalizeLead(activeSection.label)}</p>
+            <p className="mt-1 text-sm text-slate-600">{capitalizeLead(activeSection.value)}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (variant === "revenue-counter") {
+      const pricePerUnit = numberOr(data.pricePerUnit, 6);
+      const units = clamp(Math.round(meterValue), 10, 90);
+      const revenue = units * pricePerUnit;
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Units sold" value={`${units}`} accent="#16a34a" surfaceClass="rounded-2xl border border-emerald-200 bg-emerald-50 p-4" />
+            <Stat label="Price per unit" value={`$${pricePerUnit}`} surfaceClass="rounded-2xl border border-slate-200 bg-slate-50 p-4" />
+            <Stat label="Revenue" value={`$${revenue}`} accent="#16a34a" surfaceClass="rounded-2xl border border-emerald-200 bg-emerald-50 p-4" />
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-slate-700">Sell more or fewer units</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setMeterValue((current) => clamp(current - 10, 10, 90))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-10</button>
+                <button type="button" onClick={() => setMeterValue((current) => clamp(current + 10, 10, 90))} className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">+10</button>
+              </div>
+            </div>
+            <div className="mt-4 h-3 rounded-full bg-slate-200">
+              <div className="h-3 rounded-full bg-emerald-500 transition-all" style={{ width: `${(units / 90) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (variant === "profit-builder") {
+      const revenue = numberOr(data.revenue, 140);
+      const costs = clamp(Math.round(secondaryMeterValue), 10, revenue - 10);
+      const profit = revenue - costs;
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Revenue" value={`$${revenue}`} accent="#16a34a" surfaceClass="rounded-2xl border border-emerald-200 bg-emerald-50 p-4" />
+            <Stat label="Costs" value={`$${costs}`} accent="#ef4444" surfaceClass="rounded-2xl border border-red-200 bg-red-50 p-4" />
+            <Stat label="Profit left" value={`$${profit}`} accent={profit > 0 ? "#16a34a" : "#ef4444"} surfaceClass="rounded-2xl border border-slate-200 bg-slate-50 p-4" />
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-slate-700">Adjust costs</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current - 10, 10, revenue - 10))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-10</button>
+                <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current + 10, 10, revenue - 10))} className="rounded-full border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700">+10</button>
+              </div>
+            </div>
+            <div className="mt-4 flex h-4 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-full bg-red-400 transition-all" style={{ width: `${(costs / revenue) * 100}%` }} />
+              <div className="h-full bg-emerald-500 transition-all" style={{ width: `${(profit / revenue) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (variant === "margin-compare" && companies.length) {
+      const activeCompany = companies.find((company) => stringOr(company.id, "") === selectedId) ?? companies[0];
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-2">
+            {companies.map((company) => {
+              const id = stringOr(company.id, stringOr(company.name, "company"));
+              const isActive = id === stringOr(activeCompany.id, "");
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSelectedId(id)}
+                  className={`rounded-2xl border px-4 py-4 text-left transition ${
+                    isActive ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-200"
+                  }`}
+                >
+                  <p className="text-base font-semibold text-slate-900">{stringOr(company.name, humanize(id))}</p>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                    <Stat label="Revenue" value={stringOr(company.revenue, "")} surfaceClass="rounded-xl border border-slate-200 bg-white p-3" />
+                    <Stat label="Profit" value={stringOr(company.profit, "")} surfaceClass="rounded-xl border border-slate-200 bg-white p-3" />
+                    <Stat label="Margin" value={stringOr(company.margin, "")} accent="#16a34a" surfaceClass="rounded-xl border border-emerald-200 bg-emerald-50 p-3" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-sm font-semibold text-slate-900">{stringOr(activeCompany.name, "Company focus")}</p>
+            <p className="mt-1 text-sm text-slate-600">{stringOr(activeCompany.note, "Compare what survives from each sales dollar.")}</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  if (activityKind === "market-cap-board") {
+    const companies = asArray<Record<string, unknown>>(data.companies);
+
+    if (variant === "market-cap-builder") {
+      const sharePrice = clamp(Math.round(meterValue), 5, 60);
+      const shareCount = clamp(Math.round(secondaryMeterValue), 10, 80);
+      const marketCap = sharePrice * shareCount;
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Share price" value={`$${sharePrice}`} accent="#3b82f6" surfaceClass="rounded-2xl border border-blue-200 bg-blue-50 p-4" />
+            <Stat label="Share count" value={`${shareCount}M`} surfaceClass="rounded-2xl border border-slate-200 bg-slate-50 p-4" />
+            <Stat label="Market cap" value={`$${marketCap}M`} accent="#16a34a" surfaceClass="rounded-2xl border border-emerald-200 bg-emerald-50 p-4" />
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-slate-700">Adjust share price</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setMeterValue((current) => clamp(current - 5, 5, 60))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-5</button>
+                  <button type="button" onClick={() => setMeterValue((current) => clamp(current + 5, 5, 60))} className="rounded-full border border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700">+5</button>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-slate-700">Adjust share count</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current - 10, 10, 80))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-10M</button>
+                  <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current + 10, 10, 80))} className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">+10M</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if ((variant === "company-compare" || variant === "growth-bars") && companies.length) {
+      const activeCompany = companies.find((company) => stringOr(company.id, "") === selectedId) ?? companies[0];
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className={`grid gap-3 ${companies.length > 2 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+            {companies.map((company) => {
+              const id = stringOr(company.id, stringOr(company.name, "company"));
+              const isActive = id === stringOr(activeCompany.id, "");
+              const revenueSeries = asArray<number>(company.revenue);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSelectedId(id)}
+                  className={`rounded-2xl border px-4 py-4 text-left transition ${
+                    isActive ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white hover:border-emerald-200"
+                  }`}
+                >
+                  <p className="text-base font-semibold text-slate-900">{stringOr(company.name, humanize(id))}</p>
+                  {variant === "company-compare" ? (
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                      <Stat label="Price" value={stringOr(company.price, "")} surfaceClass="rounded-xl border border-slate-200 bg-white p-3" />
+                      <Stat label="Shares" value={stringOr(company.shares, "")} surfaceClass="rounded-xl border border-slate-200 bg-white p-3" />
+                      <Stat label="Cap" value={stringOr(company.cap, "")} accent="#16a34a" surfaceClass="rounded-xl border border-emerald-200 bg-emerald-50 p-3" />
+                    </div>
+                  ) : (
+                    <div className="mt-3">
+                      <div className="flex h-20 items-end gap-2">
+                        {revenueSeries.map((bar, index) => (
+                          <div key={`${id}-${index}`} className="flex-1 rounded-t-lg bg-emerald-400/85" style={{ height: `${clamp(bar, 0, 100)}%` }} />
+                        ))}
+                      </div>
+                      <p className="mt-2 text-sm text-slate-600">{stringOr(company.note, "")}</p>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-sm font-semibold text-slate-900">{stringOr(activeCompany.name, "Focus")}</p>
+            <p className="mt-1 text-sm text-slate-600">
+              {stringOr(activeCompany.note, variant === "company-compare" ? "Compare market cap, not just sticker price." : "Compare the sales path over time.")}
+            </p>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  if (activityKind === "ratio-builder") {
+    const companies = asArray<Record<string, unknown>>(data.companies);
+
+    if (variant === "eps-builder") {
+      const earnings = numberOr(data.earnings, 120);
+      const shares = clamp(Math.round(secondaryMeterValue), 5, 60);
+      const eps = (earnings / shares).toFixed(2);
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Earnings" value={`$${earnings}`} accent="#16a34a" surfaceClass="rounded-2xl border border-emerald-200 bg-emerald-50 p-4" />
+            <Stat label="Shares" value={`${shares}`} surfaceClass="rounded-2xl border border-slate-200 bg-slate-50 p-4" />
+            <Stat label="EPS" value={`$${eps}`} accent="#3b82f6" surfaceClass="rounded-2xl border border-blue-200 bg-blue-50 p-4" />
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-slate-700">Spread earnings across more or fewer shares</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current - 5, 5, 60))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-5</button>
+                <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current + 5, 5, 60))} className="rounded-full border border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700">+5</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (variant === "pe-builder") {
+      const price = clamp(Math.round(meterValue), 10, 80);
+      const eps = clamp(Math.round(secondaryMeterValue), 1, 12);
+      const pe = (price / eps).toFixed(1);
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Stat label="Price" value={`$${price}`} accent="#3b82f6" surfaceClass="rounded-2xl border border-blue-200 bg-blue-50 p-4" />
+            <Stat label="EPS" value={`$${eps}`} accent="#16a34a" surfaceClass="rounded-2xl border border-emerald-200 bg-emerald-50 p-4" />
+            <Stat label="P / E" value={`${pe}x`} accent="#7c3aed" surfaceClass="rounded-2xl border border-violet-200 bg-violet-50 p-4" />
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-slate-700">Change price</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setMeterValue((current) => clamp(current - 5, 10, 80))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-5</button>
+                  <button type="button" onClick={() => setMeterValue((current) => clamp(current + 5, 10, 80))} className="rounded-full border border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700">+5</button>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium text-slate-700">Change EPS</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current - 1, 1, 12))} className="rounded-full border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700">-1</button>
+                  <button type="button" onClick={() => setSecondaryMeterValue((current) => clamp(current + 1, 1, 12))} className="rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700">+1</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (variant === "valuation-compare" && companies.length) {
+      const activeCompany = companies.find((company) => stringOr(company.id, "") === selectedId) ?? companies[0];
+      return (
+        <div className="space-y-4 rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+          <div className={`grid gap-3 ${companies.length > 2 ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
+            {companies.map((company) => {
+              const id = stringOr(company.id, stringOr(company.name, "company"));
+              const isActive = id === stringOr(activeCompany.id, "");
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSelectedId(id)}
+                  className={`rounded-2xl border px-4 py-4 text-left transition ${
+                    isActive ? "border-violet-300 bg-violet-50" : "border-slate-200 bg-white hover:border-violet-200"
+                  }`}
+                >
+                  <p className="text-base font-semibold text-slate-900">{stringOr(company.name, humanize(id))}</p>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                    <Stat label="Price" value={stringOr(company.price, "")} surfaceClass="rounded-xl border border-slate-200 bg-white p-3" />
+                    <Stat label="EPS" value={stringOr(company.eps, "")} surfaceClass="rounded-xl border border-slate-200 bg-white p-3" />
+                    <Stat label="P / E" value={stringOr(company.pe, "")} accent="#7c3aed" surfaceClass="rounded-xl border border-violet-200 bg-violet-50 p-3" />
+                  </div>
+                  <p className="mt-2 text-sm text-slate-600">{stringOr(company.context, "")}</p>
+                </button>
+              );
+            })}
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-sm font-semibold text-slate-900">{stringOr(activeCompany.name, "Valuation focus")}</p>
+            <p className="mt-1 text-sm text-slate-600">{stringOr(activeCompany.note, "Compare valuation with expectations and context.")}</p>
+          </div>
+        </div>
+      );
+    }
+  }
+
   if (
     activityKind === "signal-stack" ||
     activityKind === "voice-ready" ||
@@ -2510,6 +2875,74 @@ export function LessonActivity({
     );
   }
 
+  if (fallbackCards.length > 0) {
+    const currentCard = fallbackCards[fallbackSeenIds.length] ?? null;
+    const complete = fallbackSeenIds.length === fallbackCards.length;
+
+    return (
+      <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
+        <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-[1.4rem] border border-slate-200 bg-[linear-gradient(180deg,#fbfdfc_0%,#f4f8f5_100%)] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Build the clue stack
+              </p>
+              <TagPill active={complete}>
+                {complete ? "Ready" : `${fallbackSeenIds.length}/${fallbackCards.length}`}
+              </TagPill>
+            </div>
+            <div className="mt-4 rounded-[1.1rem] border border-slate-200 bg-white p-4 shadow-[inset_0_0_0_1px_rgba(226,232,240,0.75)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                Current clue
+              </p>
+              <p className="mt-3 text-lg font-semibold leading-8 text-slate-900">
+                {complete ? "All the key ideas are locked in." : capitalizeLead(currentCard?.label ?? "")}
+              </p>
+              {currentCard?.detail ? (
+                <p className="mt-2 text-sm leading-6 text-slate-600">{capitalizeLead(currentCard.detail)}</p>
+              ) : null}
+              {!complete && currentCard ? (
+                <button
+                  className="mt-4 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                  onClick={() => {
+                    setFallbackSeenIds((current) =>
+                      current.includes(currentCard.id) ? current : [...current, currentCard.id],
+                    );
+                  }}
+                  type="button"
+                >
+                  Lock this clue in
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <div className="rounded-[1.4rem] border border-slate-200 bg-white p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Your built read
+            </p>
+            <div className="mt-4 space-y-2">
+              {fallbackCards.map((card) => {
+                const active = fallbackSeenIds.includes(card.id);
+                return (
+                  <div
+                    key={card.id}
+                    className={`rounded-2xl border px-4 py-3 text-sm transition ${
+                      active
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                        : "border-dashed border-slate-200 bg-slate-50 text-slate-400"
+                    }`}
+                  >
+                    {active ? capitalizeLead(card.label) : "Locked clue will appear here"}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">
       <button
@@ -2517,7 +2950,7 @@ export function LessonActivity({
         onClick={() => setSelectedId("done")}
         type="button"
       >
-        Tap to confirm this step
+        Continue
       </button>
     </div>
   );
