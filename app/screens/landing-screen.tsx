@@ -926,7 +926,7 @@ export function LandingScreen() {
               color: "#172b4d", lineHeight: 1.1,
               letterSpacing: isMobile ? "-0.5px" : "-1.5px", margin: 0,
             }}>
-              {quizData ? `Welcome back, ${quizData.nickname}.` : "Learn stocks."}<br />
+              Learn stocks.<br />
               <span style={{ color: "#22c55e" }}>For free.</span>
             </h1>
             <p style={{
