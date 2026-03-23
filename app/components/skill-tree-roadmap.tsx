@@ -50,7 +50,7 @@ export const FOUNDATIONS_SKILL_LESSONS: SkillLesson[] = [
 // ─── SVG geometry — Desktop ───────────────────────────────────────────────────
 
 const W = 920;
-const H = 520;
+const H = 620;
 const NODE_R = 34;
 
 const STOCK_Y_FRACS = [0.92, 0.72, 0.83, 0.57, 0.44, 0.56, 0.36, 0.49, 0.24, 0.12];
@@ -82,7 +82,7 @@ function getStockPositions(n: number): Array<{ x: number; y: number }> {
 // At 355px container width: scale=0.71, NODE_R=34 → ~48px rendered diameter.
 
 const MW       = 500;
-const MH       = 600;
+const MH       = 720;
 const M_NODE_R = 34;   // same as desktop — sc=1 means artwork is identical
 
 function getMobilePositions(n: number): Array<{ x: number; y: number }> {
@@ -243,13 +243,7 @@ export function SkillTreeRoadmap({
     <div ref={containerRef} style={{ position: "relative", width: "100%", fontFamily: font }}>
       <style dangerouslySetInnerHTML={{ __html: KEYFRAMES }} />
 
-      <div style={{
-        background: "#fafaf8",
-        border: "2px solid #e5e7eb",
-        borderRadius: 24,
-        overflow: "hidden",
-        boxShadow: "0 4px 0 #e0e0dc",
-      }}>
+      <div style={{ overflow: "hidden" }}>
 
         {/* ── Header ── */}
         <div style={{
@@ -303,7 +297,7 @@ export function SkillTreeRoadmap({
           </defs>
 
           {/* Background */}
-          <rect width={svgW} height={svgH} fill="#fafaf8" />
+          <rect width={svgW} height={svgH} fill="transparent" />
           <rect width={svgW} height={svgH} fill={`url(#${gridId})`} />
 
           {/* Full ghost curve (faint) */}

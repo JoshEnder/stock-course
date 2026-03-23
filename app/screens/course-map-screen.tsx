@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SkillTreeRoadmap, type SkillLesson } from "../components/skill-tree-roadmap";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { FinalAchievementCard } from "../components/final-achievement-card";
 import { JourneySurface } from "../components/journey-surface";
-import { ModuleSection } from "../components/module-section";
 import { useAuth } from "../lib/auth-context";
 import { deriveCourseState, getNextLessonRoute, type DerivedLesson, type DerivedModule } from "../lib/course-engine";
 import {
@@ -164,7 +163,6 @@ function toSkillLessons(module: DerivedModule): SkillLesson[] {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export function CourseMapScreen() {
   const router = useRouter();
-  const [freeJumpEnabled, setFreeJumpEnabled] = useState(false);
   const { user } = useAuth();
   const nickname = useSyncExternalStore(
     subscribeToCourseStorage,
@@ -234,43 +232,10 @@ export function CourseMapScreen() {
               <p className="mt-1 text-sm text-gray-500">
                 {courseState.completedLessons}/{courseState.totalLessons} lessons complete &mdash; keep going!
               </p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  className={`rounded-2xl border px-4 py-2 text-sm font-black uppercase tracking-wide transition ${
-                    freeJumpEnabled
-                      ? "border-[#bbf7d0] bg-[#f0fdf4] text-[#15803d] shadow-[0_3px_0_#bbf7d0]"
-                      : "border-gray-200 bg-white text-[#172b4d] shadow-[0_3px_0_#ebebeb]"
-                  }`}
-                  onClick={() => setFreeJumpEnabled((value) => !value)}
-                  type="button"
-                >
-                  {freeJumpEnabled ? "Jump mode on" : "Jump to any lesson"}
-                </button>
-                {freeJumpEnabled ? (
-                  <p className="self-center text-xs font-bold uppercase tracking-[0.14em] text-gray-400">
-                    Roadmap now lets you open any lesson in all 10 modules.
-                  </p>
-                ) : null}
-              </div>
             </div>
 
-            {freeJumpEnabled ? (
-              /* ── Free-jump mode: lesson list view ── */
-              <div className="space-y-6">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[#22c55e]">All modules</p>
-                  <h2 className="mt-1 text-xl font-black text-[#1a2b4a]">Open any lesson directly</h2>
-                </div>
-                {courseState.modules.map((module) => (
-                  <div key={module.id} id={`module-${module.slug}`}>
-                    <ModuleSection allowFreeJump module={module} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              /* ── Normal mode: one themed roadmap per world ── */
-              <div className="space-y-16">
-                {courseState.modules.map((module) => {
+            <div className="space-y-16">
+              {courseState.modules.map((module) => {
                   return (
                     <div
                       key={module.id}
@@ -377,7 +342,6 @@ export function CourseMapScreen() {
 
                 <FinalAchievementCard completionPercent={courseState.completionPercent} />
               </div>
-            )}
           </main>
         </div>
 
