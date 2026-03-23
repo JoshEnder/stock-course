@@ -326,7 +326,7 @@ export function OnboardingScreen() {
       if (user) { router.push("/profile"); return; }
       setGoogleLoading(true);
       setAuthErrorMessage(null);
-      await signInWithGoogle("/profile");
+      await signInWithGoogle("/onboarding?continue=google");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to sign in with Google.";
       setAuthErrorMessage(message);
