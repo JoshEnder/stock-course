@@ -88,52 +88,143 @@ const GOAL_LABEL: Record<string, string> = {
   curious:   "Explore investing",
 };
 
-const TIME_LABEL: Record<string, string> = {
-  casual:    "5–15 min / week",
-  committed: "30–60 min / week",
-  serious:   "2+ hours / week",
+const TIME_DESC: Record<string, string> = {
+  casual:    "5–15 min a week (lessons fit your schedule)",
+  committed: "30–60 min a week (solid, steady progress)",
+  serious:   "2+ hours a week (fast-track to expert)",
 };
+
+const LOADING_MESSAGES = [
+  "Analyzing your goals…",
+  "Crafting your path…",
+  "Almost ready…",
+];
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 const QUIZ_CSS = `
-  @keyframes quiz-slide-in  { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
-  @keyframes quiz-slide-out { from{opacity:1;transform:none} to{opacity:0;transform:translateY(-10px)} }
-  .quiz-q-enter { animation: quiz-slide-in 240ms ease-out both; }
+  /* ── Question enter / exit ── */
+  @keyframes quiz-enter { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
+  @keyframes quiz-exit  { from{opacity:1;transform:none} to{opacity:0;transform:translateY(-10px)} }
+  .quiz-q-enter { animation: quiz-enter 260ms ease-out both; }
+  .quiz-q-exit  { animation: quiz-exit  180ms ease-in  both; }
 
-  @keyframes results-in { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
-  .results-enter { animation: results-in 380ms cubic-bezier(0.34,1.1,0.64,1) both; }
+  /* ── Results container ── */
+  @keyframes results-in { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+  .results-enter { animation: results-in 400ms cubic-bezier(0.34,1.06,0.64,1) both; }
 
-  @keyframes stagger-in { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:none} }
-  .stagger-1 { animation: stagger-in 320ms 60ms  ease-out both; }
-  .stagger-2 { animation: stagger-in 320ms 160ms ease-out both; }
-  .stagger-3 { animation: stagger-in 320ms 260ms ease-out both; }
+  /* ── Target icon bounce ── */
+  @keyframes icon-bounce {
+    0%   { transform:scale(0);   opacity:0; }
+    55%  { transform:scale(1.35);opacity:1; }
+    75%  { transform:scale(0.88); }
+    90%  { transform:scale(1.08); }
+    100% { transform:scale(1);   opacity:1; }
+  }
+  .icon-bounce { animation: icon-bounce 640ms 180ms cubic-bezier(0.34,1.56,0.64,1) both; display:inline-block; }
 
-  @keyframes btn-pulse { 0%,100%{box-shadow:0 5px 0 #16a34a} 50%{box-shadow:0 5px 16px rgba(34,197,94,0.5), 0 5px 0 #16a34a} }
-  .start-btn-pulse { animation: btn-pulse 1.8s ease-in-out infinite; }
+  /* ── Staggered slide-in ── */
+  @keyframes stagger-in { from{opacity:0;transform:translateX(-18px)} to{opacity:1;transform:none} }
+  .stagger-1 { animation: stagger-in 320ms 300ms ease-out both; }
+  .stagger-2 { animation: stagger-in 320ms 420ms ease-out both; }
+  .stagger-3 { animation: stagger-in 320ms 540ms ease-out both; }
 
+  /* ── Start button pulse glow ── */
+  @keyframes btn-pulse {
+    0%,100% { box-shadow: 0 5px 0 #16a34a; }
+    50%     { box-shadow: 0 5px 20px rgba(34,197,94,0.55), 0 5px 0 #16a34a; }
+  }
+  .start-btn-pulse { animation: btn-pulse 2s ease-in-out infinite; }
+
+  /* ── Loading spinner (3 bouncing dots) ── */
+  @keyframes dot-bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+  .ld { display:inline-block; width:7px; height:7px; border-radius:50%; background:#fff; margin:0 2px; }
+  .ld1 { animation: dot-bounce 1.2s 0.0s ease-in-out infinite; }
+  .ld2 { animation: dot-bounce 1.2s 0.2s ease-in-out infinite; }
+  .ld3 { animation: dot-bounce 1.2s 0.4s ease-in-out infinite; }
+
+  /* ── Loading sub-message fade ── */
+  @keyframes msg-fade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+  .loading-msg { animation: msg-fade 300ms ease-out both; }
+
+  /* ── Confetti ── */
+  @keyframes cf-fall {
+    0%   { transform: translateY(0)    rotate(0deg)   scale(1);   opacity: 1; }
+    100% { transform: translateY(160px) rotate(420deg) scale(0.6); opacity: 0; }
+  }
+  .cf { position:absolute; border-radius:3px; pointer-events:none; }
+
+  /* ── Option cards ── */
   .quiz-opt {
     display: flex; align-items: center; gap: 14px;
-    border: 2px solid #e5e7eb; border-radius: 14px;
-    padding: 14px 16px; cursor: pointer; background: #fff;
-    transition: border-color 150ms, background 150ms;
+    border: 2px solid #e5e7eb; border-left: 4px solid #e5e7eb;
+    border-radius: 14px; padding: 14px 16px; cursor: pointer;
+    background: #f9fafb; transition: all 200ms ease-out;
     text-align: left; width: 100%;
     font-family: var(--font-dm-sans,'DM Sans',system-ui,sans-serif);
   }
-  .quiz-opt:hover { border-color: #86efac; background: #f0fdf4; }
-  .quiz-opt.selected { border-color: #22c55e; background: #f0fdf4; }
-  .quiz-opt .radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color 150ms, background 150ms; }
+  @media(hover:hover) {
+    .quiz-opt:hover {
+      border-color: #86efac; border-left-color: #22c55e;
+      background: #f0fdf4;
+      box-shadow: 0 4px 12px rgba(34,197,94,0.12);
+    }
+  }
+  .quiz-opt.selected {
+    border-color: #22c55e; border-left: 4px solid #22c55e;
+    background: #ecfdf5;
+    box-shadow: 0 4px 12px rgba(34,197,94,0.15);
+  }
+  .quiz-opt .radio {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid #d1d5db; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 200ms, background 200ms;
+  }
   .quiz-opt.selected .radio { border-color: #22c55e; background: #22c55e; }
   .quiz-opt.selected .radio::after { content:''; width:8px; height:8px; border-radius:50%; background:#fff; }
 
+  /* ── Progress bar ── */
   .quiz-bar { transition: width 400ms cubic-bezier(0.4,0,0.2,1); }
 
   @media(prefers-reduced-motion:reduce) {
-    .quiz-q-enter,.results-enter,.stagger-1,.stagger-2,.stagger-3,.start-btn-pulse { animation:none !important; }
+    .quiz-q-enter,.quiz-q-exit,.results-enter,.icon-bounce,
+    .stagger-1,.stagger-2,.stagger-3,.start-btn-pulse,
+    .ld1,.ld2,.ld3,.loading-msg,.cf { animation:none !important; transition:none !important; }
   }
 `;
 
+// ─── Tiny confetti component ───────────────────────────────────────────────────
+const CONFETTI_PIECES = [
+  { color: "#22c55e", left: "18%", delay: "0ms",   size: 10, rot: 12 },
+  { color: "#3b82f6", left: "35%", delay: "80ms",  size: 8,  rot: -20 },
+  { color: "#f59e0b", left: "52%", delay: "40ms",  size: 11, rot: 30 },
+  { color: "#e11d48", left: "68%", delay: "120ms", size: 9,  rot: -10 },
+  { color: "#a855f7", left: "82%", delay: "60ms",  size: 8,  rot: 45 },
+  { color: "#22c55e", left: "8%",  delay: "100ms", size: 7,  rot: -35 },
+];
+
+function Confetti() {
+  return (
+    <div style={{ position: "relative", height: 0, overflow: "visible", pointerEvents: "none" }}>
+      {CONFETTI_PIECES.map((p, i) => (
+        <span
+          key={i}
+          className="cf"
+          style={{
+            left: p.left, top: 0,
+            width: p.size, height: p.size,
+            background: p.color,
+            transform: `rotate(${p.rot}deg)`,
+            animation: `cf-fall 1.6s ${p.delay} ease-in both`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Onboarding screen ────────────────────────────────────────────────────────
-type QuizStep = "hidden" | 0 | 1 | 2 | "results";
+type QuizStep = "hidden" | 0 | 1 | 2 | "loading" | "results";
 
 export function OnboardingScreen() {
   const router = useRouter();
@@ -145,9 +236,11 @@ export function OnboardingScreen() {
   const [autoContinuePending, setAutoContinuePending] = useState(false);
 
   // Quiz state
-  const [quizStep, setQuizStep] = useState<QuizStep>("hidden");
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [selected, setSelected] = useState("");
+  const [quizStep, setQuizStep]         = useState<QuizStep>("hidden");
+  const [answers, setAnswers]           = useState<Record<string, string>>({});
+  const [selected, setSelected]         = useState("");
+  const [isExiting, setIsExiting]       = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState(0);
   const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ready = nickname.trim().length > 0;
@@ -191,7 +284,6 @@ export function OnboardingScreen() {
       void syncNicknameForCurrentUser(trimmed).catch((error) => {
         console.error("Failed to sync nickname during onboarding", error);
       });
-
       const alreadyDone = Boolean(getQuizData());
       if (alreadyDone) {
         router.push("/course");
@@ -207,7 +299,6 @@ export function OnboardingScreen() {
     if (user) { persistNicknameAndContinue(); return; }
     setShowContinueChoices((c) => !c);
   }
-
   function handleContinueAsGuest() { persistNicknameAndContinue(); }
 
   const handleContinueWithGoogle = useCallback(async () => {
@@ -244,36 +335,56 @@ export function OnboardingScreen() {
     }
   }
 
-  // Quiz navigation
+  // Quiz navigation — with exit-animation delay
   function handleQuizNext() {
-    if (typeof quizStep !== "number") return;
+    if (isExiting || typeof quizStep !== "number") return;
     const q = QUESTIONS[quizStep];
     const value = selected || (q.options[0]?.id ?? "");
     const newAnswers = { ...answers, [q.id]: value };
     setAnswers(newAnswers);
 
     if (quizStep < QUESTIONS.length - 1) {
-      setSelected("");
-      setQuizStep((quizStep + 1) as QuizStep);
+      // Animate out, then change step
+      setIsExiting(true);
+      setTimeout(() => {
+        setIsExiting(false);
+        setSelected("");
+        setQuizStep((quizStep + 1) as QuizStep);
+      }, 200);
     } else {
-      // Final question — save and show results
+      // Final question → loading state
       const quizData: QuizData = {
-        nickname: nickname.trim(),
+        nickname:        nickname.trim(),
         experienceLevel: newAnswers.experienceLevel ?? "beginner",
         goal:            newAnswers.goal ?? "curious",
         timeCommitment:  newAnswers.timeCommitment ?? "casual",
         completedAt:     new Date().toISOString(),
       };
       saveQuizData(quizData);
-      setQuizStep("results");
-      autoAdvanceRef.current = setTimeout(() => router.push("/course"), 3200);
+      setIsExiting(true);
+      setTimeout(() => {
+        setIsExiting(false);
+        setQuizStep("loading");
+        setLoadingPhase(0);
+        // Cycle through loading messages
+        setTimeout(() => setLoadingPhase(1), 900);
+        setTimeout(() => setLoadingPhase(2), 1800);
+        // Transition to results
+        setTimeout(() => setQuizStep("results"), 2800);
+        // Auto-advance to course
+        autoAdvanceRef.current = setTimeout(() => router.push("/course"), 7000);
+      }, 200);
     }
   }
 
   function handleQuizBack() {
-    if (typeof quizStep !== "number" || quizStep === 0) return;
-    setSelected(answers[QUESTIONS[quizStep - 1].id] ?? "");
-    setQuizStep((quizStep - 1) as QuizStep);
+    if (isExiting || typeof quizStep !== "number" || quizStep === 0) return;
+    setIsExiting(true);
+    setTimeout(() => {
+      setIsExiting(false);
+      setSelected(answers[QUESTIONS[quizStep - 1].id] ?? "");
+      setQuizStep((quizStep - 1) as QuizStep);
+    }, 200);
   }
 
   function handleSkip() {
@@ -293,8 +404,9 @@ export function OnboardingScreen() {
   const f = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
   const displayName = nickname.trim() || "Learner";
   const finalAnswers = answers as Partial<Record<string, string>>;
+  const pct = typeof quizStep === "number" ? Math.round(((quizStep + 1) / QUESTIONS.length) * 100) : 100;
 
-  // ── Render: Quiz or Results ───────────────────────────────────────────────
+  // ── Render: Quiz / Loading / Results ─────────────────────────────────────
   if (quizStep !== "hidden") {
     return (
       <div style={{ minHeight: "100vh", background: "#f0fdf4", fontFamily: f, display: "flex", flexDirection: "column" }}>
@@ -306,51 +418,57 @@ export function OnboardingScreen() {
             <span style={{ fontWeight: 900, fontSize: 22, color: "#172b4d", letterSpacing: "-0.5px", lineHeight: 1 }}>stoked</span>
             <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#22c55e", flexShrink: 0, marginBottom: 3 }} />
           </Link>
-          <button type="button" onClick={handleSkip} style={{ fontSize: 13, fontWeight: 600, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
-            Skip for now
-          </button>
+          {quizStep !== "loading" && quizStep !== "results" && (
+            <button type="button" onClick={handleSkip}
+              style={{ fontSize: 14, fontWeight: 600, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+              ⏭ Skip for now
+            </button>
+          )}
         </header>
 
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ width: "100%", maxWidth: 500 }}>
 
-            {quizStep === "results" ? (
-              // ── Results screen ─────────────────────────────────────────
+            {/* ── RESULTS ─────────────────────────────────────────── */}
+            {quizStep === "results" && (
               <div className="results-enter" style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 52, marginBottom: 16 }}>🎯</div>
-                <h2 style={{ fontWeight: 900, fontSize: "clamp(22px,4vw,28px)", color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 8, lineHeight: 1.2 }}>
+                <Confetti />
+                <div className="icon-bounce" style={{ fontSize: 56, lineHeight: 1, marginBottom: 20 }}>🎯</div>
+                <h2 style={{ fontWeight: 900, fontSize: "clamp(22px,4vw,28px)", color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 10, lineHeight: 1.2 }}>
                   Your Personalized Path
                 </h2>
                 <p style={{ fontSize: 16, color: "#6b7280", marginBottom: 28, lineHeight: 1.6 }}>
-                  Hey <strong style={{ color: "#172b4d" }}>{displayName}</strong>! Based on your answers…
+                  <strong style={{ color: "#172b4d" }}>{displayName}</strong>, we&apos;ve customized your path.{" "}
+                  Here&apos;s what we built for you:
                 </p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32, textAlign: "left" }}>
-                  <div className="stagger-1" style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 16, padding: "14px 18px", display: "flex", gap: 12, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 22, flexShrink: 0 }}>🎓</span>
+                  <div className="stagger-1" style={{ background: "#fff", border: "2px solid #e5e7eb", borderLeft: "4px solid #22c55e", borderRadius: 16, padding: "14px 18px", display: "flex", gap: 12, alignItems: "flex-start", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>📚</span>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 2 }}>
-                        {EXP_LABEL[finalAnswers.experienceLevel ?? ""] ?? "Learner"} → Starting with Foundations
+                      <div style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>Your learning path</div>
+                      <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5 }}>
+                        Start with <strong>Foundations</strong> — perfect for {(EXP_LABEL[finalAnswers.experienceLevel ?? ""] ?? "learners").toLowerCase()}
                       </div>
-                      <div style={{ fontSize: 13, color: "#6b7280" }}>We&apos;ll build your knowledge from the ground up</div>
                     </div>
                   </div>
-                  <div className="stagger-2" style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 16, padding: "14px 18px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div className="stagger-2" style={{ background: "#fff", border: "2px solid #e5e7eb", borderLeft: "4px solid #3b82f6", borderRadius: 16, padding: "14px 18px", display: "flex", gap: 12, alignItems: "flex-start", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                     <span style={{ fontSize: 22, flexShrink: 0 }}>🎯</span>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 2 }}>
-                        Goal: {GOAL_LABEL[finalAnswers.goal ?? ""] ?? "Learn basics"} → Unlock {GOAL_BADGE[finalAnswers.goal ?? ""] ?? "🎓 Foundations Complete"}
+                      <div style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>Your goal</div>
+                      <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5 }}>
+                        {GOAL_LABEL[finalAnswers.goal ?? ""] ?? "Learn the basics"} → tracking toward{" "}
+                        <strong style={{ color: "#22c55e" }}>{GOAL_BADGE[finalAnswers.goal ?? ""] ?? "🎓 Foundations Complete"}</strong> badge
                       </div>
-                      <div style={{ fontSize: 13, color: "#6b7280" }}>Tailored modules will help you reach this goal</div>
                     </div>
                   </div>
-                  <div className="stagger-3" style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 16, padding: "14px 18px", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div className="stagger-3" style={{ background: "#fff", border: "2px solid #e5e7eb", borderLeft: "4px solid #f59e0b", borderRadius: 16, padding: "14px 18px", display: "flex", gap: 12, alignItems: "flex-start", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                     <span style={{ fontSize: 22, flexShrink: 0 }}>⏱️</span>
                     <div>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 2 }}>
-                        Time goal: {TIME_LABEL[finalAnswers.timeCommitment ?? ""] ?? "30–60 min / week"}
+                      <div style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>Your commitment</div>
+                      <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5 }}>
+                        Just {TIME_DESC[finalAnswers.timeCommitment ?? ""] ?? "30–60 min a week"}
                       </div>
-                      <div style={{ fontSize: 13, color: "#6b7280" }}>Lessons fit perfectly into your schedule</div>
                     </div>
                   </div>
                 </div>
@@ -363,44 +481,89 @@ export function OnboardingScreen() {
                     width: "100%", padding: "18px", fontSize: 16, fontFamily: f,
                     fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em",
                     color: "#fff", background: "#22c55e", boxShadow: "0 5px 0 #16a34a",
-                    border: "none", borderRadius: 16, cursor: "pointer",
+                    border: "none", borderRadius: 16, cursor: "pointer", minHeight: 56,
                   }}
                 >
                   Start Learning →
                 </button>
                 <p style={{ marginTop: 12, fontSize: 12, color: "#9ca3af" }}>Auto-starting in a moment…</p>
               </div>
+            )}
 
-            ) : (
-              // ── Quiz question ──────────────────────────────────────────
+            {/* ── LOADING ─────────────────────────────────────────── */}
+            {quizStep === "loading" && (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 48, marginBottom: 20 }}>✨</div>
+                <h2 style={{ fontWeight: 900, fontSize: "clamp(20px,4vw,26px)", color: "#172b4d", marginBottom: 24, lineHeight: 1.25 }}>
+                  Personalizing your course…
+                </h2>
+
+                {/* Loading button */}
+                <div style={{
+                  width: "100%", padding: "18px", background: "#22c55e",
+                  borderRadius: 16, boxShadow: "0 5px 0 #16a34a",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+                  marginBottom: 16, minHeight: 56,
+                }}>
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 15, letterSpacing: "0.04em" }}>
+                    Building your path
+                  </span>
+                  <span className="ld ld1" />
+                  <span className="ld ld2" />
+                  <span className="ld ld3" />
+                </div>
+
+                {/* Cycling sub-message */}
+                <p key={loadingPhase} className="loading-msg" style={{ fontSize: 14, fontWeight: 600, color: "#6b7280" }}>
+                  {LOADING_MESSAGES[loadingPhase]}
+                </p>
+
+                {/* Progress bar */}
+                <div style={{ height: 4, background: "#e5e7eb", borderRadius: 99, overflow: "hidden", marginTop: 20, maxWidth: 260, margin: "20px auto 0" }}>
+                  <div
+                    className="quiz-bar"
+                    style={{
+                      height: "100%", background: "#22c55e", borderRadius: 99,
+                      width: `${Math.min(100, (loadingPhase + 1) * 33)}%`,
+                      transition: "width 600ms ease-out",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ── QUIZ QUESTIONS ───────────────────────────────────── */}
+            {typeof quizStep === "number" && (
               <>
                 {/* Header */}
                 <div style={{ marginBottom: 28, textAlign: "center" }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#22c55e", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 8 }}>
-                    Question {(quizStep as number) + 1} of {QUESTIONS.length}
-                  </p>
-                  {/* Progress bar */}
-                  <div style={{ height: 6, background: "#e5e7eb", borderRadius: 99, overflow: "hidden", marginBottom: 16 }}>
-                    <div
-                      className="quiz-bar"
-                      style={{
-                        height: "100%", background: "#22c55e", borderRadius: 99,
-                        width: `${(((quizStep as number) + 1) / QUESTIONS.length) * 100}%`,
-                      }}
-                    />
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#22c55e", textTransform: "uppercase", letterSpacing: "0.12em", margin: 0 }}>
+                      Question {quizStep + 1} of {QUESTIONS.length}
+                    </p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "#9ca3af", margin: 0 }}>{pct}%</p>
+                  </div>
+                  {/* Progress bar 6px */}
+                  <div style={{ height: 6, background: "#e5e7eb", borderRadius: 99, overflow: "hidden", marginBottom: 20 }}>
+                    <div className="quiz-bar" style={{ height: "100%", background: "#22c55e", borderRadius: 99, width: `${pct}%` }} />
                   </div>
                   <h2 style={{ fontWeight: 900, fontSize: "clamp(18px,3.5vw,24px)", color: "#172b4d", lineHeight: 1.3, letterSpacing: "-0.3px" }}>
-                    {QUESTIONS[quizStep as number].question}
+                    {QUESTIONS[quizStep].question}
                   </h2>
-                  <p style={{ marginTop: 6, fontSize: 14, color: "#9ca3af" }}>
-                    Let&apos;s personalize your path, <strong style={{ color: "#172b4d" }}>{displayName}</strong>
+                  <p style={{ marginTop: 8, fontSize: 14, color: "#9ca3af" }}>
+                    Let&apos;s personalize your path,{" "}
+                    <strong style={{ color: "#172b4d" }}>{displayName}</strong>
                   </p>
                 </div>
 
-                {/* Options */}
-                <div key={quizStep as number} className="quiz-q-enter" style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-                  {QUESTIONS[quizStep as number].options.map((opt) => {
-                    const isSelected = (selected || answers[QUESTIONS[quizStep as number].id]) === opt.id;
+                {/* Options — key + exit/enter class for transitions */}
+                <div
+                  key={quizStep}
+                  className={isExiting ? "quiz-q-exit" : "quiz-q-enter"}
+                  style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}
+                >
+                  {QUESTIONS[quizStep].options.map((opt) => {
+                    const isSelected = (selected || answers[QUESTIONS[quizStep].id]) === opt.id;
                     return (
                       <button
                         key={opt.id}
@@ -418,42 +581,34 @@ export function OnboardingScreen() {
                   })}
                 </div>
 
-                {/* Navigation buttons */}
+                {/* Navigation */}
                 <div style={{ display: "flex", gap: 10 }}>
-                  {(quizStep as number) > 0 && (
-                    <button
-                      type="button"
-                      onClick={handleQuizBack}
-                      style={{
-                        flex: "0 0 auto", padding: "14px 20px", borderRadius: 14,
-                        border: "2px solid #e5e7eb", background: "#fff", color: "#6b7280",
-                        fontFamily: f, fontSize: 14, fontWeight: 700, cursor: "pointer",
-                        transition: "border-color 150ms",
-                      }}
-                    >
+                  {quizStep > 0 && (
+                    <button type="button" onClick={handleQuizBack} style={{ flex: "0 0 auto", padding: "14px 20px", borderRadius: 14, border: "2px solid #e5e7eb", background: "#fff", color: "#6b7280", fontFamily: f, fontSize: 14, fontWeight: 700, cursor: "pointer", minHeight: 48 }}>
                       ← Back
                     </button>
                   )}
                   <button
                     type="button"
                     onClick={handleQuizNext}
+                    disabled={isExiting}
                     style={{
                       flex: 1, padding: "16px", borderRadius: 14, border: "none",
                       background: "#22c55e", boxShadow: "0 5px 0 #16a34a",
                       color: "#fff", fontFamily: f, fontWeight: 800,
                       fontSize: 15, textTransform: "uppercase", letterSpacing: "0.06em",
-                      cursor: "pointer",
+                      cursor: isExiting ? "default" : "pointer", minHeight: 48,
                     }}
-                    onMouseDown={e => { const el = e.currentTarget; el.style.transform = "translateY(3px)"; el.style.boxShadow = "0 2px 0 #16a34a"; }}
+                    onMouseDown={e => { if (isExiting) return; const el = e.currentTarget; el.style.transform = "translateY(3px)"; el.style.boxShadow = "0 2px 0 #16a34a"; }}
                     onMouseUp={e => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = "0 5px 0 #16a34a"; }}
                   >
-                    {(quizStep as number) === QUESTIONS.length - 1 ? "See My Path →" : "Next →"}
+                    {quizStep === QUESTIONS.length - 1 ? "See My Path →" : "Next →"}
                   </button>
                 </div>
 
-                <p style={{ textAlign: "center", marginTop: 16, fontSize: 13, color: "#9ca3af" }}>
-                  <button type="button" onClick={handleSkip} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", textDecoration: "underline", fontSize: 13 }}>
-                    Skip for now
+                <p style={{ textAlign: "center", marginTop: 18 }}>
+                  <button type="button" onClick={handleSkip} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", textDecoration: "underline", fontSize: 14, fontFamily: f }}>
+                    ⏭ Skip for now
                   </button>
                 </p>
               </>
@@ -530,37 +685,19 @@ export function OnboardingScreen() {
               Your nickname
             </label>
             <input
-              autoFocus
-              maxLength={20}
+              autoFocus maxLength={20}
               onChange={(e) => setNicknameDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleContinueToCourse(); }}
               placeholder="e.g., Alex"
-              type="text"
-              value={nickname}
-              style={{
-                width: "100%", padding: "16px 20px", fontSize: 18, fontFamily: f,
-                fontWeight: 600, color: "#172b4d", background: "#fff",
-                border: `2px solid ${ready ? "#22c55e" : "#e5e7eb"}`,
-                borderRadius: 16, outline: "none", boxSizing: "border-box",
-                transition: "border-color 200ms",
-              }}
+              type="text" value={nickname}
+              style={{ width: "100%", padding: "16px 20px", fontSize: 18, fontFamily: f, fontWeight: 600, color: "#172b4d", background: "#fff", border: `2px solid ${ready ? "#22c55e" : "#e5e7eb"}`, borderRadius: 16, outline: "none", boxSizing: "border-box", transition: "border-color 200ms" }}
             />
             <p style={{ fontSize: 13, color: "#9ca3af", marginTop: 8, marginBottom: 24 }}>
               This will appear on your certificate{signedInName ? ` and defaults to ${signedInName}` : ""}
             </p>
 
-            <button
-              disabled={!ready}
-              onClick={handleContinueToCourse}
-              type="button"
-              style={{
-                width: "100%", padding: "16px", fontSize: 16, fontFamily: f,
-                fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em",
-                color: "#fff", background: ready ? "#22c55e" : "#d1d5db",
-                boxShadow: ready ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3",
-                border: "none", borderRadius: 16, cursor: ready ? "pointer" : "not-allowed",
-                transition: "background 200ms, box-shadow 200ms",
-              }}
+            <button disabled={!ready} onClick={handleContinueToCourse} type="button"
+              style={{ width: "100%", padding: "16px", fontSize: 16, fontFamily: f, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#fff", background: ready ? "#22c55e" : "#d1d5db", boxShadow: ready ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3", border: "none", borderRadius: 16, cursor: ready ? "pointer" : "not-allowed", transition: "background 200ms, box-shadow 200ms", minHeight: 48 }}
               onMouseDown={(e) => { if (!ready) return; const el = e.currentTarget; el.style.transform = "translateY(3px)"; el.style.boxShadow = "0 2px 0 #16a34a"; }}
               onMouseUp={(e) => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = ready ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3"; }}
             >
@@ -570,12 +707,12 @@ export function OnboardingScreen() {
             {showContinueChoices ? (
               <div style={{ marginTop: 16, display: "grid", gap: 10, background: "#f9fafb", border: "2px solid #e5e7eb", borderRadius: 18, padding: 14 }}>
                 <button type="button" onClick={handleContinueAsGuest}
-                  style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "2px solid #e5e7eb", background: "#ffffff", color: "#172b4d", fontFamily: f, fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer" }}>
+                  style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "2px solid #e5e7eb", background: "#ffffff", color: "#172b4d", fontFamily: f, fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer", minHeight: 48 }}>
                   Continue as guest
                 </button>
                 <button type="button" onClick={handleContinueWithGoogle} disabled={googleLoading || authLoading}
-                  style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "none", background: "#22c55e", boxShadow: "0 4px 0 #16a34a", color: "#ffffff", fontFamily: f, fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", cursor: googleLoading || authLoading ? "not-allowed" : "pointer", opacity: googleLoading || authLoading ? 0.7 : 1 }}>
-                  {user ? "Continue with connected account" : googleLoading ? "Connecting Google..." : "Continue with Google"}
+                  style={{ width: "100%", padding: "14px 16px", borderRadius: 14, border: "none", background: "#22c55e", boxShadow: "0 4px 0 #16a34a", color: "#ffffff", fontFamily: f, fontSize: 14, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", cursor: googleLoading || authLoading ? "not-allowed" : "pointer", opacity: googleLoading || authLoading ? 0.7 : 1, minHeight: 48 }}>
+                  {user ? "Continue with connected account" : googleLoading ? "Connecting Google…" : "Continue with Google"}
                 </button>
               </div>
             ) : null}
