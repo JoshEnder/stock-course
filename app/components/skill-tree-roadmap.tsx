@@ -53,7 +53,7 @@ const W = 920;
 const H = 620;
 const NODE_R = 34;
 
-const STOCK_Y_FRACS = [0.92, 0.72, 0.83, 0.57, 0.44, 0.56, 0.36, 0.49, 0.24, 0.12];
+const STOCK_Y_FRACS = [0.88, 0.78, 0.82, 0.68, 0.60, 0.65, 0.50, 0.55, 0.38, 0.20];
 
 const Y_PAD_T = 70;
 const Y_PAD_B = 60;
@@ -243,7 +243,13 @@ export function SkillTreeRoadmap({
     <div ref={containerRef} style={{ position: "relative", width: "100%", fontFamily: font }}>
       <style dangerouslySetInnerHTML={{ __html: KEYFRAMES }} />
 
-      <div style={{ overflow: "hidden" }}>
+      <div style={{
+        background: "#fafaf8",
+        border: "2px solid #e5e7eb",
+        borderRadius: 24,
+        overflow: "hidden",
+        boxShadow: "0 4px 0 #e0e0dc",
+      }}>
 
         {/* ── Header ── */}
         <div style={{
@@ -297,7 +303,7 @@ export function SkillTreeRoadmap({
           </defs>
 
           {/* Background */}
-          <rect width={svgW} height={svgH} fill="transparent" />
+          <rect width={svgW} height={svgH} fill="#fafaf8" />
           <rect width={svgW} height={svgH} fill={`url(#${gridId})`} />
 
           {/* Full ghost curve (faint) */}
