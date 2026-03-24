@@ -19,6 +19,11 @@ function isMissingUserProgressTable(error: unknown) {
   return message.includes("public.user_progress") || message.includes("PGRST205");
 }
 
+function isMissingProfilesTable(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.includes("public.profiles") || message.includes("PGRST205");
+}
+
 function normalizePostAuthPath(next: string | null) {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
     return "/course";
@@ -92,6 +97,17 @@ export async function GET(request: Request) {
 
     if (progressError && !isMissingUserProgressTable(progressError)) {
       console.error("Failed to store login IP metadata", progressError);
+    }
+
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      {
+        user_id: user.id,
+      },
+      { onConflict: "user_id" },
+    );
+
+    if (profileError && !isMissingProfilesTable(profileError)) {
+      console.error("Failed to initialize profile row", profileError);
     }
   }
 

@@ -31,7 +31,14 @@ function StokedLogo() {
 
 export function ProfileScreen() {
   const router = useRouter();
-  const { loading: authLoading, signInWithGoogle, signOut, user } = useAuth();
+  const {
+    loading: authLoading,
+    needsUsername,
+    profile,
+    signInWithGoogle,
+    signOut,
+    user,
+  } = useAuth();
   const storedNickname = useSyncExternalStore(
     subscribeToCourseStorage,
     getNickname,
@@ -267,6 +274,32 @@ export function ProfileScreen() {
                     {googleLoading ? "Connecting..." : "Continue with Google"}
                   </button>
                 )}
+              </div>
+            </section>
+
+            <section className="rounded-[28px] border-2 border-gray-200 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
+              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
+                Username
+              </p>
+              <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
+                {profile?.username ? `@${profile.username}` : "Set your username"}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                Your username powers friends, private leaderboards, and saved identity across Stoked.
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <Link
+                  className="rounded-2xl border-2 border-[#22c55e] bg-[#f0fdf4] px-5 py-3 text-sm font-black uppercase tracking-wide text-[#166534] shadow-[0_4px_0_#bbf7d0]"
+                  href="/username?next=/profile"
+                >
+                  {profile?.username ? "Update username" : "Choose username"}
+                </Link>
+                {!profile?.username || needsUsername ? (
+                  <span className="rounded-full bg-[#fef3c7] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#92400e]">
+                    Required before continuing
+                  </span>
+                ) : null}
               </div>
             </section>
 

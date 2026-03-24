@@ -32,9 +32,17 @@ import {
   remoteRowToCourseProgress,
   syncProgressToSupabase,
 } from "./remote-progress";
+import {
+  ensureProfileForUser,
+  loadUserProfile,
+  type UserProfileRow,
+} from "./user-profiles";
 
 type AuthContextValue = {
   loading: boolean;
+  needsUsername: boolean;
+  profile: UserProfileRow | null;
+  refreshProfile: () => Promise<void>;
   session: Session | null;
   signInWithGoogle: (next?: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -43,6 +51,9 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue>({
   loading: true,
+  needsUsername: false,
+  profile: null,
+  refreshProfile: async () => undefined,
   session: null,
   signInWithGoogle: async () => undefined,
   signOut: async () => undefined,
@@ -139,6 +150,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [didHydrateSession, setDidHydrateSession] = useState(false);
+  const [profile, setProfile] = useState<UserProfileRow | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  async function hydrateProfile(nextUser: User | null) {
+    if (!nextUser) {
+      setProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    setProfileLoading(true);
+
+    try {
+      const nextProfile = (await ensureProfileForUser(nextUser)) ?? (await loadUserProfile(nextUser.id));
+      setProfile(nextProfile);
+    } catch (error) {
+      console.warn("Profile sync was skipped.", error);
+      setProfile(null);
+    } finally {
+      setProfileLoading(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -161,6 +194,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               console.warn("Remote progress sync was skipped during init.", error);
             }
           }
+        }
+
+        if (active) {
+          await hydrateProfile(nextSession?.user ?? null);
         }
 
         setLoading(false);
@@ -197,6 +234,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+
+      await hydrateProfile(nextSession?.user ?? null);
     });
 
     return () => {
@@ -293,18 +332,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     clearSupabaseBrowserSession();
+    setProfile(null);
     setSession(null);
   }
 
+  const needsUsername = Boolean(session?.user && !profileLoading && !profile?.username);
+  const value = useMemo(
+    () => ({
+      loading: loading || (Boolean(session?.user) && profileLoading),
+      needsUsername,
+      profile,
+      refreshProfile: async () => {
+        await hydrateProfile(session?.user ?? null);
+      },
+      session,
+      signInWithGoogle,
+      signOut,
+      user: session?.user ?? null,
+    }),
+    [loading, needsUsername, profile, profileLoading, session],
+  );
+
   return (
     <AuthContext.Provider
-      value={{
-        loading,
-        session,
-        signInWithGoogle,
-        signOut,
-        user: session?.user ?? null,
-      }}
+      value={value}
     >
       {children}
     </AuthContext.Provider>
