@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
+import { FriendsPanel } from "../components/friends-panel";
 import {
   clearCertificateId,
   clearNickname,
@@ -302,6 +303,8 @@ export function ProfileScreen() {
                 ) : null}
               </div>
             </section>
+
+            <FriendsPanel />
 
             <section className="rounded-[28px] border-2 border-gray-200 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
               <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">

@@ -45,6 +45,26 @@ export type FriendListItem = {
   user: FriendProfileSummary | null;
 };
 
+type LeaderboardStatRow = {
+  completed_lessons: number;
+  rank: number;
+  streak_count: number;
+  total_xp: number;
+  updated_at: string | null;
+  user_id: string;
+};
+
+export type FriendComparisonEntry = FriendProfileSummary & {
+  completed_lessons: number | null;
+  created_at: string | null;
+  hasSyncedProgress: boolean;
+  isCurrentUser: boolean;
+  rank: number | null;
+  streak_count: number | null;
+  total_xp: number | null;
+  updated_at: string | null;
+};
+
 function serializeFriendError(error: unknown) {
   if (error instanceof Error) {
     return error.message;
@@ -87,6 +107,26 @@ async function loadProfilesByIds(userIds: string[]) {
 
   return new Map(
     ((data ?? []) as FriendProfileSummary[]).map((profile) => [profile.user_id, profile]),
+  );
+}
+
+async function loadLeaderboardStatsByIds(userIds: string[]) {
+  if (userIds.length === 0) {
+    return new Map<string, LeaderboardStatRow>();
+  }
+
+  const supabase = getSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("leaderboard_entries")
+    .select("user_id, total_xp, streak_count, completed_lessons, updated_at, rank")
+    .in("user_id", Array.from(new Set(userIds)));
+
+  if (error) {
+    throw error;
+  }
+
+  return new Map(
+    ((data ?? []) as LeaderboardStatRow[]).map((row) => [row.user_id, row]),
   );
 }
 
@@ -158,16 +198,20 @@ export async function searchUsersByUsername(query: string, limit = 8) {
     }
   }
 
-  return candidates.map((profile) => ({
-    ...profile,
-    state: friendIds.has(profile.user_id)
+  return candidates.map((profile) => {
+    const state: FriendSearchState = friendIds.has(profile.user_id)
       ? "friend"
       : outgoingIds.has(profile.user_id)
         ? "outgoing"
         : incomingIds.has(profile.user_id)
           ? "incoming"
-          : "available",
-  }));
+          : "available";
+
+    return {
+      ...profile,
+      state,
+    };
+  });
 }
 
 export async function sendFriendRequest(targetUserId: string) {
@@ -286,4 +330,64 @@ export async function fetchFriends() {
     created_at: row.created_at,
     user: profiles.get(row.friend_user_id) ?? null,
   })) as FriendListItem[];
+}
+
+export async function fetchFriendComparison() {
+  const currentUserId = await requireAuthenticatedUserId();
+  const friends = await fetchFriends();
+  const friendIds = friends
+    .map((item) => item.user?.user_id)
+    .filter((value): value is string => Boolean(value));
+  const comparisonIds = [currentUserId, ...friendIds];
+  const [profiles, leaderboardStats] = await Promise.all([
+    loadProfilesByIds(comparisonIds),
+    loadLeaderboardStatsByIds(comparisonIds),
+  ]);
+  const friendSinceMap = new Map(
+    friends
+      .filter((item): item is FriendListItem & { user: FriendProfileSummary } => Boolean(item.user?.user_id))
+      .map((item) => [item.user.user_id, item.created_at]),
+  );
+
+  const entries = comparisonIds.map((userId) => {
+    const profile = profiles.get(userId) ?? null;
+    const stats = leaderboardStats.get(userId) ?? null;
+
+    return {
+      user_id: userId,
+      username: profile?.username ?? null,
+      username_normalized: profile?.username_normalized ?? null,
+      completed_lessons: stats?.completed_lessons ?? null,
+      created_at: friendSinceMap.get(userId) ?? null,
+      hasSyncedProgress: Boolean(stats),
+      isCurrentUser: userId === currentUserId,
+      rank: stats?.rank ?? null,
+      streak_count: stats?.streak_count ?? null,
+      total_xp: stats?.total_xp ?? null,
+      updated_at: stats?.updated_at ?? null,
+    };
+  });
+
+  const sortScore = (entry: FriendComparisonEntry) => entry.total_xp ?? -1;
+  const sortStreak = (entry: FriendComparisonEntry) => entry.streak_count ?? -1;
+
+  const currentUser = entries.find((entry) => entry.isCurrentUser) ?? null;
+  const friendsOnly = entries
+    .filter((entry) => !entry.isCurrentUser)
+    .sort((left, right) => {
+      if (sortScore(right) !== sortScore(left)) {
+        return sortScore(right) - sortScore(left);
+      }
+
+      if (sortStreak(right) !== sortStreak(left)) {
+        return sortStreak(right) - sortStreak(left);
+      }
+
+      return (left.username_normalized ?? "").localeCompare(right.username_normalized ?? "");
+    });
+
+  return {
+    currentUser,
+    friends: friendsOnly,
+  };
 }
