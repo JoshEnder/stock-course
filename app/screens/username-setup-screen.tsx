@@ -63,7 +63,7 @@ export function UsernameSetupScreen() {
     }
 
     if (!user) {
-      router.replace("/onboarding");
+      router.replace("/onboard");
       return;
     }
 

@@ -408,7 +408,7 @@ export default function HeroCanvas({ onScrollProgress }: Props) {
           fontFamily: "'Cormorant Garamond', Georgia, serif",
           fontSize: '1rem', letterSpacing: '0.3em', color: '#ffffff', fontWeight: 600,
         }}>STOKED</span>
-        <Link href="/onboarding" style={{
+        <Link href="/onboard" style={{
           fontFamily: "'DM Sans', system-ui, sans-serif",
           color: 'rgba(255,255,255,0.75)', textDecoration: 'none', fontSize: '0.9rem',
         }}>Begin →</Link>
@@ -439,7 +439,7 @@ export default function HeroCanvas({ onScrollProgress }: Props) {
           el.style.transform = 'translateX(-50%)';
           el.style.boxShadow = '0 4px 32px rgba(34,197,94,0.45)';
         }}
-        onClick={() => { window.location.href = '/onboarding'; }}
+        onClick={() => { window.location.href = '/onboard'; }}
       >
         Start Learning Free →
       </button>

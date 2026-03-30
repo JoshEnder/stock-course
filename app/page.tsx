@@ -1,6 +1,5 @@
-import { LandingScreen } from "./screens/landing-screen";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <LandingScreen />;
+  redirect("/landing");
 }
-

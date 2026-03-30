@@ -7,10 +7,6 @@ import { scenarios } from "@/app/data/scenarios";
 import EntryHook from "./EntryHook";
 import ScenarioCard from "./ScenarioCard";
 import IdentityResult from "./IdentityResult";
-import ProgressionMap from "./ProgressionMap";
-import FinalCTA from "./FinalCTA";
-
-const CTA_HREF = "/sign-up";
 const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
 const progressMap: Record<ExperienceState, number> = {
@@ -19,19 +15,40 @@ const progressMap: Record<ExperienceState, number> = {
   scenario_2: 42,
   scenario_3: 64,
   identity_result: 78,
-  progression_map: 91,
-  final_cta: 100,
 };
 
 function logEvent(event: string, data?: Record<string, unknown>) {
   console.log("[stoked]", event, data ?? "");
 }
 
-export default function ExperienceContainer() {
-  const [state, setState] = useState<ExperienceState>("entry_hook");
-  const [results, setResults] = useState<UserResult[]>([]);
+function upsertResult(results: UserResult[], next: UserResult) {
+  const existingIndex = results.findIndex((result) => result.scenarioId === next.scenarioId);
+  if (existingIndex === -1) {
+    return [...results, next];
+  }
 
-  const score = results.filter((r) => r.correct).length;
+  const updated = [...results];
+  updated[existingIndex] = next;
+  return updated;
+}
+
+interface ExperienceContainerProps {
+  onComplete: () => void;
+  initialState?: ExperienceState;
+  continueLabel?: string;
+  skipEntryHook?: boolean;
+}
+
+export default function ExperienceContainer({
+  onComplete,
+  initialState,
+  continueLabel,
+  skipEntryHook = false,
+}: ExperienceContainerProps) {
+  const [state, setState] = useState<ExperienceState>(
+    initialState ?? (skipEntryHook ? "scenario_1" : "entry_hook"),
+  );
+  const [results, setResults] = useState<UserResult[]>([]);
 
   function transition(next: ExperienceState) {
     logEvent(next);
@@ -40,28 +57,28 @@ export default function ExperienceContainer() {
 
   const handleScenario1Complete = useCallback((result: UserResult) => {
     logEvent("scenario_1_complete", { correct: result.correct });
-    setResults((prev) => [...prev, result]);
+    setResults((prev) => upsertResult(prev, result));
     transition("scenario_2");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleScenario2Complete = useCallback((result: UserResult) => {
     logEvent("scenario_2_complete", { correct: result.correct });
-    setResults((prev) => [...prev, result]);
+    setResults((prev) => upsertResult(prev, result));
     transition("scenario_3");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleScenario3Complete = useCallback((result: UserResult) => {
     logEvent("scenario_3_complete", { correct: result.correct });
-    setResults((prev) => [...prev, result]);
+    setResults((prev) => upsertResult(prev, result));
     transition("identity_result");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const progress = progressMap[state];
   const isScenario = state === "scenario_1" || state === "scenario_2" || state === "scenario_3";
-  const isDark = state === "final_cta";
+  const isDark = false;
 
   return (
     <div style={{ backgroundColor: isDark ? "#111111" : "#f7f6f3", minHeight: "100svh", position: "relative" }}>
@@ -117,7 +134,7 @@ export default function ExperienceContainer() {
 
       {/* Content — 44px header offset */}
       <AnimatePresence mode="wait">
-        {state === "entry_hook" && (
+        {!skipEntryHook && state === "entry_hook" && (
           <motion.div
             key="entry_hook"
             initial={{ opacity: 0, y: 12 }}
@@ -164,31 +181,11 @@ export default function ExperienceContainer() {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
           >
-            <IdentityResult results={results} onContinue={() => transition("progression_map")} />
-          </motion.div>
-        )}
-
-        {state === "progression_map" && (
-          <motion.div
-            key="progression_map"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <ProgressionMap score={score} onContinue={() => transition("final_cta")} />
-          </motion.div>
-        )}
-
-        {state === "final_cta" && (
-          <motion.div
-            key="final_cta"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <FinalCTA ctaHref={CTA_HREF} />
+            <IdentityResult
+              results={results}
+              onContinue={onComplete}
+              continueLabel={continueLabel}
+            />
           </motion.div>
         )}
       </AnimatePresence>

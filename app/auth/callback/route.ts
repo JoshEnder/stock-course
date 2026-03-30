@@ -42,7 +42,7 @@ export async function GET(request: Request) {
   const redirectResponse = NextResponse.redirect(new URL(safeNext, requestUrl.origin));
   const errorResponse = (message: string) =>
     NextResponse.redirect(
-      new URL(`/onboarding?auth_error=${encodeURIComponent(message)}`, requestUrl.origin),
+      new URL(`/onboard?auth_error=${encodeURIComponent(message)}`, requestUrl.origin),
     );
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

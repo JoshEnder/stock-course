@@ -364,7 +364,7 @@ export function HeroAnimation() {
 
         {/* CTA — appears after words gather into the sentence */}
         <div id="ha-cta">
-          <Link href="/onboarding" className="ha-cta-btn">
+          <Link href="/onboard" className="ha-cta-btn">
             Start Learning →
           </Link>
         </div>

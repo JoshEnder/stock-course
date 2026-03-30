@@ -16,7 +16,7 @@ import {
   subscribeToCourseProgress,
 } from "../lib/course-progress";
 import { getNickname, subscribeToCourseStorage } from "../lib/course-storage";
-import { getQuizData } from "./onboarding-screen";
+import { getQuizData } from "../lib/onboarding-quiz";
 import {
   clearRoadmapLoginGateTrigger,
   hasSeenRoadmapLoginGate,

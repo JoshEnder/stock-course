@@ -137,9 +137,9 @@ export function ProfileScreen() {
       setErrorMessage(null);
       setMessage(null);
       await signOut();
-      router.replace("/onboarding");
+      router.replace("/onboard");
       router.refresh();
-      window.location.href = "/onboarding";
+      window.location.href = "/onboard";
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Unable to log out right now.",
@@ -192,7 +192,7 @@ export function ProfileScreen() {
       clearCertificateId();
       resetCourseProgress();
       setNicknameDraft("Learner");
-      router.push("/onboarding");
+      router.push("/onboard");
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Unable to delete your account.",

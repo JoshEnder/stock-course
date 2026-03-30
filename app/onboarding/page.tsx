@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { OnboardingScreen } from "../screens/onboarding-screen";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Onboarding | Stock Academy",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function OnboardingPage() {
-  return <OnboardingScreen />;
+  redirect("/onboard");
 }

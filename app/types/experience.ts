@@ -29,9 +29,7 @@ export type ExperienceState =
   | "scenario_1"
   | "scenario_2"
   | "scenario_3"
-  | "identity_result"
-  | "progression_map"
-  | "final_cta";
+  | "identity_result";
 
 export type ProgressionNode = {
   id: string;

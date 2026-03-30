@@ -6,7 +6,23 @@ import { useAuth } from "../lib/auth-context";
 
 const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 const mono = "ui-monospace,SFMono-Regular,monospace";
-const onboardingGoogleContinueKey = "stoked-onboarding-continue-google";
+
+const STOCK_TAPE = [
+  { sym: "AAPL", pct: "+1.24%", up: true },
+  { sym: "MSFT", pct: "+0.87%", up: true },
+  { sym: "TSLA", pct: "−2.31%", up: false },
+  { sym: "NVDA", pct: "+3.14%", up: true },
+  { sym: "META", pct: "+0.52%", up: true },
+  { sym: "AMZN", pct: "−0.34%", up: false },
+  { sym: "SPY", pct: "+0.18%", up: true },
+  { sym: "GOOGL", pct: "+1.02%", up: true },
+  { sym: "JPM", pct: "−0.91%", up: false },
+  { sym: "AMD", pct: "+2.18%", up: true },
+  { sym: "NFLX", pct: "−1.04%", up: false },
+  { sym: "BRK.B", pct: "+0.45%", up: true },
+];
+
+const STOCK_TAPE_DOUBLE = [...STOCK_TAPE, ...STOCK_TAPE];
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 const LANDING_CSS = `
@@ -72,8 +88,15 @@ const LANDING_CSS = `
   .sticky-cta-bar { display:none; }
   @media (max-width:767px) { .sticky-cta-bar { display:block; } }
 
+  .stock-tape-track { animation: stock-tape-scroll 28s linear infinite; }
+  @keyframes stock-tape-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
   @media(prefers-reduced-motion:reduce){
     *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+    .stock-tape-track{animation:none!important}
   }
 `;
 
@@ -123,8 +146,76 @@ function GreenBtn({ href, children, big = false }: { href: string; children: Rea
   );
 }
 
+function BottomStockTape() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        padding: "20px 0 26px",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 2,
+          pointerEvents: "none",
+          background:
+            "linear-gradient(to right, #f8fafc 0%, transparent 8%, transparent 92%, #f8fafc 100%)",
+        }}
+      />
+      <div
+        className="stock-tape-track"
+        style={{
+          display: "flex",
+          width: "max-content",
+        }}
+      >
+        {STOCK_TAPE_DOUBLE.map((item, index) => (
+          <div
+            key={`${item.sym}-${index}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "0 20px",
+              borderRight: "1px solid rgba(15, 23, 42, 0.07)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: "#334155",
+                fontFamily: mono,
+                letterSpacing: "0.04em",
+              }}
+            >
+              {item.sym}
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: item.up ? "#059669" : "#dc2626",
+                fontFamily: mono,
+              }}
+            >
+              {item.pct}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Challenge Flow ───────────────────────────────────────────────────────────
-type HeroStep = "entry" | "idle" | "chosen" | "revealing" | "complete" | "advancing" | "done";
+type HeroStep = "entry" | "idle" | "chosen" | "revealing" | "complete" | "scanning" | "done";
 type HeroChoice = "up" | "down" | "flat";
 
 interface HeroRound {
@@ -135,6 +226,14 @@ interface HeroRound {
   startPrice: number;
   targets: Record<HeroChoice, number>;
   feedback: Record<HeroChoice, [string, string]>;
+}
+
+interface HeroDecision {
+  ticker: string;
+  actual: HeroChoice;
+  choice: HeroChoice;
+  correct: boolean;
+  changePercent: string;
 }
 
 const HERO_ROUNDS: HeroRound[] = [
@@ -211,8 +310,11 @@ function ChallengeFlow({ onComplete, ctaHref }: { onComplete: () => void; ctaHre
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(0);
   const [results, setResults] = useState<boolean[]>([]);
+  const [decisions, setDecisions] = useState<HeroDecision[]>([]);
+  const [visibleDecisionRows, setVisibleDecisionRows] = useState(0);
   const [flashBtn, setFlashBtn] = useState<HeroChoice | null>(null);
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scanTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const round = HERO_ROUNDS[roundIdx];
   const isLast = roundIdx === HERO_ROUNDS.length - 1;
@@ -236,7 +338,12 @@ function ChallengeFlow({ onComplete, ctaHref }: { onComplete: () => void; ctaHre
     return () => clearInterval(id);
   }, [step, round.startPrice]);
 
-  useEffect(() => () => { if (tickerRef.current) clearInterval(tickerRef.current); }, []);
+  useEffect(() => {
+    return () => {
+      if (tickerRef.current) clearInterval(tickerRef.current);
+      scanTimersRef.current.forEach(clearTimeout);
+    };
+  }, []);
 
   function handleChoice(c: HeroChoice) {
     if (step !== "idle") return;
@@ -268,6 +375,16 @@ function ChallengeFlow({ onComplete, ctaHref }: { onComplete: () => void; ctaHre
             const correct = c === round.correct;
             if (correct) setScore(s => s + 1);
             setResults(r => [...r, correct]);
+            setDecisions((prev) => [
+              ...prev,
+              {
+                ticker: round.ticker,
+                actual: round.correct,
+                choice: c,
+                correct,
+                changePercent: calcPercent(round.correct, round),
+              },
+            ]);
             setCompleted(n => n + 1);
             setStep("complete");
           }, 260);
@@ -280,9 +397,23 @@ function ChallengeFlow({ onComplete, ctaHref }: { onComplete: () => void; ctaHre
     if (isLast) {
       setFading(true);
       setTimeout(() => {
-        setStep("done");
+        setVisibleDecisionRows(0);
+        setStep("scanning");
         setFading(false);
-        onComplete();
+        scanTimersRef.current.forEach(clearTimeout);
+        scanTimersRef.current = [
+          setTimeout(() => setVisibleDecisionRows(1), 180),
+          setTimeout(() => setVisibleDecisionRows(2), 460),
+          setTimeout(() => setVisibleDecisionRows(3), 740),
+          setTimeout(() => {
+            setFading(true);
+            setTimeout(() => {
+              setStep("done");
+              setFading(false);
+              onComplete();
+            }, 180);
+          }, 1500),
+        ];
       }, 220);
       return;
     }
@@ -335,6 +466,105 @@ function ChallengeFlow({ onComplete, ctaHref }: { onComplete: () => void; ctaHre
         <p style={{ marginTop: 18, fontSize: 12, color: "#cbd5e1", fontWeight: 600, letterSpacing: "0.04em" }}>
           3 scenarios · 60 seconds · No background needed
         </p>
+      </div>
+    );
+  }
+
+  if (step === "scanning") {
+    return (
+      <div
+        className="fade-in-scale"
+        style={{
+          width: "100%",
+          maxWidth: 440,
+          opacity: fading ? 0 : 1,
+          transition: "opacity 0.18s ease",
+        }}
+      >
+        <div
+          style={{
+            background: "#111111",
+            borderRadius: 16,
+            padding: "22px 22px 20px",
+            boxShadow: "0 20px 56px rgba(0,0,0,0.18)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 18,
+              paddingBottom: 14,
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            <div className="live-dot" style={{ width: 7, height: 7, borderRadius: "50%", background: "#22c55e" }} />
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                color: "rgba(255,255,255,0.42)",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                fontFamily: mono,
+              }}
+            >
+              Reading decisions
+            </span>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {decisions.map((row, index) =>
+              visibleDecisionRows > index ? (
+                <div
+                  key={row.ticker}
+                  className="reveal-in"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "54px 1fr 1fr 24px",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "6px 4px",
+                  }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#ffffff", fontFamily: mono }}>
+                    {row.ticker}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: row.actual === "up" ? "#34d399" : row.actual === "down" ? "#f87171" : "#cbd5e1",
+                      fontFamily: mono,
+                    }}
+                  >
+                    {row.changePercent}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.38)",
+                      fontFamily: mono,
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    You: {row.choice.toUpperCase()}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 14,
+                      textAlign: "right",
+                      color: row.correct ? "#34d399" : "#60a5fa",
+                    }}
+                  >
+                    {row.correct ? "✓" : "✗"}
+                  </span>
+                </div>
+              ) : null,
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -763,7 +993,7 @@ export function LandingScreen() {
   const { loading: authLoading, signInWithGoogle, user } = useAuth();
   const [challengeComplete, setChallengeComplete] = useState(false);
 
-  const ctaHref = user ? "/course" : "/onboarding";
+  const ctaHref = user ? "/course" : "/onboard";
 
   const photoUrl =
     typeof user?.user_metadata?.avatar_url === "string" ? user.user_metadata.avatar_url
@@ -773,8 +1003,7 @@ export function LandingScreen() {
   async function handleGoogleLogin() {
     try {
       if (user) { window.location.href = "/profile"; return; }
-      if (typeof window !== "undefined") window.sessionStorage.setItem(onboardingGoogleContinueKey, "1");
-      await signInWithGoogle("/onboarding");
+      await signInWithGoogle("/landing");
     } catch (err) { console.error("Failed to start Google sign-in", err); }
   }
 
@@ -804,13 +1033,15 @@ export function LandingScreen() {
         minHeight: "calc(100vh - 60px)",
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "clamp(32px,5vw,64px) 20px", gap: 16,
+        padding: "clamp(32px,5vw,64px) 20px 88px", gap: 16,
         background: "#f8fafc",
+        position: "relative",
       }}>
         <ChallengeFlow onComplete={() => setChallengeComplete(true)} ctaHref={ctaHref} />
         <p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 700, letterSpacing: "0.04em" }}>
           Free &nbsp;&middot;&nbsp; No credit card &nbsp;&middot;&nbsp; No paywalls
         </p>
+        <BottomStockTape />
       </section>
 
       {/* ── WHY MOST PEOPLE STAY CONFUSED ── */}

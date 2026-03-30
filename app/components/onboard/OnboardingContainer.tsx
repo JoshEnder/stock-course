@@ -1,40 +1,25 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import OnboardShell from "./OnboardShell";
-import ScreenWelcome from "./ScreenWelcome";
-import ScreenHook from "./ScreenHook";
 import ScreenQuestion, { type QuestionOption } from "./ScreenQuestion";
 import ScreenInterstitial from "./ScreenInterstitial";
 import ScreenFinal from "./ScreenFinal";
-
-const CTA_HREF = "/sign-up";
+import { queueRoadmapLoginGate } from "@/app/lib/post-onboarding-login-gate";
+import { buildQuizData, saveQuizData } from "@/app/lib/onboarding-quiz";
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
 
-interface WelcomeStep   { type: "welcome";       headline: string; sub: string; cta: string }
-interface HookStep      { type: "hook" }
-interface QuestionStep  { type: "question";      question: string; affirmation: string; options: QuestionOption[] }
+interface QuestionStep  { id: string; type: "question"; question: string; affirmation: string; options: QuestionOption[] }
 interface InterStep     { type: "interstitial";  visual: "trade" | "path"; headline: string; body: string }
 interface FinalStep     { type: "final" }
 
-type Step = WelcomeStep | HookStep | QuestionStep | InterStep | FinalStep;
+type Step = QuestionStep | InterStep | FinalStep;
 
 const STEPS: Step[] = [
   {
-    type: "welcome",
-    headline: "Hey.",
-    sub: "Let's figure out where you're at.",
-    cta: "Sounds good",
-  },
-  {
-    type: "welcome",
-    headline: "Five quick questions.",
-    sub: "Your answers shape what opens first. No right or wrong — just where you are.",
-    cta: "Let's go",
-  },
-  { type: "hook" },
-  {
+    id: "experienceLevel",
     type: "question",
     question: "Where are you at with stocks right now?",
     affirmation: "Good. We'll build from there.",
@@ -46,6 +31,7 @@ const STEPS: Step[] = [
     ],
   },
   {
+    id: "goal",
     type: "question",
     question: "What's your main reason for learning?",
     affirmation: "That's a clear reason to move.",
@@ -63,6 +49,7 @@ const STEPS: Step[] = [
     body: "You see a live situation. You make a call. You see what happens and understand why.",
   },
   {
+    id: "unclear",
     type: "question",
     question: "What feels unclear right now?",
     affirmation: "We'll make that click.",
@@ -74,6 +61,7 @@ const STEPS: Step[] = [
     ],
   },
   {
+    id: "learningStyle",
     type: "question",
     question: "How do you like to learn?",
     affirmation: "Your path will reflect that.",
@@ -91,6 +79,7 @@ const STEPS: Step[] = [
     body: "Your path is built around how you learn, not a fixed syllabus. Each module unlocks the next.",
   },
   {
+    id: "timeCommitment",
     type: "question",
     question: "What pace works best for you?",
     affirmation: "We'll keep it at that rhythm.",
@@ -108,11 +97,10 @@ const TOTAL = STEPS.length;
 // ─── Container ────────────────────────────────────────────────────────────────
 
 export default function OnboardingContainer() {
+  const router = useRouter();
   const [idx, setIdx] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  // Hook: becomes "ready to continue" only after the reveal animation completes
-  const [hookReady, setHookReady] = useState(false);
   // Question: track whether user has selected on the current question step
   const [questionSelected, setQuestionSelected] = useState<string | null>(null);
 
@@ -137,23 +125,36 @@ export default function OnboardingContainer() {
     setQuestionSelected(value);
   }
 
+  function handleFinish() {
+    const experienceLevel = STEPS.findIndex((entry) => entry.type === "question" && entry.id === "experienceLevel");
+    const goal = STEPS.findIndex((entry) => entry.type === "question" && entry.id === "goal");
+    const timeCommitment = STEPS.findIndex((entry) => entry.type === "question" && entry.id === "timeCommitment");
+
+    saveQuizData(
+      buildQuizData({
+        experienceLevel: experienceLevel >= 0 ? answers[experienceLevel] : undefined,
+        goal: goal >= 0 ? answers[goal] : undefined,
+        timeCommitment: timeCommitment >= 0 ? answers[timeCommitment] : undefined,
+      }),
+    );
+    queueRoadmapLoginGate();
+    router.push("/course");
+  }
+
   // Compute CTA state for the shell
   function getCTA() {
-    if (step.type === "welcome") {
-      const s = step as WelcomeStep;
-      return { label: s.cta, enabled: true, onClick: goNext };
-    }
-    if (step.type === "hook") {
-      return { label: "Continue", enabled: hookReady, onClick: goNext };
-    }
     if (step.type === "question") {
-      return { label: "Continue", enabled: questionSelected !== null, onClick: goNext };
+      return {
+        label: "Continue",
+        enabled: questionSelected !== null || answers[idx] != null,
+        onClick: goNext,
+      };
     }
     if (step.type === "interstitial") {
       return { label: "Continue", enabled: true, onClick: goNext };
     }
     if (step.type === "final") {
-      return { label: "Start learning", enabled: true, onClick: () => {}, href: CTA_HREF };
+      return { label: "See your roadmap", enabled: true, onClick: handleFinish };
     }
     return { label: "Continue", enabled: true, onClick: goNext };
   }
@@ -171,19 +172,6 @@ export default function OnboardingContainer() {
       stepKey={`step-${idx}`}
       direction={direction}
     >
-      {step.type === "welcome" && (
-        <ScreenWelcome
-          headline={(step as WelcomeStep).headline}
-          sub={(step as WelcomeStep).sub}
-        />
-      )}
-
-      {step.type === "hook" && (
-        <ScreenHook
-          onRevealDone={() => setHookReady(true)}
-        />
-      )}
-
       {step.type === "question" && (
         <ScreenQuestion
           question={(step as QuestionStep).question}
@@ -203,7 +191,7 @@ export default function OnboardingContainer() {
       )}
 
       {step.type === "final" && (
-        <ScreenFinal ctaHref={CTA_HREF} />
+        <ScreenFinal ctaHref="/course" />
       )}
     </OnboardShell>
   );

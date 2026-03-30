@@ -1,5 +1,5 @@
-import ExperienceContainer from "@/app/components/experience/ExperienceContainer";
+import { redirect } from "next/navigation";
 
 export default function ExperiencePage() {
-  return <ExperienceContainer />;
+  redirect("/onboard");
 }

@@ -11,6 +11,7 @@ const mono = "ui-monospace, SFMono-Regular, monospace";
 interface IdentityResultProps {
   results: UserResult[];
   onContinue: () => void;
+  continueLabel?: string;
 }
 
 type Phase = "scanning" | "verdict";
@@ -37,10 +38,15 @@ const pullLine: Record<number, string> = {
   3: "Here's the system behind it.",
 };
 
-export default function IdentityResult({ results, onContinue }: IdentityResultProps) {
+export default function IdentityResult({
+  results,
+  onContinue,
+  continueLabel = "See what opens next →",
+}: IdentityResultProps) {
   const score = results.filter((r) => r.correct).length;
   const [phase, setPhase] = useState<Phase>("scanning");
   const [visibleRows, setVisibleRows] = useState(0);
+  const [activeRow, setActiveRow] = useState<number | null>(null);
   const [displayScore, setDisplayScore] = useState(0);
   const [showLabel, setShowLabel] = useState(false);
   const [showPull, setShowPull] = useState(false);
@@ -59,14 +65,30 @@ export default function IdentityResult({ results, onContinue }: IdentityResultPr
     };
   });
 
-  // Phase 1: rows appear one by one (150ms stagger)
+  // Phase 1: rows appear one by one, then hold for a beat before the verdict
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
+    const rowRevealDelay = 380;
+    const rowSpacing = 520;
+    const finalHold = 1800;
+
     scanRows.forEach((_, i) => {
-      timers.push(setTimeout(() => setVisibleRows(i + 1), i * 200 + 300));
+      const revealAt = rowRevealDelay + i * rowSpacing;
+      timers.push(
+        setTimeout(() => {
+          setVisibleRows(i + 1);
+          setActiveRow(i);
+        }, revealAt),
+      );
+      timers.push(
+        setTimeout(() => {
+          setActiveRow((current) => (current === i ? null : current));
+        }, revealAt + 360),
+      );
     });
-    // After last row, pause then switch to verdict
-    timers.push(setTimeout(() => setPhase("verdict"), scanRows.length * 200 + 700));
+
+    const verdictAt = rowRevealDelay + scanRows.length * rowSpacing + finalHold;
+    timers.push(setTimeout(() => setPhase("verdict"), verdictAt));
     return () => timers.forEach(clearTimeout);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -164,6 +186,12 @@ export default function IdentityResult({ results, onContinue }: IdentityResultPr
                             gridTemplateColumns: "56px 1fr 1fr 28px",
                             alignItems: "center",
                             gap: 8,
+                            backgroundColor:
+                              activeRow === i ? "rgba(255,255,255,0.04)" : "transparent",
+                            borderRadius: 10,
+                            padding: "7px 8px",
+                            boxShadow:
+                              activeRow === i ? "0 0 0 1px rgba(255,255,255,0.06) inset" : "none",
                           }}
                         >
                           {/* Ticker */}
@@ -254,7 +282,9 @@ export default function IdentityResult({ results, onContinue }: IdentityResultPr
                       width: 10,
                       height: 10,
                       borderRadius: "50%",
-                      backgroundColor: r.correct ? "#10b981" : "#e5e7eb",
+                      backgroundColor: r.correct ? "#10b981" : "#ffffff",
+                      border: r.correct ? "1px solid #10b981" : "1px solid #d8dee7",
+                      boxShadow: r.correct ? "0 0 10px rgba(16,185,129,0.22)" : "none",
                     }}
                   />
                 ))}
@@ -307,7 +337,7 @@ export default function IdentityResult({ results, onContinue }: IdentityResultPr
                       onContinue();
                     }}
                     whileTap={{ scale: 0.97 }}
-                    style={{
+                  style={{
                       width: "100%",
                       backgroundColor: "#10b981",
                       color: "#ffffff",
@@ -321,7 +351,7 @@ export default function IdentityResult({ results, onContinue }: IdentityResultPr
                       letterSpacing: "-0.01em",
                     }}
                   >
-                    See what opens next →
+                    {continueLabel}
                   </motion.button>
                 )}
               </AnimatePresence>
