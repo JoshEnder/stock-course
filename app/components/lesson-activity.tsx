@@ -3,6 +3,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PracticeActivityKind } from "../lib/course-data";
 
+// v2 Foundations activity components
+import { OwnershipGrid } from "./activities/OwnershipGrid";
+import { LiveOrderBook } from "./activities/LiveOrderBook";
+import { PredictThenReveal, type PredictRound } from "./activities/PredictThenReveal";
+import { StoryBranch } from "./activities/StoryBranch";
+import { PriceSliderLab } from "./activities/PriceSliderLab";
+import { CompassGauge, type CompassScenario } from "./activities/CompassGauge";
+import { CharacterSort, type Character, type CharacterCard } from "./activities/CharacterSort";
+import { PressureSlider } from "./activities/PressureSlider";
+import { FundingThreePath } from "./activities/FundingThreePath";
+import { DividendVsGainSplit } from "./activities/DividendVsGainSplit";
+import { RapidFireStreak, type RapidFireCard } from "./activities/RapidFireStreak";
+import { TapToFlip, type FlipCard } from "./activities/TapToFlip";
+
 type LessonActivityProps = {
   activityKind?: PracticeActivityKind;
   activityData?: Record<string, unknown>;
@@ -705,6 +719,26 @@ export function LessonActivity({
     );
   }
 
+  if (activityKind === "funding-simulator" && variant === "three-path") {
+    const paths = (Array.isArray(data.paths) ? data.paths : []) as Array<{
+      id: string;
+      label: string;
+      icon: string;
+      benefit: string;
+      cost: string;
+      consequence: string;
+      highlighted?: boolean;
+    }>;
+    const conclusion = stringOr(data.conclusion, "Most high-growth companies eventually go public.");
+    return (
+      <FundingThreePath
+        paths={paths}
+        conclusion={conclusion}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
   if (activityKind === "funding-simulator") {
     const sold = clamp(Math.round(meterValue), 10, 90);
     const kept = 100 - sold;
@@ -917,6 +951,125 @@ export function LessonActivity({
             )}
           </div>
         ) : null}
+      </div>
+    );
+  }
+
+  if (activityKind === "bucket-sort" && data.dealOneAtATime) {
+    const bucketStyles = (data.bucketStyles ?? {}) as Record<string, string>;
+    const solvedCount = cards.filter((card) => assignments[card.id] === card.target).length;
+    const currentCard = cards.find((card) => !assignments[card.id]);
+    const allDone = cards.length > 0 && !currentCard;
+    const allCorrect = cards.length > 0 && cards.every((card) => assignments[card.id] === card.target);
+    const [shake, setShake] = useState(false);
+
+    function attemptSort(cardId: string, bucket: string, target: string) {
+      if (bucket === target) {
+        setAssignments((prev) => ({ ...prev, [cardId]: bucket }));
+      } else {
+        setShake(true);
+        setTimeout(() => setShake(false), 420);
+      }
+    }
+
+    const bucketColorClass = (style: string) => {
+      if (style === "gain") return "border-emerald-500 bg-emerald-950 text-emerald-300";
+      if (style === "loss") return "border-red-500 bg-red-950 text-red-300";
+      return "border-slate-600 bg-slate-800 text-slate-300";
+    };
+
+    return (
+      <div className="rounded-[20px] bg-slate-950 p-4">
+        {/* Progress bar */}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <p className="text-[11px] font-bold tracking-widest uppercase text-slate-500">
+            {allDone ? "All sorted" : `Card ${solvedCount + 1} / ${cards.length}`}
+          </p>
+          <div className="flex gap-1.5">
+            {cards.map((card, i) => (
+              <div
+                key={card.id}
+                className={`h-2 w-2 rounded-full transition-all ${
+                  assignments[card.id] === card.target
+                    ? "bg-emerald-400"
+                    : i === solvedCount
+                      ? "bg-slate-400"
+                      : "bg-slate-700"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Current card */}
+        {currentCard && (
+          <div
+            className={`mb-4 rounded-2xl border-2 border-slate-700 bg-slate-900 p-5 text-center transition-transform ${
+              shake ? "animate-[shake_0.4s_ease-in-out]" : ""
+            }`}
+            style={
+              shake
+                ? { animation: "shake 0.4s ease-in-out", animationFillMode: "both" }
+                : undefined
+            }
+          >
+            <p className="text-lg font-black text-slate-100">{currentCard.label}</p>
+            {currentCard.amount && (
+              <p
+                className={`mt-1 text-2xl font-black tabular-nums ${
+                  currentCard.amount.startsWith("+")
+                    ? "text-emerald-400"
+                    : currentCard.amount.startsWith("-")
+                      ? "text-red-400"
+                      : "text-slate-400"
+                }`}
+              >
+                {currentCard.amount}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Bucket buttons */}
+        {currentCard && (
+          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${buckets.length}, 1fr)` }}>
+            {buckets.map((bucket) => {
+              const style = bucketStyles[bucket] ?? "";
+              return (
+                <button
+                  key={bucket}
+                  type="button"
+                  onClick={() => attemptSort(currentCard.id, bucket, currentCard.target ?? "")}
+                  className={`rounded-2xl border-2 py-4 text-sm font-black uppercase tracking-wide transition-all active:scale-95 ${bucketColorClass(style)}`}
+                >
+                  {bucket}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Done state */}
+        {allDone && (
+          <div className={`rounded-2xl border p-4 text-center ${allCorrect ? "border-emerald-700 bg-emerald-950" : "border-slate-700 bg-slate-900"}`}>
+            <p className="text-2xl font-black text-emerald-400">
+              {solvedCount}/{cards.length}
+            </p>
+            <p className="mt-1 text-sm font-bold text-slate-300">
+              {allCorrect ? "The math is now muscle memory." : "Review and keep going."}
+            </p>
+          </div>
+        )}
+
+        <style>{`
+          @keyframes shake {
+            0%,100%{transform:translateX(0)}
+            20%{transform:translateX(-8px)}
+            40%{transform:translateX(8px)}
+            60%{transform:translateX(-5px)}
+            80%{transform:translateX(5px)}
+          }
+        `}</style>
       </div>
     );
   }
@@ -2264,6 +2417,18 @@ export function LessonActivity({
     );
   }
 
+  if (activityKind === "return-builder" && variant === "dividend-vs-gain" && data.left) {
+    const left = asObject(data.left) as { label: string; description: string; example: string };
+    const right = asObject(data.right) as { label: string; description: string; example: string };
+    return (
+      <DividendVsGainSplit
+        left={{ label: stringOr(left.label, "DIVIDEND"), description: stringOr(left.description, ""), example: stringOr(left.example, "") }}
+        right={{ label: stringOr(right.label, "PRICE GAIN"), description: stringOr(right.description, ""), example: stringOr(right.example, "") }}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
   if (activityKind === "return-builder" && variant === "dividend-vs-gain" && matches.length) {
     const current = matches.find((match) => match.clue === selectedId) ?? matches[0];
     return (
@@ -2875,7 +3040,13 @@ export function LessonActivity({
     );
   }
 
-  if (fallbackCards.length > 0) {
+  const v2ActivityKinds = new Set([
+    "ownership-grid", "pressure-slider", "live-order-book", "predict-reveal",
+    "story-branch", "character-sort", "compass-gauge", "price-slider-lab",
+    "rapid-fire-streak", "tap-to-flip", "funding-simulator", "return-builder",
+  ]);
+
+  if (fallbackCards.length > 0 && !v2ActivityKinds.has(activityKind ?? "")) {
     const currentCard = fallbackCards[fallbackSeenIds.length] ?? null;
     const complete = fallbackSeenIds.length === fallbackCards.length;
 
@@ -2942,6 +3113,130 @@ export function LessonActivity({
       </div>
     );
   }
+
+  // ─── v2 Foundations activities ───────────────────────────────────────────────
+
+  if (activityKind === "ownership-grid") {
+    return (
+      <OwnershipGrid
+        company={stringOr(data.company, "Nike")}
+        totalShares={numberOr(data.totalShares, 1_500_000_000)}
+        yourShares={numberOr(data.yourShares, 1)}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "pressure-slider") {
+    return (
+      <PressureSlider
+        startBuyers={numberOr(data.startBuyers, 10847)}
+        startSellers={numberOr(data.startSellers, 2103)}
+        startPrice={numberOr(data.startPrice, 142)}
+        minPrice={numberOr(data.minPrice, 133)}
+        maxPrice={numberOr(data.maxPrice, 151)}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "live-order-book") {
+    return (
+      <LiveOrderBook
+        startPrice={numberOr(data.startPrice, 142)}
+        contextBanner={stringOr(
+          data.contextBanner,
+          "Record quarterly earnings just announced. Orders flooding in.",
+        )}
+        priceTarget={numberOr(data.priceTarget, 146)}
+        buyConsequence={stringOr(data.buyConsequence, "Filled at ${price}. You're in.")}
+        waitConsequence={stringOr(
+          data.waitConsequence,
+          "Price kept climbing. Both choices teach something.",
+        )}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "predict-reveal") {
+    const rounds = (Array.isArray(data.rounds) ? data.rounds : []) as PredictRound[];
+    return <PredictThenReveal rounds={rounds} onReadyChange={onReadyChange} />;
+  }
+
+  if (activityKind === "story-branch") {
+    return (
+      <StoryBranch
+        company={stringOr(data.company, "STOKED CORP")}
+        startPrice={numberOr(data.startPrice, 20)}
+        startCash={numberOr(data.startCash, 1000)}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "price-slider-lab") {
+    return (
+      <PriceSliderLab
+        minPrice={numberOr(data.minPrice, 5)}
+        maxPrice={numberOr(data.maxPrice, 55)}
+        initialBuy={numberOr(data.initialBuy, 20)}
+        initialSell={numberOr(data.initialSell, 30)}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "compass-gauge") {
+    const scenarios = (
+      Array.isArray(data.scenarios) ? data.scenarios : []
+    ) as CompassScenario[];
+    return <CompassGauge scenarios={scenarios} onReadyChange={onReadyChange} />;
+  }
+
+  if (activityKind === "character-sort") {
+    const characters = (
+      Array.isArray(data.characters) ? data.characters : []
+    ) as Character[];
+    const sortCards = (
+      Array.isArray(data.cards) ? data.cards : []
+    ) as CharacterCard[];
+    return (
+      <CharacterSort
+        characters={characters}
+        cards={sortCards}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "rapid-fire-streak") {
+    const rfCards = (Array.isArray(data.cards) ? data.cards : []) as RapidFireCard[];
+    const streakLabel = typeof data.streakLabel === "string" ? data.streakLabel : "STREAK";
+    const perfectReward = typeof data.perfectReward === "string" ? data.perfectReward : "Perfect. You've got it.";
+    return (
+      <RapidFireStreak
+        cards={rfCards}
+        streakLabel={streakLabel}
+        perfectReward={perfectReward}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  if (activityKind === "tap-to-flip") {
+    const flipCards = (Array.isArray(data.cards) ? data.cards : []) as FlipCard[];
+    const instruction = typeof data.instruction === "string" ? data.instruction : undefined;
+    return (
+      <TapToFlip
+        cards={flipCards}
+        instruction={instruction}
+        onReadyChange={onReadyChange}
+      />
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="rounded-[1.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_rgba(15,23,42,0.05)]">

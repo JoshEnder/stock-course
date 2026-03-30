@@ -83,11 +83,21 @@ export type PracticeActivityKind =
   | "zone-map"
   | "signal-stack"
   | "business-builder"
-  | "market-cap-board"
   | "ratio-builder"
   | "reveal-card"
   | "confidence-meter"
-  | "voice-ready";
+  | "voice-ready"
+  // v2 Foundations activities
+  | "ownership-grid"
+  | "pressure-slider"
+  | "live-order-book"
+  | "predict-reveal"
+  | "story-branch"
+  | "character-sort"
+  | "compass-gauge"
+  | "price-slider-lab"
+  | "rapid-fire-streak"
+  | "tap-to-flip";
 
 export type PracticeContent = {
   mechanicTitle: string;

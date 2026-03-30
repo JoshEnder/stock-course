@@ -95,9 +95,12 @@ async function loadAuthoredExperiencesForModule(module: CourseModule) {
   let loader: Promise<Record<string, AuthoredLessonExperience>>;
 
   if (source === "core") {
-    loader = import("../data/authored-lessons").then(
-      (loaded) => loaded.authoredLessonExperiences,
-    );
+    loader = Promise.all([
+      import("../data/authored-lessons").then((m) => m.authoredLessonExperiences),
+      import("../data/authored-lessons-foundations-v2").then(
+        (m) => m.foundationsV2LessonExperiences as Record<string, AuthoredLessonExperience>,
+      ),
+    ]).then(([core, v2]) => ({ ...core, ...v2 }));
   } else if (source === "advanced") {
     loader = import("../data/authored-lessons-advanced").then(
       (loaded) => loaded.advancedAuthoredLessonExperiences,
