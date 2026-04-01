@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import UnifiedFlowContainer from "@/app/components/experience/UnifiedFlowContainer";
 
 export default function ExperiencePage() {
-  redirect("/onboard");
+  return <UnifiedFlowContainer />;
 }

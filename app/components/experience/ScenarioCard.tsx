@@ -32,7 +32,6 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
 
   const isCorrect = selected !== null && selected === scenario.correct;
   const finalPrice = scenario.currentPrice + scenario.actualResult.priceChange;
-  // Market truth: price color = actual direction, NEVER correctness
   const priceIsUp = scenario.actualResult.direction === "UP";
   const marketColor = priceIsUp ? "#059669" : "#dc2626";
 
@@ -67,20 +66,18 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
   }, []);
 
   const options: { value: ScenarioOption; symbol: string; label: string }[] = [
-    { value: "UP", symbol: "↑", label: "UP" },
+    { value: "UP",   symbol: "↑", label: "UP"   },
     { value: "FLAT", symbol: "→", label: "FLAT" },
     { value: "DOWN", symbol: "↓", label: "DOWN" },
   ];
 
-  // Correctness colors — independent of market direction
   const correctPanel = { bg: "#f0fdf4", border: "1.5px solid rgba(16,185,129,0.28)", label: "#065f46" };
-  const wrongPanel = { bg: "#f8fafc", border: "1.5px solid rgba(0,0,0,0.07)", label: "#374151" };
+  const wrongPanel   = { bg: "#f8fafc", border: "1.5px solid rgba(0,0,0,0.07)",      label: "#374151" };
   const panel = isCorrect ? correctPanel : wrongPanel;
 
-  // Card outline after result reveals correctness
-  const cardOutline = phase === "done"
-    ? isCorrect ? "2px solid rgba(16,185,129,0.22)" : "2px solid transparent"
-    : "2px solid transparent";
+  const cardGlow = phase === "done" && isCorrect
+    ? "0 0 0 1.5px rgba(16,185,129,0.22), 0 4px 24px rgba(16,185,129,0.08)"
+    : "0 2px 12px rgba(0,0,0,0.06), 0 8px 40px rgba(0,0,0,0.04)";
 
   return (
     <div
@@ -88,16 +85,15 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
         backgroundColor: "#ffffff",
         borderRadius: 16,
         border: "1px solid rgba(0,0,0,0.07)",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.06), 0 8px 40px rgba(0,0,0,0.04)",
+        boxShadow: cardGlow,
         fontFamily: font,
         maxWidth: 520,
         width: "100%",
         overflow: "hidden",
-        outline: cardOutline,
-        transition: "outline 0.3s",
+        transition: "box-shadow 0.35s ease",
       }}
     >
-      {/* Progress strip at card top */}
+      {/* Progress strip */}
       <div style={{ height: 3, backgroundColor: "rgba(0,0,0,0.04)", position: "relative" }}>
         <div
           style={{
@@ -122,40 +118,89 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
           justifyContent: "space-between",
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 600, color: "#9ca3af", fontFamily: mono, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: "#9ca3af",
+            fontFamily: mono,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          }}
+        >
           {scenarioNumber} of 3
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {/* Live dot */}
           <motion.div
             animate={phase === "idle" ? { opacity: [1, 0.3, 1] } : { opacity: 0 }}
             transition={{ duration: 1.5, repeat: Infinity }}
             style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#10b981" }}
           />
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#374151", fontFamily: mono, letterSpacing: "0.05em" }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#374151",
+              fontFamily: mono,
+              letterSpacing: "0.05em",
+            }}
+          >
             {scenario.ticker}
           </span>
         </div>
       </div>
 
       <div style={{ padding: "22px" }}>
-        <h2 style={{ color: "#111111", fontSize: 19, fontWeight: 700, margin: "0 0 8px", lineHeight: 1.3, letterSpacing: "-0.015em" }}>
+        <h2
+          style={{
+            color: "#111111",
+            fontSize: 19,
+            fontWeight: 700,
+            margin: "0 0 8px",
+            lineHeight: 1.3,
+            letterSpacing: "-0.015em",
+          }}
+        >
           {scenario.title}
         </h2>
-        <p style={{ color: "#6b7280", fontSize: 14, margin: "0 0 22px", lineHeight: 1.6 }}>
+        <p
+          style={{
+            color: "#6b7280",
+            fontSize: 14,
+            margin: "0 0 22px",
+            lineHeight: 1.6,
+          }}
+        >
           {scenario.context}
         </p>
 
-        {/* Price — market direction colors always */}
+        {/* Price */}
         <div style={{ marginBottom: 22 }}>
-          <div style={{ color: "#c4c9d4", fontSize: 10, fontFamily: mono, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>
+          <div
+            style={{
+              color: "#c4c9d4",
+              fontSize: 10,
+              fontFamily: mono,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              marginBottom: 4,
+            }}
+          >
             {phase === "idle" || phase === "locked" ? "Price" : "Moved to"}
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <motion.span
-              animate={{ color: (phase === "revealing" || phase === "done") ? marketColor : "#111111" }}
+              animate={{
+                color: (phase === "revealing" || phase === "done") ? marketColor : "#111111",
+              }}
               transition={{ duration: 0.2 }}
-              style={{ fontSize: 42, fontWeight: 800, fontFamily: mono, letterSpacing: "-0.03em", lineHeight: 1 }}
+              style={{
+                fontSize: 42,
+                fontWeight: 800,
+                fontFamily: mono,
+                letterSpacing: "-0.03em",
+                lineHeight: 1,
+              }}
             >
               ${fmt(displayPrice)}
             </motion.span>
@@ -175,8 +220,8 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
         {/* Option buttons */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 16 }}>
           {options.map((opt) => {
-            const isSel = selected === opt.value;
-            const isDim = selected !== null && !isSel;
+            const isSel    = selected === opt.value;
+            const isDim    = selected !== null && !isSel;
             const revealed = phase === "done";
 
             const selBg = isSel
@@ -197,9 +242,16 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
                 key={opt.value}
                 onClick={() => handleSelect(opt.value)}
                 disabled={phase !== "idle"}
-                animate={{ opacity: isDim ? 0.13 : 1, scale: isSel ? 1.04 : 1 }}
-                transition={{ duration: 0.1, ease: "easeOut" }}
-                whileTap={phase === "idle" ? { scale: 0.92 } : {}}
+                animate={{
+                  opacity: isDim ? 0.13 : 1,
+                  scale: isSel ? 1.05 : 1,
+                }}
+                transition={{
+                  scale: { type: "spring", stiffness: 480, damping: 26 },
+                  opacity: { duration: 0.12 },
+                }}
+                whileHover={phase === "idle" ? { scale: 1.03, backgroundColor: "#ebebea" } : {}}
+                whileTap={phase === "idle" ? { scale: 0.93 } : {}}
                 style={{
                   backgroundColor: selBg,
                   border: selBorder,
@@ -215,29 +267,61 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
                   gap: 5,
                   outline: "none",
                   boxShadow: selGlow,
-                  transition: "background-color 0.12s, border-color 0.12s, box-shadow 0.2s",
+                  transition: "background-color 0.1s, border-color 0.12s, box-shadow 0.2s",
                 }}
               >
-                <span style={{ fontSize: 22, lineHeight: 1 }}>{opt.symbol}</span>
-                <span style={{ fontSize: 10, letterSpacing: "0.1em", fontFamily: mono, fontWeight: 700 }}>{opt.label}</span>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{opt.symbol}</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.1em",
+                    fontFamily: mono,
+                    fontWeight: 700,
+                  }}
+                >
+                  {opt.label}
+                </span>
               </motion.button>
             );
           })}
         </div>
 
-        {/* Anticipation: commit bar — replaces dots, feels decisive */}
+        {/* Locking in bar */}
         <AnimatePresence>
           {phase === "locked" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              style={{ marginBottom: 16, height: 24, display: "flex", alignItems: "center", gap: 10 }}
+              style={{
+                marginBottom: 16,
+                height: 24,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+              }}
             >
-              <span style={{ fontSize: 10, fontFamily: mono, color: "#9ca3af", letterSpacing: "0.08em", whiteSpace: "nowrap", textTransform: "uppercase" }}>
-                Loading
+              <span
+                style={{
+                  fontSize: 10,
+                  fontFamily: mono,
+                  color: "#9ca3af",
+                  letterSpacing: "0.08em",
+                  whiteSpace: "nowrap",
+                  textTransform: "uppercase",
+                }}
+              >
+                Locking in
               </span>
-              <div style={{ flex: 1, height: 2, backgroundColor: "rgba(0,0,0,0.07)", borderRadius: 1, overflow: "hidden" }}>
+              <div
+                style={{
+                  flex: 1,
+                  height: 2,
+                  backgroundColor: "rgba(0,0,0,0.07)",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                }}
+              >
                 <motion.div
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
@@ -249,7 +333,7 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
           )}
         </AnimatePresence>
 
-        {/* Result panel — correctness-based */}
+        {/* Result panel */}
         <AnimatePresence>
           {(phase === "revealing" || phase === "done") && selected && (
             <motion.div
@@ -264,7 +348,14 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
                 marginBottom: 14,
               }}
             >
-              <div style={{ color: panel.label, fontSize: 14, fontWeight: 700, marginBottom: showInsight ? 7 : 0 }}>
+              <div
+                style={{
+                  color: panel.label,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  marginBottom: showInsight ? 7 : 0,
+                }}
+              >
                 {isCorrect ? scenario.successMessage : scenario.failureMessage}
               </div>
               <AnimatePresence>
@@ -292,21 +383,28 @@ export default function ScenarioCard({ scenario, scenarioNumber, onComplete }: S
               transition={{ duration: 0.18, delay: 0.08 }}
               onClick={() => {
                 if (!selected) return;
-                onComplete({ scenarioId: scenario.id, choice: selected, correct: isCorrect, timestamp: Date.now() });
+                onComplete({
+                  scenarioId: scenario.id,
+                  choice: selected,
+                  correct: isCorrect,
+                  timestamp: Date.now(),
+                });
               }}
+              whileHover={{ boxShadow: "0 0 0 4px rgba(17,17,17,0.10)" }}
               whileTap={{ scale: 0.97 }}
               style={{
                 width: "100%",
-                backgroundColor: "#10b981",
+                backgroundColor: "#111111",
                 color: "#ffffff",
                 border: "none",
-                borderRadius: 10,
+                borderRadius: 9999,
                 padding: "15px 24px",
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: "pointer",
                 fontFamily: font,
                 letterSpacing: "-0.01em",
+                transition: "box-shadow 0.18s",
               }}
             >
               {scenarioNumber === 3 ? "See your score →" : "Next →"}

@@ -299,10 +299,10 @@ export default function IdentityResult({
                     transition={{ duration: 0.28 }}
                     style={{
                       color: identityColor[score],
-                      fontSize: 30,
-                      fontWeight: 800,
-                      letterSpacing: "-0.025em",
-                      lineHeight: 1.1,
+                      fontSize: 34,
+                      fontWeight: 900,
+                      letterSpacing: "-0.03em",
+                      lineHeight: 1.08,
                       marginBottom: 8,
                     }}
                   >
@@ -336,19 +336,21 @@ export default function IdentityResult({
                       if (autoRef.current) clearTimeout(autoRef.current);
                       onContinue();
                     }}
+                    whileHover={{ boxShadow: "0 0 0 5px rgba(17,17,17,0.10)" }}
                     whileTap={{ scale: 0.97 }}
-                  style={{
+                    style={{
                       width: "100%",
-                      backgroundColor: "#10b981",
+                      backgroundColor: "#111111",
                       color: "#ffffff",
                       border: "none",
-                      borderRadius: 10,
+                      borderRadius: 9999,
                       padding: "16px 32px",
                       fontSize: 15,
                       fontWeight: 700,
                       cursor: "pointer",
                       fontFamily: font,
                       letterSpacing: "-0.01em",
+                      transition: "box-shadow 0.18s",
                     }}
                   >
                     {continueLabel}
