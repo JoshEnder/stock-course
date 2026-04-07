@@ -32,11 +32,11 @@ type LessonCheckStepProps =
   | LegacyLessonCheckStepProps
   | ModernLessonCheckStepProps;
 
-const EMERALD = "#10b981";
-const CREAM = "#e8e2d4";
-const TEXT = "#cbd5e1";
-const MUTED = "#94a3b8";
-const DIM = "#5f687a";
+const EMERALD = "var(--alpine-emerald)";
+const CREAM = "var(--alpine-cream)";
+const TEXT = "var(--alpine-text)";
+const DIM = "var(--alpine-text-tertiary)";
+const ERROR = "var(--alpine-error)";
 const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
@@ -155,22 +155,22 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     showCorrect: boolean,
     showIncorrect: boolean,
   ): CSSProperties {
-    let bg = "rgba(255,255,255,0.03)";
-    let border = "rgba(255,255,255,0.06)";
+    let bg = "rgba(22,49,74,0.64)";
+    let border = "rgba(95,143,179,0.18)";
     let color = TEXT;
     if (showCorrect) {
-      bg = "rgba(16,185,129,0.12)";
+      bg = "rgba(39,211,195,0.12)";
       border = EMERALD;
       color = EMERALD;
     }
     if (showIncorrect) {
-      bg = "rgba(239,68,68,0.12)";
-      border = "#ef4444";
-      color = "#f87171";
+      bg = "rgba(217,109,127,0.12)";
+      border = ERROR;
+      color = ERROR;
     }
     if (active && !showFeedback) {
-      bg = "rgba(16,185,129,0.08)";
-      border = "rgba(16,185,129,0.5)";
+      bg = "rgba(39,211,195,0.08)";
+      border = "rgba(127,231,242,0.36)";
       color = CREAM;
     }
 
@@ -199,10 +199,10 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     showCorrect: boolean,
     showIncorrect: boolean,
   ): CSSProperties {
-    let bg = "rgba(255,255,255,0.07)";
+    let bg = "rgba(159,199,222,0.12)";
     let color = DIM;
     if (showCorrect) { bg = EMERALD; color = "#fff"; }
-    if (showIncorrect) { bg = "#ef4444"; color = "#fff"; }
+    if (showIncorrect) { bg = ERROR; color = "#fff"; }
     if (active && !showFeedback && !showCorrect && !showIncorrect) { bg = EMERALD; color = "#fff"; }
 
     return {
@@ -249,7 +249,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
                   width: index === caseIndex ? 20 : 8,
                   height: 8,
                   borderRadius: 99,
-                  background: index < caseIndex ? EMERALD : index === caseIndex ? "rgba(16,185,129,0.5)" : "rgba(255,255,255,0.08)",
+                  background: index < caseIndex ? EMERALD : index === caseIndex ? "rgba(39,211,195,0.5)" : "rgba(159,199,222,0.12)",
                   transition: "all 220ms",
                 }}
               />
@@ -333,17 +333,17 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
 
       {showFeedback ? (
         <div style={{
-          borderLeft: `3px solid ${isCorrect ? EMERALD : "#ef4444"}`,
+          borderLeft: `3px solid ${isCorrect ? EMERALD : ERROR}`,
           paddingLeft: 16,
           paddingRight: 16,
           paddingTop: 12,
           paddingBottom: 12,
           marginBottom: 16,
-          background: isCorrect ? "rgba(16,185,129,0.04)" : "rgba(239,68,68,0.04)",
+          background: isCorrect ? "rgba(39,211,195,0.06)" : "rgba(217,109,127,0.06)",
           borderRadius: "0 8px 8px 0",
           animation: "lessonStepEnter 280ms cubic-bezier(0.22,1,0.36,1) both",
         }}>
-          <div style={{ fontWeight: 600, fontSize: 15, color: isCorrect ? EMERALD : "#f87171", marginBottom: 6 }}>
+          <div style={{ fontWeight: 600, fontSize: 15, color: isCorrect ? EMERALD : ERROR, marginBottom: 6 }}>
             {isCorrect ? "Correct" : "Not quite"}
           </div>
           <div style={{ fontSize: 14, color: TEXT, lineHeight: 1.6 }}>
@@ -364,11 +364,13 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
             fontWeight: 500,
             fontSize: 14,
             letterSpacing: "0.01em",
-            color: (showFeedback || canSubmit) ? "#111" : DIM,
+            color: (showFeedback || canSubmit) ? "#08111d" : DIM,
             border: "none",
             borderRadius: 10,
             cursor: showFeedback || canSubmit ? "pointer" : "not-allowed",
-            background: (showFeedback || canSubmit) ? CREAM : "rgba(255,255,255,0.06)",
+            background: (showFeedback || canSubmit)
+              ? "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)"
+              : "rgba(22,49,74,0.68)",
             boxShadow: (showFeedback || canSubmit) ? "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)" : "none",
             transition: "all 200ms",
             animation: showFeedback && isCorrect ? "ha-slam-in 320ms cubic-bezier(0.22,1,0.36,1) both" : undefined,

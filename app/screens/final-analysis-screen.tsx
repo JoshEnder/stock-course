@@ -3,13 +3,27 @@
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { BrainIcon, CheckCircleIcon, ClockIcon, TrendingUpIcon } from "../components/icons";
+import {
+  BrainIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  TrendingUpIcon,
+} from "../components/icons";
 import { performanceData } from "../lib/course-data";
 import {
   getNickname,
   subscribeToCourseStorage,
   subscribeToHydration,
 } from "../lib/course-storage";
+
+function StokedLogo() {
+  return (
+    <Link href="/" className="alpine-brand-link">
+      <span className="alpine-brand-link__word">stoked</span>
+      <span className="alpine-brand-link__dot" />
+    </Link>
+  );
+}
 
 export function FinalAnalysisScreen() {
   const router = useRouter();
@@ -34,112 +48,211 @@ export function FinalAnalysisScreen() {
     [],
   );
 
-  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-
   return (
-    <div style={{ minHeight: "100vh", background: "#f9fafb", fontFamily: font }}>
-      {/* Header */}
-      <div style={{ borderBottom: "2px solid #e5e7eb", background: "#fff" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
-          {/* Logo */}
-          <Link href="/course" style={{ display: "inline-flex", alignItems: "flex-end", gap: 3, textDecoration: "none" }}>
-            <span style={{ fontWeight: 900, fontSize: 20, color: "#172b4d", letterSpacing: "-0.5px", lineHeight: 1 }}>stoked</span>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", flexShrink: 0, marginBottom: 2 }} />
+    <main className="alpine-page">
+      <div className="alpine-page__inner">
+        <div className="alpine-topbar">
+          <StokedLogo />
+          <Link href="/course" className="alpine-back-link">
+            Back to course
           </Link>
         </div>
-      </div>
 
-      {/* Sub-header */}
-      <div style={{ borderBottom: "2px solid #e5e7eb", background: "#fff" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", padding: "20px 24px" }}>
-          <h2 style={{ fontSize: "clamp(20px,3vw,28px)", fontWeight: 900, color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 4 }}>
-            Your Learning Analysis
-          </h2>
-          <p style={{ fontSize: 15, color: "#6b7280" }}>
-            See how you performed across the full beginner course, {nickname}
+        <div className="alpine-page-head">
+          <p className="alpine-kicker">Final analysis</p>
+          <h1 className="alpine-heading">Your learning analysis</h1>
+          <p className="alpine-copy">
+            A full-course snapshot of how you performed across the beginner path,
+            {` ${nickname}`}.
           </p>
         </div>
-      </div>
 
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "32px 24px" }}>
-
-        {/* Overall score card */}
-        <div style={{ background: "#f0fdf4", border: "2px solid #22c55e", borderRadius: 20, padding: "40px 24px", textAlign: "center", marginBottom: 24, boxShadow: "0 4px 0 #16a34a" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 72, height: 72, borderRadius: "50%", background: "#22c55e", marginBottom: 16 }}>
-            <TrendingUpIcon style={{ width: 36, height: 36, color: "#fff" }} />
-          </div>
-          <h3 style={{ fontSize: "clamp(48px,8vw,72px)", fontWeight: 900, color: "#172b4d", letterSpacing: "-2px", lineHeight: 1, marginBottom: 8 }}>
-            {overallScore}%
-          </h3>
-          <p style={{ fontSize: 18, color: "#6b7280", marginBottom: 20 }}>Overall Performance</p>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", border: "2px solid #bbf7d0", borderRadius: 99, padding: "8px 20px" }}>
-            <CheckCircleIcon style={{ width: 16, height: 16, color: "#22c55e" }} />
-            <span style={{ fontWeight: 800, fontSize: 14, color: "#15803d" }}>Excellent work!</span>
-          </div>
-        </div>
-
-        {/* Concept breakdown */}
-        <div style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 20, padding: 24, marginBottom: 24 }}>
-          <h4 style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 18, fontWeight: 900, color: "#172b4d", marginBottom: 20 }}>
-            <BrainIcon style={{ width: 20, height: 20, color: "#22c55e" }} />
-            Concept Breakdown
-          </h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {performanceData.map((item) => (
-              <div key={item.concept} style={{ background: "#f9fafb", border: "2px solid #e5e7eb", borderRadius: 14, padding: "14px 16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "#172b4d" }}>{item.concept}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 20, fontWeight: 900, color: item.score === 100 ? "#22c55e" : "#172b4d" }}>{item.score}%</span>
-                    {item.score === 100 && <CheckCircleIcon style={{ width: 16, height: 16, color: "#22c55e" }} />}
-                  </div>
-                </div>
-                <div style={{ height: 8, background: "#e5e7eb", borderRadius: 99, overflow: "hidden", marginBottom: 6 }}>
-                  <div style={{ height: "100%", borderRadius: 99, background: "#22c55e", width: `${item.score}%`, transition: "width 800ms cubic-bezier(0.22,1,0.36,1)" }} />
-                </div>
-                <p style={{ fontSize: 13, color: "#9ca3af" }}>{item.detail}</p>
+        <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <section className="space-y-6">
+            <div className="alpine-panel alpine-panel--accent p-8 text-center md:p-10">
+              <div
+                className="mx-auto mb-5 flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full"
+                style={{
+                  background:
+                    "linear-gradient(145deg, rgba(39,211,195,0.24), rgba(25,184,156,0.3))",
+                  boxShadow: "0 20px 40px rgba(9, 34, 54, 0.42)",
+                }}
+              >
+                <TrendingUpIcon
+                  className="h-9 w-9"
+                  style={{ color: "var(--alpine-cyan)" }}
+                />
               </div>
-            ))}
-          </div>
-        </div>
+              <p className="alpine-kicker">Overall performance</p>
+              <h2
+                className="mt-3 text-[clamp(3.5rem,10vw,5.5rem)] font-semibold leading-none"
+                style={{ color: "var(--alpine-cream)" }}
+              >
+                {overallScore}%
+              </h2>
+              <p className="mt-3 text-base" style={{ color: "var(--alpine-text-secondary)" }}>
+                Strong retention across the full beginner course.
+              </p>
+              <div className="mt-6 inline-flex">
+                <span className="alpine-chip alpine-chip--accent">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Excellent work
+                </span>
+              </div>
+            </div>
 
-        {/* Stat cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
-          <StatCard icon={<ClockIcon style={{ width: 24, height: 24, color: "#22c55e" }} />} label="Total Time" value="74 min" />
-          <StatCard icon={<BrainIcon style={{ width: 24, height: 24, color: "#22c55e" }} />} label="Lessons Mastered" value="10 lessons" />
-        </div>
+            <div className="alpine-panel p-6">
+              <div className="mb-5">
+                <p className="alpine-label">Concept breakdown</p>
+                <h2
+                  className="mt-2 flex items-center gap-2 text-xl font-semibold"
+                  style={{ color: "var(--alpine-text)" }}
+                >
+                  <BrainIcon
+                    className="h-5 w-5"
+                    style={{ color: "var(--alpine-teal)" }}
+                  />
+                  Strength by topic
+                </h2>
+              </div>
 
-        {/* CTA */}
-        <div style={{ textAlign: "center" }}>
-          <button
-            type="button"
-            onClick={() => router.push("/completion")}
-            style={{
-              padding: "18px 48px", borderRadius: 16, border: "none",
-              background: "#22c55e", boxShadow: "0 5px 0 #16a34a",
-              color: "#fff", fontFamily: font, fontWeight: 800, fontSize: 17,
-              textTransform: "uppercase", letterSpacing: "0.08em", cursor: "pointer",
-            }}
-            onMouseDown={(e) => { const el = e.currentTarget; el.style.transform = "translateY(3px)"; el.style.boxShadow = "0 2px 0 #16a34a"; }}
-            onMouseUp={(e) => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = "0 5px 0 #16a34a"; }}
-          >
-            View certificate &rarr;
-          </button>
+              <div className="space-y-3">
+                {performanceData.map((item) => (
+                  <div
+                    key={item.concept}
+                    className="rounded-[1.15rem] border px-4 py-4"
+                    style={{
+                      borderColor: "rgba(127, 231, 242, 0.1)",
+                      background:
+                        "linear-gradient(180deg, rgba(12, 27, 43, 0.8), rgba(9, 20, 33, 0.76))",
+                    }}
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-4">
+                      <span
+                        className="text-sm font-semibold"
+                        style={{ color: "var(--alpine-text)" }}
+                      >
+                        {item.concept}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="text-xl font-semibold"
+                          style={{
+                            color:
+                              item.score === 100
+                                ? "var(--alpine-teal)"
+                                : "var(--alpine-cream)",
+                          }}
+                        >
+                          {item.score}%
+                        </span>
+                        {item.score === 100 ? (
+                          <CheckCircleIcon
+                            className="h-4 w-4"
+                            style={{ color: "var(--alpine-teal)" }}
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+                    <div
+                      className="mb-3 h-2.5 overflow-hidden rounded-full"
+                      style={{ background: "rgba(127, 231, 242, 0.12)" }}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${item.score}%`,
+                          background:
+                            "linear-gradient(90deg, var(--alpine-teal), var(--alpine-cyan))",
+                          boxShadow: "0 0 18px rgba(89, 240, 223, 0.24)",
+                          transition: "width 800ms cubic-bezier(0.22,1,0.36,1)",
+                        }}
+                      />
+                    </div>
+                    <p
+                      className="text-sm leading-6"
+                      style={{ color: "var(--alpine-text-tertiary)" }}
+                    >
+                      {item.detail}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <aside className="space-y-6">
+            <div className="alpine-panel alpine-panel--muted p-6">
+              <p className="alpine-label">Course stats</p>
+              <div className="mt-5 space-y-4">
+                <StatCard
+                  icon={<ClockIcon className="h-5 w-5" style={{ color: "var(--alpine-teal)" }} />}
+                  label="Total time"
+                  value="74 min"
+                />
+                <StatCard
+                  icon={<BrainIcon className="h-5 w-5" style={{ color: "var(--alpine-cyan)" }} />}
+                  label="Lessons mastered"
+                  value="10 lessons"
+                />
+              </div>
+            </div>
+
+            <div className="alpine-panel p-6">
+              <p className="alpine-label" style={{ color: "var(--alpine-teal)" }}>
+                Next step
+              </p>
+              <h2
+                className="mt-3 text-xl font-semibold"
+                style={{ color: "var(--alpine-cream)" }}
+              >
+                Claim your certificate
+              </h2>
+              <p className="mt-3 text-sm leading-7" style={{ color: "var(--alpine-text-secondary)" }}>
+                Your results are locked in. Move into the completion flow to see the
+                final milestone screen and certificate preview.
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push("/completion")}
+                className="alpine-cta-primary mt-6"
+              >
+                View certificate
+              </button>
+            </div>
+          </aside>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function StatCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
-    <div style={{ background: "#fff", border: "2px solid #e5e7eb", borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 16 }}>
-      <div style={{ width: 48, height: 48, borderRadius: 14, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <div className="alpine-list-row">
+      <div
+        className="flex h-11 w-11 items-center justify-center rounded-2xl"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(39,211,195,0.16), rgba(17,49,74,0.94))",
+          border: "1px solid rgba(127, 231, 242, 0.12)",
+        }}
+      >
         {icon}
       </div>
-      <div>
-        <p style={{ fontSize: 12, color: "#9ca3af", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>{label}</p>
-        <p style={{ fontSize: 22, fontWeight: 900, color: "#172b4d" }}>{value}</p>
+      <div className="min-w-0 flex-1">
+        <p className="alpine-label">{label}</p>
+        <p className="mt-1 text-lg font-semibold" style={{ color: "var(--alpine-text)" }}>
+          {value}
+        </p>
       </div>
     </div>
   );

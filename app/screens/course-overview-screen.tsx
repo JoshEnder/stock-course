@@ -43,128 +43,181 @@ export function CourseOverviewScreen() {
   const progress = (completedCount / lessonCatalog.length) * 100;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#f4fff7_0%,#faf9f6_38%,#f2f7f3_100%)]">
+    <main className="alpine-page">
       <SiteHeader nickname={nickname} showProfile={true} />
 
-      <div className="border-b border-border bg-card/90 shadow-[0_12px_40px_rgba(22,163,74,0.06)] backdrop-blur">
-        <div className="mx-auto max-w-4xl px-6 py-6">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground md:text-[2rem]">
-                Welcome back,{" "}
-                <span className="text-gradient-emerald">{nickname}</span>! 👋
-              </h2>
-              <p className="mt-1 text-muted-foreground">
-                Continue your stock learning journey
+      <div className="alpine-page__inner pt-10">
+        <section className="alpine-panel alpine-panel--accent p-6 md:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-5">
+            <div className="max-w-2xl">
+              <p className="alpine-kicker">Course overview</p>
+              <h1 className="alpine-heading mt-3">
+                Welcome back, <span style={{ color: "var(--alpine-cream)" }}>{nickname}</span>
+              </h1>
+              <p className="alpine-copy mt-4">
+                Continue Beginner Stock Foundations with a clearer view of what is
+                complete, what is unlocked next, and what still needs review.
               </p>
             </div>
-            <div className="hidden items-center gap-2 rounded-xl border border-primary/15 bg-[linear-gradient(135deg,#f2fff5_0%,#e8fff1_100%)] px-4 py-2 shadow-[0_10px_30px_rgba(22,163,74,0.12)] md:flex">
-              <TrendingUpIcon className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">
-                {completedCount}/{lessonCatalog.length}
+
+            <div className="alpine-chip alpine-chip--accent">
+              <TrendingUpIcon className="h-4 w-4" />
+              <span>
+                {completedCount}/{lessonCatalog.length} lessons complete
               </span>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Course progress</span>
-              <span className="font-semibold text-foreground">
+          <div className="mt-8 space-y-3">
+            <div className="flex items-center justify-between gap-4 text-sm">
+              <span style={{ color: "var(--alpine-text-secondary)" }}>
+                Course progress
+              </span>
+              <span
+                style={{
+                  color: "var(--alpine-text)",
+                  fontWeight: 600,
+                }}
+              >
                 {Math.round(progress)}%
               </span>
             </div>
-            <ProgressBar value={progress} />
+            <ProgressBar
+              value={progress}
+              className="h-3 bg-[rgba(127,231,242,0.14)]"
+            />
           </div>
+        </section>
+
+        <div className="mt-8 grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+          <section>
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="alpine-label">Learning path</p>
+                <h2
+                  className="mt-2 text-2xl font-semibold"
+                  style={{ color: "var(--alpine-text)" }}
+                >
+                  Beginner Stock Foundations
+                </h2>
+              </div>
+              <div className="alpine-chip">10 lessons</div>
+            </div>
+
+            <ScrollReveal delayMs={40}>
+              <div className="space-y-4">
+                {lessonCatalog.map((lesson) => {
+                  const completed = progressState.completedLessonIds.includes(lesson.id);
+                  const playable =
+                    lesson.id === 1 ||
+                    progressState.completedLessonIds.includes((lesson.id - 1) as number);
+
+                  return playable ? (
+                    <Link
+                      key={lesson.id}
+                      className="group block alpine-panel p-6 transition duration-200 hover:-translate-y-0.5 hover:border-[rgba(127,231,242,0.18)] hover:bg-[linear-gradient(180deg,rgba(22,49,74,0.96),rgba(17,38,58,0.94))]"
+                      href={`/lesson/${lesson.id}`}
+                    >
+                      <LessonRow
+                        completed={completed}
+                        description={lesson.description}
+                        duration={lesson.duration}
+                        locked={false}
+                        title={lesson.title}
+                      />
+                    </Link>
+                  ) : (
+                    <div
+                      key={lesson.id}
+                      className="alpine-panel alpine-panel--muted p-6 opacity-70"
+                    >
+                      <LessonRow
+                        completed={false}
+                        description={lesson.description}
+                        duration={lesson.duration}
+                        locked={true}
+                        title={lesson.title}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollReveal>
+          </section>
+
+          <aside className="space-y-6">
+            <ScrollReveal delayMs={100}>
+              <section className="alpine-panel alpine-panel--muted p-6">
+                <p className="alpine-label" style={{ color: "var(--alpine-teal)" }}>
+                  Your goal
+                </p>
+                <h2
+                  className="mt-3 text-xl font-semibold"
+                  style={{ color: "var(--alpine-cream)" }}
+                >
+                  Finish all 10 lessons
+                </h2>
+                <p className="mt-3 text-sm leading-7" style={{ color: "var(--alpine-text-secondary)" }}>
+                  Unlock your certificate and build confidence with ownership,
+                  exchanges, risk, market cap, and beginner stock decisions.
+                </p>
+              </section>
+            </ScrollReveal>
+
+            <ScrollReveal delayMs={140}>
+              <section className="alpine-panel p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="alpine-label">Review queue</p>
+                    <h2
+                      className="mt-2 text-xl font-semibold"
+                      style={{ color: "var(--alpine-text)" }}
+                    >
+                      Lightweight follow-up
+                    </h2>
+                  </div>
+                  <span className="alpine-chip">
+                    {progressState.reviewQueue.length} item
+                    {progressState.reviewQueue.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-7" style={{ color: "var(--alpine-text-secondary)" }}>
+                  Wrong answers are saved here for quick reinforcement before they
+                  pile up.
+                </p>
+
+                {progressState.reviewQueue.length ? (
+                  <ul className="mt-5 space-y-3">
+                    {progressState.reviewQueue.map((item) => (
+                      <li key={item} className="alpine-list-row">
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{
+                            background:
+                              "linear-gradient(180deg,var(--alpine-teal),var(--alpine-cyan))",
+                            boxShadow: "0 0 0 3px rgba(39,211,195,0.15)",
+                          }}
+                        />
+                        <span
+                          className="min-w-0 flex-1 text-sm leading-6"
+                          style={{ color: "var(--alpine-text)" }}
+                        >
+                          {item}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="alpine-note-success mt-5">
+                    No review items yet. Keep climbing.
+                  </div>
+                )}
+              </section>
+            </ScrollReveal>
+          </aside>
         </div>
       </div>
-
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <h3 className="mb-6 text-lg font-semibold text-slate-900">
-          Beginner Stock Foundations
-        </h3>
-        <ScrollReveal delayMs={40}>
-          <div className="space-y-4">
-            {lessonCatalog.map((lesson) => {
-              const completed = progressState.completedLessonIds.includes(lesson.id);
-              const playable =
-                lesson.id === 1 ||
-                progressState.completedLessonIds.includes((lesson.id - 1) as number);
-
-              return playable ? (
-                <Link
-                  key={lesson.id}
-                  className="group block rounded-2xl border-2 border-transparent bg-card p-6 text-left shadow-[0_12px_30px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-0.5 hover:border-primary/20 hover:bg-card/80 hover:shadow-[0_20px_40px_rgba(22,163,74,0.12)]"
-                  href={`/lesson/${lesson.id}`}
-                >
-                  <LessonRow
-                    completed={completed}
-                    description={lesson.description}
-                    duration={lesson.duration}
-                    locked={false}
-                    title={lesson.title}
-                  />
-                </Link>
-              ) : (
-                <div
-                  key={lesson.id}
-                  className="cursor-not-allowed rounded-2xl bg-card p-6 text-left opacity-50 shadow-sm"
-                >
-                  <LessonRow
-                    completed={false}
-                    description={lesson.description}
-                    duration={lesson.duration}
-                    locked={true}
-                    title={lesson.title}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal delayMs={100}>
-          <div className="mt-10 rounded-2xl border border-primary/20 bg-[linear-gradient(135deg,rgba(22,163,74,0.12)_0%,rgba(236,253,245,0.92)_52%,rgba(255,255,255,0.95)_100%)] p-6 shadow-[0_18px_40px_rgba(22,163,74,0.08)]">
-            <h4 className="mb-2 font-semibold text-foreground">
-              <span className="text-gradient-emerald">🎯 Your goal</span>
-            </h4>
-            <p className="text-sm text-muted-foreground">
-              Complete all 10 lessons to unlock your certificate and build confidence with ownership, exchanges, risk, market cap, and beginner stock decisions.
-            </p>
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal delayMs={140}>
-          <div className="mt-6 rounded-2xl border border-border bg-card/95 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
-            <div className="mb-2 flex items-center justify-between gap-4">
-              <h4 className="font-semibold text-foreground">Review queue</h4>
-              <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
-                {progressState.reviewQueue.length} item
-                {progressState.reviewQueue.length === 1 ? "" : "s"}
-              </span>
-            </div>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Wrong answers are saved here for lightweight follow-up.
-            </p>
-            {progressState.reviewQueue.length ? (
-              <ul className="space-y-2 text-sm text-foreground">
-                {progressState.reviewQueue.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-xl border border-primary/10 bg-[linear-gradient(180deg,#f8fbf9_0%,#f2f5f3_100%)] px-4 py-3"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="rounded-xl bg-secondary px-4 py-3 text-sm text-muted-foreground">
-                No review items yet. Keep going.
-              </div>
-            )}
-          </div>
-        </ScrollReveal>
-      </div>
-    </div>
+    </main>
   );
 }
 
@@ -181,25 +234,41 @@ function LessonRow({
   locked: boolean;
   title: string;
 }) {
+  const iconColor = locked
+    ? "var(--alpine-text-dim)"
+    : completed
+      ? "var(--alpine-teal)"
+      : "var(--alpine-cyan)";
+
   return (
     <div className="flex items-center gap-4">
-      <div className="shrink-0 transition-transform group-hover:scale-110">
+      <div className="shrink-0 transition-transform duration-200 group-hover:scale-105">
         {completed ? (
-          <CheckCircleIcon className="h-8 w-8 fill-primary text-primary" />
+          <CheckCircleIcon className="h-8 w-8" style={{ color: iconColor }} />
         ) : locked ? (
-          <LockIcon className="h-8 w-8 text-muted-foreground" />
+          <LockIcon className="h-8 w-8" style={{ color: iconColor }} />
         ) : (
-          <CircleIcon className="h-8 w-8 text-primary" />
+          <CircleIcon className="h-8 w-8" style={{ color: iconColor }} />
         )}
       </div>
-      <div className="flex-1">
-        <div className="mb-1 flex items-start justify-between">
-          <h4 className="font-semibold text-foreground transition-colors group-hover:text-primary">
+      <div className="min-w-0 flex-1">
+        <div className="mb-1 flex items-start justify-between gap-4">
+          <h3
+            className="text-base font-semibold transition-colors duration-200 group-hover:text-[var(--alpine-cream)]"
+            style={{ color: "var(--alpine-text)" }}
+          >
             {title}
-          </h4>
-          <span className="ml-4 text-sm text-muted-foreground">{duration}</span>
+          </h3>
+          <span
+            className="text-sm whitespace-nowrap"
+            style={{ color: "var(--alpine-text-tertiary)" }}
+          >
+            {duration}
+          </span>
         </div>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm leading-7" style={{ color: "var(--alpine-text-secondary)" }}>
+          {description}
+        </p>
       </div>
     </div>
   );

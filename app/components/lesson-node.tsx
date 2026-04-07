@@ -66,16 +66,16 @@ export function LessonNode({
             : "";
   const statusClass =
     effectiveState === "completed"
-      ? "border-transparent bg-[linear-gradient(135deg,#16a34a_0%,#22c55e_100%)] text-white shadow-[0_14px_28px_rgba(22,163,74,0.38)]"
+      ? "border-transparent bg-[linear-gradient(135deg,var(--alpine-emerald)_0%,var(--alpine-teal)_100%)] text-[#08111d] shadow-[0_18px_34px_rgba(39,211,195,0.24)]"
       : effectiveState === "current" && isBoss
-        ? "border-[#f59e0b] bg-[#fffbeb] text-[#92400e] shadow-[0_28px_52px_rgba(245,158,11,0.30)]"
+        ? "border-[var(--alpine-cyan)] bg-[rgba(232,226,212,0.96)] text-[#08111d] shadow-[0_28px_52px_rgba(127,231,242,0.22)]"
         : effectiveState === "current"
-          ? "border-white bg-white text-slate-950 shadow-[0_28px_52px_rgba(15,23,42,0.24)]"
+          ? "border-[var(--alpine-cyan)] bg-[rgba(236,244,247,0.96)] text-[#08111d] shadow-[0_28px_52px_rgba(127,231,242,0.18)]"
           : effectiveState === "unlocked" && isBoss
-            ? "border-[#fde68a] bg-[#fffbeb]/90 text-[#a16207] shadow-[0_12px_24px_rgba(217,119,6,0.18)]"
+            ? "border-[var(--alpine-border-strong)] bg-[rgba(22,49,74,0.86)] text-[var(--alpine-cream)] shadow-[0_14px_28px_rgba(3,10,20,0.22)]"
             : effectiveState === "unlocked"
-              ? "border-white/80 bg-white/80 text-slate-500 shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
-              : "border-gray-200/60 bg-gray-100/60 text-gray-300 shadow-none";
+              ? "border-[rgba(95,143,179,0.22)] bg-[rgba(22,49,74,0.8)] text-[var(--alpine-text-secondary)] shadow-[0_10px_22px_rgba(3,10,20,0.18)]"
+              : "border-[rgba(95,143,179,0.14)] bg-[rgba(10,22,38,0.62)] text-[var(--alpine-text-dim)] shadow-none";
 
   useEffect(() => {
     const previousState = previousStateRef.current;
@@ -152,7 +152,7 @@ export function LessonNode({
         {effectiveState === "current" ? (
           <span
             className={`course-node-pulse current-node-aura absolute ${sizeClass} rounded-full`}
-            style={{ borderColor: isBoss ? "#f59e0b" : accentColor }}
+            style={{ borderColor: isBoss ? "var(--alpine-cyan)" : "var(--alpine-cyan)" }}
           />
         ) : null}
         {effectiveState === "completed" ? (
@@ -164,7 +164,7 @@ export function LessonNode({
         {isBoss && effectiveState !== "locked" ? (
           <span
             className={`boss-node-halo absolute ${sizeClass} rounded-full ${effectiveState === "current" ? "is-current" : ""}`}
-            style={{ color: effectiveState === "completed" ? accentColor : "#f59e0b" }}
+            style={{ color: effectiveState === "completed" ? accentColor : "var(--alpine-cyan)" }}
           />
         ) : null}
         <div
@@ -176,10 +176,10 @@ export function LessonNode({
           data-transition={transitionState}
           style={{
             borderColor:
-              effectiveState === "current" && isBoss ? "#f59e0b"
-              : effectiveState === "current" ? accentColor
-              : isBoss && effectiveState === "unlocked" ? "#fde68a"
-              : isBoss && effectiveState !== "locked" ? "#f59e0b"
+              effectiveState === "current" && isBoss ? "var(--alpine-cyan)"
+              : effectiveState === "current" ? "var(--alpine-cyan)"
+              : isBoss && effectiveState === "unlocked" ? "var(--alpine-border-strong)"
+              : isBoss && effectiveState !== "locked" ? "var(--alpine-cyan)"
               : undefined,
           }}
         >
@@ -190,17 +190,17 @@ export function LessonNode({
           ) : isBoss ? (
             <StarIcon
               className="h-8 w-8"
-              style={{ color: "#f59e0b" }}
+              style={{ color: "var(--alpine-cream)" }}
             />
           ) : effectiveState === "current" ? (
-            <ChevronIcon className="h-9 w-9" style={{ color: accentColor }} />
+            <ChevronIcon className="h-9 w-9" style={{ color: "var(--alpine-emerald)" }} />
           ) : (
             <span className="text-[1.1rem] font-black">{lessonNumber}</span>
           )}
         </div>
         <span
           className={`text-[11px] font-black uppercase tracking-[0.14em] ${
-            effectiveState === "locked" ? "text-gray-400" : "text-slate-500"
+            effectiveState === "locked" ? "text-[var(--alpine-text-dim)]" : "text-[var(--alpine-text-tertiary)]"
           }`}
           style={{ color: effectiveState === "locked" ? undefined : accentColor }}
         >

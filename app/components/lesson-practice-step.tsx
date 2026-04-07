@@ -27,11 +27,12 @@ type LessonPracticeStepProps =
   | LegacyLessonPracticeStepProps
   | ModernLessonPracticeStepProps;
 
-const EMERALD = "#10b981";
-const CREAM = "#e8e2d4";
-const TEXT = "#cbd5e1";
-const MUTED = "#94a3b8";
-const DIM = "#5f687a";
+const EMERALD = "var(--alpine-emerald)";
+const CREAM = "var(--alpine-cream)";
+const TEXT = "var(--alpine-text)";
+const MUTED = "var(--alpine-text-secondary)";
+const DIM = "var(--alpine-text-tertiary)";
+const ERROR = "var(--alpine-error)";
 const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
@@ -101,31 +102,31 @@ export function LessonPracticeStep(props: LessonPracticeStepProps) {
   const showContinue = showFeedback && isCorrect;
 
   function optionBg(active: boolean, showCorrect: boolean, showIncorrect: boolean) {
-    if (showCorrect) return "rgba(16,185,129,0.12)";
-    if (showIncorrect) return "rgba(239,68,68,0.12)";
-    if (active && !showFeedback) return "rgba(16,185,129,0.08)";
-    return "rgba(255,255,255,0.03)";
+    if (showCorrect) return "rgba(39,211,195,0.12)";
+    if (showIncorrect) return "rgba(217,109,127,0.12)";
+    if (active && !showFeedback) return "rgba(39,211,195,0.08)";
+    return "rgba(22,49,74,0.64)";
   }
 
   function optionBorder(active: boolean, showCorrect: boolean, showIncorrect: boolean) {
     if (showCorrect) return EMERALD;
-    if (showIncorrect) return "#ef4444";
-    if (active && !showFeedback) return "rgba(16,185,129,0.5)";
-    return "rgba(255,255,255,0.06)";
+    if (showIncorrect) return ERROR;
+    if (active && !showFeedback) return "rgba(127,231,242,0.36)";
+    return "rgba(95,143,179,0.18)";
   }
 
   function optionColor(active: boolean, showCorrect: boolean, showIncorrect: boolean) {
     if (showCorrect) return EMERALD;
-    if (showIncorrect) return "#f87171";
+    if (showIncorrect) return ERROR;
     if (active && !showFeedback) return CREAM;
     return TEXT;
   }
 
   function badgeBg(active: boolean, showCorrect: boolean, showIncorrect: boolean) {
     if (showCorrect) return EMERALD;
-    if (showIncorrect) return "#ef4444";
+    if (showIncorrect) return ERROR;
     if (active && !showFeedback) return EMERALD;
-    return "rgba(255,255,255,0.07)";
+    return "rgba(159,199,222,0.12)";
   }
 
   function badgeColor(active: boolean, showCorrect: boolean, showIncorrect: boolean) {
@@ -207,17 +208,17 @@ export function LessonPracticeStep(props: LessonPracticeStepProps) {
       {/* Feedback */}
       {showFeedback && (
         <div style={{
-          borderLeft: `3px solid ${isCorrect ? EMERALD : "#ef4444"}`,
+          borderLeft: `3px solid ${isCorrect ? EMERALD : ERROR}`,
           paddingLeft: 16,
           paddingRight: 16,
           paddingTop: 12,
           paddingBottom: 12,
           marginBottom: 20,
-          background: isCorrect ? "rgba(16,185,129,0.04)" : "rgba(239,68,68,0.04)",
+          background: isCorrect ? "rgba(39,211,195,0.06)" : "rgba(217,109,127,0.06)",
           borderRadius: "0 8px 8px 0",
           animation: "lessonStepEnter 280ms cubic-bezier(0.22,1,0.36,1) both",
         }}>
-          <div style={{ fontWeight: 600, fontSize: 15, color: isCorrect ? EMERALD : "#f87171", marginBottom: 6 }}>
+          <div style={{ fontWeight: 600, fontSize: 15, color: isCorrect ? EMERALD : ERROR, marginBottom: 6 }}>
             {isCorrect ? "Correct" : "Not quite"}
           </div>
           <div style={{ fontSize: 14, color: TEXT, lineHeight: 1.6 }}>
@@ -236,8 +237,10 @@ export function LessonPracticeStep(props: LessonPracticeStepProps) {
             style={{
               width: "100%", padding: "14px", fontFamily: sans, fontWeight: 500, fontSize: 14,
               letterSpacing: "0.01em", border: "none", borderRadius: 10, cursor: activityReady ? "pointer" : "not-allowed",
-              color: activityReady ? "#111" : DIM,
-              background: activityReady ? CREAM : "rgba(255,255,255,0.06)",
+              color: activityReady ? "#08111d" : DIM,
+              background: activityReady
+                ? "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)"
+                : "rgba(22,49,74,0.68)",
               boxShadow: activityReady ? "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)" : "none",
               transition: "all 200ms",
             }}
@@ -252,7 +255,8 @@ export function LessonPracticeStep(props: LessonPracticeStepProps) {
             style={{
               width: "100%", padding: "14px", fontFamily: sans, fontWeight: 500, fontSize: 14,
               letterSpacing: "0.01em", border: "none", borderRadius: 10, cursor: "pointer",
-              color: "#111", background: CREAM,
+              color: "#08111d",
+              background: "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
               animation: "ha-slam-in 320ms cubic-bezier(0.22,1,0.36,1) both",
             }}
@@ -268,8 +272,10 @@ export function LessonPracticeStep(props: LessonPracticeStepProps) {
               width: "100%", padding: "14px", fontFamily: sans, fontWeight: 500, fontSize: 14,
               letterSpacing: "0.01em", border: "none", borderRadius: 10,
               cursor: canCheck ? "pointer" : "not-allowed",
-              color: canCheck ? "#111" : DIM,
-              background: canCheck ? CREAM : "rgba(255,255,255,0.06)",
+              color: canCheck ? "#08111d" : DIM,
+              background: canCheck
+                ? "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)"
+                : "rgba(22,49,74,0.68)",
               boxShadow: canCheck ? "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)" : "none",
               transition: "all 200ms",
             }}
@@ -283,7 +289,8 @@ export function LessonPracticeStep(props: LessonPracticeStepProps) {
             style={{
               width: "100%", padding: "14px", fontFamily: sans, fontWeight: 500, fontSize: 14,
               letterSpacing: "0.01em", border: "none", borderRadius: 10, cursor: "pointer",
-              color: "#111", background: CREAM,
+              color: "#08111d",
+              background: "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
             }}
           >

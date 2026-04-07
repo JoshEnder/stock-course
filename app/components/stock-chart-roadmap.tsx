@@ -197,13 +197,21 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
     <div ref={containerRef} style={{ position: "relative", width: "100%", fontFamily: font }}>
       <style dangerouslySetInnerHTML={{ __html: CHART_KEYFRAMES }} />
 
-      <div style={{ background: "#fff", border: "1.5px solid #e5e7eb", borderRadius: 16, overflow: "hidden" }}>
+      <div
+        style={{
+          background: "linear-gradient(180deg, rgba(16,36,58,0.98), rgba(10,22,38,0.98))",
+          border: "1px solid rgba(127, 231, 242, 0.12)",
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 18px 34px rgba(6, 14, 23, 0.28)",
+        }}
+      >
 
         {/* ── Header ── */}
         <div style={{ padding: "16px 20px 0", display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ width: 10, height: 10, borderRadius: "50%", background: moduleColor, flexShrink: 0 }} />
-          <span style={{ fontWeight: 700, fontSize: 14, color: "#172b4d" }}>{moduleName}</span>
-          <span style={{ fontSize: 12, color: "#9ca3af", marginLeft: "auto" }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: "#ecf4f7" }}>{moduleName}</span>
+          <span style={{ fontSize: 12, color: "#7f97ab", marginLeft: "auto" }}>
             {completedCount}/{lessons.length} complete
           </span>
         </div>
@@ -219,10 +227,10 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
             const y = toSvgY(price);
             return (
               <g key={price}>
-                <line x1={PAD.l} y1={y} x2={W - PAD.r} y2={y} stroke="#f0f0f0" strokeWidth="1" />
+                <line x1={PAD.l} y1={y} x2={W - PAD.r} y2={y} stroke="rgba(127, 231, 242, 0.08)" strokeWidth="1" />
                 <text
                   x={PAD.l - 8} y={y + 4}
-                  textAnchor="end" fontSize="11" fill="#c0c9d4" fontFamily={font}
+                  textAnchor="end" fontSize="11" fill="#7f97ab" fontFamily={font}
                 >
                   ${price}
                 </text>
@@ -231,15 +239,15 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
           })}
 
           {/* Axis lines */}
-          <line x1={PAD.l} y1={PAD.t}       x2={PAD.l}       y2={PAD.t + CH} stroke="#e5e7eb" strokeWidth="1" />
-          <line x1={PAD.l} y1={PAD.t + CH}  x2={W - PAD.r}   y2={PAD.t + CH} stroke="#e5e7eb" strokeWidth="1" />
+          <line x1={PAD.l} y1={PAD.t}       x2={PAD.l}       y2={PAD.t + CH} stroke="rgba(127, 231, 242, 0.1)" strokeWidth="1" />
+          <line x1={PAD.l} y1={PAD.t + CH}  x2={W - PAD.r}   y2={PAD.t + CH} stroke="rgba(127, 231, 242, 0.1)" strokeWidth="1" />
 
           {/* X-axis lesson number labels */}
           {lessons.map((_, i) => (
             <text
               key={i}
               x={toSvgX(i, lessons.length)} y={H - PAD.b + 18}
-              textAnchor="middle" fontSize="11" fill="#c0c9d4" fontFamily={font}
+              textAnchor="middle" fontSize="11" fill="#7f97ab" fontFamily={font}
             >
               {i + 1}
             </text>
@@ -322,8 +330,8 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
                 <circle
                   cx={pt.x} cy={pt.y}
                   r={NODE_R}
-                  fill={isDone ? moduleColor : isLocked ? "#f3f4f6" : "#fff"}
-                  stroke={isLocked ? "#e5e7eb" : moduleColor}
+                  fill={isDone ? moduleColor : isLocked ? "rgba(11, 28, 46, 0.9)" : "#10243a"}
+                  stroke={isLocked ? "rgba(127, 151, 171, 0.36)" : moduleColor}
                   strokeWidth={isCurrent ? 2.5 : 2}
                   style={{
                     filter: isHov && !isLocked
@@ -352,7 +360,7 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
                     <path
                       d={`M ${pt.x - 2.5} ${pt.y - 1.5} a 2.5 2.5 0 0 1 5 0`}
                       fill="none"
-                      stroke="#d1d5db"
+                      stroke="#7f97ab"
                       strokeWidth="2"
                       strokeLinecap="round"
                     />
@@ -361,7 +369,7 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
                       x={pt.x - 4} y={pt.y - 1.5}
                       width={8} height={6}
                       rx={1.5}
-                      fill="#d1d5db"
+                      fill="#7f97ab"
                     />
                   </>
                 )}
@@ -373,7 +381,7 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
                   fontSize="10"
                   fontWeight="600"
                   fontFamily={font}
-                  fill={isLocked ? "#d1d5db" : isDone ? moduleColor : hexToRgba(moduleColor, 0.7)}
+                  fill={isLocked ? "#7f97ab" : isDone ? moduleColor : hexToRgba(moduleColor, 0.7)}
                 >
                   ${lesson.price}
                 </text>
@@ -394,11 +402,11 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
             transform: tooltipFlipsDown
               ? "translate(-50%, 16px)"
               : "translate(-50%, calc(-100% - 16px))",
-            background: "#fff",
-            border: "1.5px solid #e5e7eb",
+            background: "linear-gradient(180deg, rgba(18, 40, 62, 0.98), rgba(10, 22, 38, 0.98))",
+            border: "1px solid rgba(127, 231, 242, 0.14)",
             borderRadius: 12,
             padding: "14px 16px",
-            boxShadow: "0 8px 28px rgba(0,0,0,0.12)",
+            boxShadow: "0 18px 36px rgba(4, 12, 21, 0.4)",
             pointerEvents: "none",
             zIndex: 30,
             minWidth: 220,
@@ -412,15 +420,15 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
             <div style={{
               width: 8, height: 8, borderRadius: "50%", marginTop: 4, flexShrink: 0,
-              background: hoveredLesson.state === "locked" ? "#d1d5db" : moduleColor,
+              background: hoveredLesson.state === "locked" ? "#7f97ab" : moduleColor,
             }} />
-            <span style={{ fontWeight: 700, fontSize: 13, color: "#172b4d", lineHeight: 1.35 }}>
+            <span style={{ fontWeight: 700, fontSize: 13, color: "#ecf4f7", lineHeight: 1.35 }}>
               {hoveredLesson.title}
             </span>
           </div>
 
           {/* Description */}
-          <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.55, margin: "0 0 10px 0" }}>
+          <p style={{ fontSize: 12, color: "#b7c9d6", lineHeight: 1.55, margin: "0 0 10px 0" }}>
             {hoveredLesson.description}
           </p>
 
@@ -428,22 +436,22 @@ export function StockChartRoadmap({ moduleColor, moduleName, lessons }: StockCha
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <span style={{
               fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
-              color: hoveredLesson.state === "completed" ? "#22c55e"
+              color: hoveredLesson.state === "completed" ? "#19b89c"
                    : hoveredLesson.state === "current"   ? moduleColor
-                   : "#9ca3af",
+                   : "#7f97ab",
             }}>
               {hoveredLesson.state === "completed" ? "✓ Completed"
                : hoveredLesson.state === "current"  ? "In Progress"
                : "Locked"}
             </span>
-            <span style={{ fontSize: 14, fontWeight: 900, color: "#172b4d" }}>
+            <span style={{ fontSize: 14, fontWeight: 900, color: "#e8e2d4" }}>
               ${hoveredLesson.price}
             </span>
           </div>
 
           {/* Unlock hint for locked lessons */}
           {hoveredLesson.state === "locked" && hovered !== null && hovered > 0 && (
-            <p style={{ fontSize: 11, color: "#c0c9d4", margin: "8px 0 0", lineHeight: 1.45 }}>
+            <p style={{ fontSize: 11, color: "#7f97ab", margin: "8px 0 0", lineHeight: 1.45 }}>
               Complete &ldquo;{lessons[hovered - 1]?.title}&rdquo; first
             </p>
           )}

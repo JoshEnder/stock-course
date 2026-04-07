@@ -228,15 +228,16 @@ export function SkillTreeRoadmap({
 
   const progressBar = (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{ height: 8, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 80, background: "#e5e7eb", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{ height: 8, flex: isMobile ? 1 : undefined, width: isMobile ? undefined : 80, background: "rgba(127, 231, 242, 0.14)", borderRadius: 99, overflow: "hidden" }}>
         <div style={{
           height: "100%", borderRadius: 99,
-          background: `linear-gradient(90deg, ${moduleColor}, ${hexToRgba(moduleColor, 0.7)})`,
+          background: `linear-gradient(90deg, ${moduleColor}, ${hexToRgba(moduleColor, 0.72)})`,
           width: `${(doneCount / lessons.length) * 100}%`,
           transition: "width 600ms ease-out",
+          boxShadow: `0 0 16px ${hexToRgba(moduleColor, 0.28)}`,
         }} />
       </div>
-      <span style={{ fontSize: 12, fontWeight: 800, color: "#9ca3af", whiteSpace: "nowrap" }}>
+      <span style={{ fontSize: 12, fontWeight: 800, color: "#7f97ab", whiteSpace: "nowrap" }}>
         {doneCount}/{lessons.length}
       </span>
     </div>
@@ -247,11 +248,11 @@ export function SkillTreeRoadmap({
       <style dangerouslySetInnerHTML={{ __html: KEYFRAMES }} />
 
       <div style={{
-        background: "#fafaf8",
-        border: "2px solid #e5e7eb",
+        background: "linear-gradient(180deg, rgba(16,36,58,0.98), rgba(10,22,38,0.98))",
+        border: "1px solid rgba(127, 231, 242, 0.12)",
         borderRadius: 24,
         overflow: "hidden",
-        boxShadow: "0 4px 0 #e0e0dc",
+        boxShadow: "0 28px 44px rgba(6, 14, 23, 0.34)",
       }}>
 
         {/* ── Header ── */}
@@ -267,7 +268,7 @@ export function SkillTreeRoadmap({
             boxShadow: `0 0 0 3px ${hexToRgba(moduleColor, 0.2)}`,
             flexShrink: 0,
           }} />
-          <span style={{ fontWeight: 900, fontSize: 15, color: "#172b4d", letterSpacing: "-0.3px" }}>
+          <span style={{ fontWeight: 900, fontSize: 15, color: "#ecf4f7", letterSpacing: "-0.3px" }}>
             {moduleName}
           </span>
           {/* Progress bar — desktop only (right-aligned in header) */}
@@ -301,18 +302,18 @@ export function SkillTreeRoadmap({
 
             {/* Subtle grid */}
             <pattern id={gridId} width="80" height="80" patternUnits="userSpaceOnUse">
-              <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#ebebeb" strokeWidth="0.8" />
+              <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(127, 231, 242, 0.08)" strokeWidth="0.8" />
             </pattern>
           </defs>
 
           {/* Background */}
-          <rect width={svgW} height={svgH} fill="#fafaf8" />
+          <rect width={svgW} height={svgH} fill="#10243a" />
           <rect width={svgW} height={svgH} fill={`url(#${gridId})`} />
 
           {/* Full ghost curve (faint) */}
           <path
             d={fullCurve}
-            fill="none" stroke="#ddd" strokeWidth="6"
+            fill="none" stroke="rgba(183, 201, 214, 0.14)" strokeWidth="6"
             strokeLinecap="round" strokeLinejoin="round"
           />
 
@@ -446,7 +447,7 @@ export function SkillTreeRoadmap({
                 <text
                   x={pt.x} y={pt.y + nodeR + 20 * sc}
                   textAnchor="middle" fontSize={11 * sc} fontWeight="900" fontFamily={font}
-                  fill={isDone ? moduleColor : isCurr ? moduleColor : "#c4cdd6"}
+                  fill={isDone ? moduleColor : isCurr ? moduleColor : "#7f97ab"}
                   style={{ letterSpacing: "0.04em" }}
                 >
                   {i + 1}
@@ -473,11 +474,11 @@ export function SkillTreeRoadmap({
           transform: tooltipFlipsDown
             ? "translate(-50%, 16px)"
             : "translate(-50%, calc(-100% - 16px))",
-          background: "#fff",
-          border: "2px solid #e5e7eb",
+          background: "linear-gradient(180deg, rgba(18, 40, 62, 0.98), rgba(10, 22, 38, 0.98))",
+          border: "1px solid rgba(127, 231, 242, 0.14)",
           borderRadius: 16,
           padding: "14px 18px",
-          boxShadow: "0 8px 0 #e0e0dc, 0 12px 28px rgba(0,0,0,0.1)",
+          boxShadow: "0 18px 36px rgba(4, 12, 21, 0.4)",
           pointerEvents: "none",
           zIndex: 30,
           minWidth: 220,
@@ -494,14 +495,14 @@ export function SkillTreeRoadmap({
               background: hoveredLesson.state === "locked" ? "#d1d5db" : moduleColor,
               boxShadow: hoveredLesson.state === "locked" ? "none" : `0 0 0 3px ${hexToRgba(moduleColor, 0.25)}`,
             }} />
-            <span style={{ fontWeight: 800, fontSize: 13, color: "#172b4d", lineHeight: 1.35 }}>
+            <span style={{ fontWeight: 800, fontSize: 13, color: "#ecf4f7", lineHeight: 1.35 }}>
               {hoveredLesson.title}
             </span>
           </div>
 
           {/* Description (optional) */}
           {hoveredLesson.description && (
-            <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.55, margin: "0 0 10px 0" }}>
+            <p style={{ fontSize: 12, color: "#b7c9d6", lineHeight: 1.55, margin: "0 0 10px 0" }}>
               {hoveredLesson.description}
             </p>
           )}
@@ -510,7 +511,7 @@ export function SkillTreeRoadmap({
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{
               fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.07em",
-              color: hoveredLesson.state === "locked" ? "#9ca3af" : moduleColor,
+              color: hoveredLesson.state === "locked" ? "#7f97ab" : moduleColor,
             }}>
               {hoveredLesson.state === "completed" ? "✓ Completed"
                : hoveredLesson.state === "current"  ? "In Progress"
@@ -518,8 +519,9 @@ export function SkillTreeRoadmap({
             </span>
             {hoveredLesson.state !== "locked" && (
               <span style={{
-                fontSize: 12, fontWeight: 900, color: "#f59e0b",
-                background: "#fef3c7", borderRadius: 8, padding: "2px 8px",
+                fontSize: 12, fontWeight: 900, color: "#e8e2d4",
+                background: "rgba(20, 58, 90, 0.8)", borderRadius: 8, padding: "2px 8px",
+                border: "1px solid rgba(127, 231, 242, 0.1)",
               }}>
                 +{hoveredLesson.xpReward} XP
               </span>
@@ -529,11 +531,11 @@ export function SkillTreeRoadmap({
           {/* Progress bar */}
           {hoveredLesson.state === "current" && hoveredLesson.progress != null && (
             <div style={{ marginTop: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 11, color: "#6b7280" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 11, color: "#b7c9d6" }}>
                 <span>Progress</span>
                 <span style={{ fontWeight: 700, color: moduleColor }}>{hoveredLesson.progress}%</span>
               </div>
-              <div style={{ height: 6, background: "#f3f4f6", borderRadius: 99 }}>
+              <div style={{ height: 6, background: "rgba(127, 231, 242, 0.14)", borderRadius: 99 }}>
                 <div style={{
                   height: "100%", borderRadius: 99, background: moduleColor,
                   width: `${hoveredLesson.progress}%`, transition: "width 600ms ease-out",
@@ -544,7 +546,7 @@ export function SkillTreeRoadmap({
 
           {/* Unlock hint */}
           {hoveredLesson.state === "locked" && hovered !== null && hovered > 0 && (
-            <p style={{ fontSize: 11, color: "#c0c9d4", margin: "8px 0 0", lineHeight: 1.45 }}>
+            <p style={{ fontSize: 11, color: "#7f97ab", margin: "8px 0 0", lineHeight: 1.45 }}>
               Complete &ldquo;{lessons[hovered - 1]?.title}&rdquo; first
             </p>
           )}

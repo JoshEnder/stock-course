@@ -33,12 +33,18 @@ function StokedLogo() {
   return (
     <Link href="/" className="inline-flex items-end gap-0.5">
       <span
-        className="text-[1.45rem] font-semibold tracking-[-0.05em] text-[#e8e2d4]"
-        style={{ fontFamily: shellSerif }}
+        className="text-[1.45rem] font-semibold tracking-[-0.05em]"
+        style={{ color: "var(--alpine-cream)", fontFamily: shellSerif }}
       >
         stoked
       </span>
-      <span className="mb-[0.26em] h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#10b981] shadow-[0_0_14px_rgba(16,185,129,0.45)]" />
+      <span
+        className="mb-[0.26em] h-2.5 w-2.5 flex-shrink-0 rounded-full"
+        style={{
+          background: "var(--alpine-teal)",
+          boxShadow: "0 0 16px rgba(89,240,223,0.42)",
+        }}
+      />
     </Link>
   );
 }
@@ -46,11 +52,18 @@ function StokedLogo() {
 function NavDot({ active = false }: { active?: boolean }) {
   return (
     <span
-      className={`inline-flex h-2.5 w-2.5 rounded-full ${
+      className="inline-flex h-2.5 w-2.5 rounded-full"
+      style={
         active
-          ? "bg-[#10b981] shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-          : "border border-white/15 bg-white/5"
-      }`}
+          ? {
+              background: "var(--alpine-teal)",
+              boxShadow: "0 0 14px rgba(89,240,223,0.35)",
+            }
+          : {
+              border: "1px solid var(--alpine-border-soft)",
+              background: "rgba(95,143,179,0.12)",
+            }
+      }
       aria-hidden="true"
     />
   );
@@ -65,10 +78,13 @@ function MetricRow({
 }) {
   return (
     <div className="flex items-center justify-between py-2">
-      <span className="text-[12px] text-[#5f687a]">
+      <span className="text-[12px]" style={{ color: "var(--alpine-text-tertiary)" }}>
         {label}
       </span>
-      <span className="text-[14px] font-medium tabular-nums text-[#cbd5e1]">
+      <span
+        className="text-[14px] font-medium tabular-nums"
+        style={{ color: "var(--alpine-text-secondary)" }}
+      >
         {value}
       </span>
     </div>
@@ -90,7 +106,15 @@ function LeftSidebar({ hearts, streak, totalXp }: SidebarProps) {
   ];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[248px] flex-shrink-0 border-r border-white/6 bg-[#0a0f1a]/94 backdrop-blur-xl lg:block">
+    <aside
+      className="sticky top-0 hidden h-screen w-[248px] flex-shrink-0 backdrop-blur-xl lg:block"
+      style={{
+        borderRight: "1px solid var(--alpine-border-soft)",
+        background:
+          "linear-gradient(180deg, rgba(11,28,46,0.94) 0%, rgba(10,22,38,0.98) 100%)",
+        boxShadow: "inset -1px 0 0 rgba(255,255,255,0.03)",
+      }}
+    >
       <div className="flex h-full flex-col px-5 pb-6 pt-7">
         <div className="pb-8">
           <StokedLogo />
@@ -101,24 +125,50 @@ function LeftSidebar({ hearts, streak, totalXp }: SidebarProps) {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center justify-between rounded-[14px] border px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] transition-all ${
+              className="flex items-center justify-between rounded-[14px] border px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] transition-all"
+              style={
                 item.active
-                  ? "border-white/10 bg-[#1a2942] text-[#e2e8f0] shadow-[0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)]"
-                  : "border-transparent bg-transparent text-[#7d8799] hover:border-white/8 hover:bg-white/[0.04] hover:text-[#cbd5e1]"
-              }`}
+                  ? {
+                      borderColor: "var(--alpine-border-strong)",
+                      background:
+                        "linear-gradient(180deg, rgba(22,49,74,0.96) 0%, rgba(16,36,58,0.92) 100%)",
+                      color: "var(--alpine-text)",
+                      boxShadow:
+                        "inset 0 1px 0 rgba(255,255,255,0.05), 0 16px 34px rgba(3,10,20,0.28)",
+                    }
+                  : {
+                      borderColor: "transparent",
+                      background: "transparent",
+                      color: "var(--alpine-text-tertiary)",
+                    }
+              }
             >
               <span className="flex items-center gap-3">
                 <NavDot active={item.active} />
                 {item.label}
               </span>
-              <span className={`text-[11px] tracking-[0.08em] ${item.active ? "text-[#10b981]" : "text-[#5f687a]"}`}>
+              <span
+                className="text-[11px] tracking-[0.08em]"
+                style={{
+                  color: item.active
+                    ? "var(--alpine-cyan)"
+                    : "var(--alpine-text-dim)",
+                }}
+              >
                 {String(index + 1).padStart(2, "0")}
               </span>
             </Link>
           ))}
         </nav>
 
-        <div className="mt-6 border-t border-white/[0.04] pt-5">
+        <div
+          className="mt-6 rounded-[18px] pt-5"
+          style={{
+            borderTop: "1px solid rgba(95,143,179,0.16)",
+            background:
+              "linear-gradient(180deg, rgba(16,36,58,0.36) 0%, rgba(10,22,38,0) 100%)",
+          }}
+        >
           <MetricRow label="Streak" value={String(streak)} />
           <MetricRow label="XP" value={String(totalXp)} />
           <MetricRow label="Hearts" value={`${hearts}/5`} />
@@ -130,41 +180,77 @@ function LeftSidebar({ hearts, streak, totalXp }: SidebarProps) {
 
 // ─── Mobile top bar (shown instead of sidebar on small screens) ───────────────
 type MobileBarProps = {
-  streak: number;
   completionPercent: number;
   resumeHref: string;
 };
 
-function MobileTopBar({ streak, completionPercent, resumeHref }: MobileBarProps) {
+function MobileTopBar({ completionPercent, resumeHref }: MobileBarProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/6 bg-[#0a0f1a]/94 px-4 backdrop-blur-xl lg:hidden">
+    <header
+      className="sticky top-0 z-40 px-4 backdrop-blur-xl lg:hidden"
+      style={{
+        borderBottom: "1px solid var(--alpine-border-soft)",
+        background: "rgba(10,22,38,0.92)",
+      }}
+    >
       <div className="flex min-h-[64px] items-center justify-between gap-4 py-3">
         <StokedLogo />
         <div className="flex flex-1 items-center gap-3">
-          <div className="min-w-0 flex-1 rounded-[12px] border border-white/8 bg-[#1a2942] px-3 py-2.5">
-            <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.2em] text-[#7d8799]">
+          <div
+            className="min-w-0 flex-1 rounded-[12px] px-3 py-2.5"
+            style={{
+              border: "1px solid var(--alpine-border-soft)",
+              background:
+                "linear-gradient(180deg, rgba(22,49,74,0.94) 0%, rgba(16,36,58,0.92) 100%)",
+            }}
+          >
+            <div
+              className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.2em]"
+              style={{ color: "var(--alpine-text-tertiary)" }}
+            >
               <span>Progress</span>
-              <span className="text-[#e8e2d4]">{completionPercent}%</span>
+              <span style={{ color: "var(--alpine-cream)" }}>{completionPercent}%</span>
             </div>
             <div className="mt-2">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/6">
+              <div
+                className="h-1.5 w-full overflow-hidden rounded-full"
+                style={{ background: "rgba(159,199,222,0.12)" }}
+              >
                 <div
-                  className="h-full rounded-full bg-[#10b981]"
-                  style={{ width: `${completionPercent}%` }}
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${completionPercent}%`,
+                    background:
+                      "linear-gradient(90deg, var(--alpine-emerald) 0%, var(--alpine-teal) 100%)",
+                    boxShadow: "0 0 14px rgba(89,240,223,0.22)",
+                  }}
                 />
               </div>
             </div>
           </div>
           <Link
             href="/profile"
-            className="rounded-[12px] border border-white/8 bg-[#1a2942] px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#cbd5e1]"
+            className="rounded-[12px] px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em]"
+            style={{
+              border: "1px solid var(--alpine-border-soft)",
+              background:
+                "linear-gradient(180deg, rgba(22,49,74,0.94) 0%, rgba(16,36,58,0.92) 100%)",
+              color: "var(--alpine-text-secondary)",
+            }}
             prefetch={false}
           >
             Profile
           </Link>
           <Link
             href={resumeHref}
-            className="rounded-[12px] bg-[#e8e2d4] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#111]"
+            className="rounded-[12px] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em]"
+            style={{
+              background:
+                "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)",
+              color: "#08111d",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.55), 0 12px 28px rgba(3,10,20,0.24)",
+            }}
             prefetch={false}
           >
             Resume
@@ -185,23 +271,39 @@ function RoadmapLoginGateModal({
   onContinueWithGoogle,
 }: RoadmapLoginGateModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm md:p-6">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm md:p-6"
+      style={{ background: "rgba(3,10,20,0.56)" }}
+    >
       <div
-        className="w-full max-w-[460px] rounded-[24px] border border-white/8 bg-[#1a2942] p-6 shadow-[0_40px_100px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.05)] md:p-8"
-        style={{ animation: "bounceIn 320ms cubic-bezier(0.22,1,0.36,1) both" }}
+        className="w-full max-w-[460px] rounded-[24px] p-6 md:p-8"
+        style={{
+          animation: "bounceIn 320ms cubic-bezier(0.22,1,0.36,1) both",
+          border: "1px solid var(--alpine-border-soft)",
+          background:
+            "linear-gradient(180deg, rgba(22,49,74,0.95) 0%, rgba(10,22,38,0.98) 100%)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.05), 0 40px 100px rgba(0,0,0,0.45)",
+        }}
       >
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#10b981]">
+        <p
+          className="text-[11px] font-semibold uppercase tracking-[0.2em]"
+          style={{ color: "var(--alpine-teal)" }}
+        >
           Save your progress
         </p>
 
         <h2
-          className="mt-3 text-[28px] leading-[1.08] tracking-[-0.03em] text-[#e8e2d4] md:text-[32px]"
-          style={{ fontFamily: shellSerif }}
+          className="mt-3 text-[28px] leading-[1.08] tracking-[-0.03em] md:text-[32px]"
+          style={{ color: "var(--alpine-cream)", fontFamily: shellSerif }}
         >
           Pick up where you left off
         </h2>
 
-        <p className="mt-3 max-w-[34ch] text-[15px] leading-6 text-[#cbd5e1]">
+        <p
+          className="mt-3 max-w-[34ch] text-[15px] leading-6"
+          style={{ color: "var(--alpine-text-secondary)" }}
+        >
           Sign in with Google to keep your progress, streak, and lesson history across devices.
         </p>
 
@@ -209,8 +311,14 @@ function RoadmapLoginGateModal({
           <button
             type="button"
             onClick={onContinueWithGoogle}
-            className="flex items-center justify-center gap-3 rounded-[12px] bg-[#e8e2d4] px-5 py-3.5 text-sm font-semibold tracking-[0.01em] text-[#111] transition-colors hover:bg-[#f0ece3] md:text-[15px]"
-            style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28), 0 8px 28px rgba(0,0,0,0.22)" }}
+            className="flex items-center justify-center gap-3 rounded-[12px] px-5 py-3.5 text-sm font-semibold tracking-[0.01em] md:text-[15px]"
+            style={{
+              background:
+                "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)",
+              color: "#08111d",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28), 0 8px 28px rgba(0,0,0,0.22)",
+            }}
           >
             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/80">
               <svg aria-hidden="true" width="14" height="14" viewBox="0 0 18 18">
@@ -225,18 +333,29 @@ function RoadmapLoginGateModal({
           <button
             type="button"
             onClick={onContinueAsGuest}
-            className="rounded-[12px] border border-white/10 bg-transparent px-5 py-3.5 text-sm font-medium text-[#cbd5e1] transition-colors hover:bg-white/[0.04] md:text-[15px]"
+            className="rounded-[12px] border bg-transparent px-5 py-3.5 text-sm font-medium transition-colors md:text-[15px]"
+            style={{
+              borderColor: "var(--alpine-border-soft)",
+              color: "var(--alpine-text-secondary)",
+            }}
           >
             Continue as guest
           </button>
         </div>
 
-        <p className="mt-4 text-center text-[13px] text-[#7d8799]">
+        <p
+          className="mt-4 text-center text-[13px]"
+          style={{ color: "var(--alpine-text-tertiary)" }}
+        >
           Already have an account?{" "}
           <button
             type="button"
             onClick={onContinueWithGoogle}
-            className="font-semibold text-[#e8e2d4] underline decoration-white/20 underline-offset-4"
+            className="font-semibold underline underline-offset-4"
+            style={{
+              color: "var(--alpine-cream)",
+              textDecorationColor: "rgba(159,199,222,0.26)",
+            }}
           >
             Log in
           </button>
@@ -330,10 +449,20 @@ export function CourseMapScreen() {
   return (
     <JourneySurface surface="map">
       <div
-        className="relative flex min-h-screen overflow-hidden bg-[#0a0f1a]"
-        style={{ fontFamily: shellSans }}
+        className="relative flex min-h-screen overflow-hidden"
+        style={{
+          fontFamily: shellSans,
+          background:
+            "linear-gradient(180deg, var(--alpine-bg) 0%, var(--alpine-bg-deep) 48%, var(--alpine-bg) 100%)",
+        }}
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.03),transparent_40%),linear-gradient(180deg,#0a0f1a_0%,#0d1525_50%,#0a0f1a_100%)]" />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse at top left, rgba(95,143,179,0.14) 0%, transparent 42%), radial-gradient(ellipse at top right, rgba(127,231,242,0.1) 0%, transparent 36%), linear-gradient(180deg, rgba(8,17,29,0.04) 0%, rgba(8,17,29,0.2) 100%)",
+          }}
+        />
         {/* Left sidebar */}
         <LeftSidebar
           hearts={hearts}
@@ -345,7 +474,6 @@ export function CourseMapScreen() {
         <div className="relative z-10 flex min-w-0 flex-1 flex-col">
           {/* Mobile top bar */}
           <MobileTopBar
-            streak={courseState.streak}
             completionPercent={courseState.completionPercent}
             resumeHref={resumeHref}
           />
@@ -354,19 +482,31 @@ export function CourseMapScreen() {
             {/* Greeting — aligned with spine gutter */}
             <div className="mb-14 pl-10 pt-2">
               <h1
-                className="text-[34px] leading-none tracking-[-0.025em] text-[#e8e2d4] sm:text-[40px]"
-                style={{ fontFamily: shellSerif }}
+                className="text-[34px] leading-none tracking-[-0.025em] sm:text-[40px]"
+                style={{ color: "var(--alpine-cream)", fontFamily: shellSerif }}
               >
                 {nickname}
               </h1>
               <div className="mt-3 flex items-center gap-3">
-                <div className="h-[2px] w-20 overflow-hidden rounded-full bg-white/[0.06]">
+                <div
+                  className="h-[2px] w-20 overflow-hidden rounded-full"
+                  style={{ background: "rgba(159,199,222,0.12)" }}
+                >
                   <div
-                    className="h-full rounded-full bg-[#10b981]"
-                    style={{ width: `${courseState.completionPercent}%`, opacity: 0.8, transition: "width 0.6s ease" }}
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${courseState.completionPercent}%`,
+                      opacity: 0.9,
+                      transition: "width 0.6s ease",
+                      background:
+                        "linear-gradient(90deg, var(--alpine-emerald) 0%, var(--alpine-teal) 100%)",
+                    }}
                   />
                 </div>
-                <span className="text-[11px] tabular-nums text-[#5f687a]">
+                <span
+                  className="text-[11px] tabular-nums"
+                  style={{ color: "var(--alpine-text-tertiary)" }}
+                >
                   {courseState.completedLessons}/{courseState.totalLessons} lessons
                 </span>
               </div>
@@ -380,7 +520,8 @@ export function CourseMapScreen() {
                 style={{
                   top: 8,
                   bottom: 40,
-                  background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.04) 70%, transparent 100%)",
+                  background:
+                    "linear-gradient(180deg, rgba(159,199,222,0.2) 0%, rgba(95,143,179,0.14) 68%, transparent 100%)",
                 }}
               />
 
@@ -398,7 +539,7 @@ export function CourseMapScreen() {
                       id={`module-${module.slug}`}
                       className={`relative ${isFirst ? "" : "mt-20"}`}
                       style={{
-                        opacity: module.locked ? 0.55 : 1,
+                        opacity: module.locked ? 0.62 : 1,
                         filter: module.locked ? "saturate(0.5)" : undefined,
                         transition: "opacity 0.3s, filter 0.3s",
                       }}
@@ -412,20 +553,26 @@ export function CourseMapScreen() {
                           /* Filled emerald — done */
                           <div
                             className="h-[9px] w-[9px] rounded-full bg-[#10b981]"
-                            style={{ boxShadow: "0 0 6px rgba(16,185,129,0.3)" }}
+                            style={{
+                              background: "var(--alpine-emerald)",
+                              boxShadow: "0 0 10px rgba(39,211,195,0.24)",
+                            }}
                           />
                         ) : isActive ? (
                           /* Ring with emerald fill — current */
                           <div
                             className="h-[11px] w-[11px] rounded-full border-[2px] border-[#10b981]"
                             style={{
-                              background: "rgba(16,185,129,0.15)",
-                              boxShadow: "0 0 8px rgba(16,185,129,0.25)",
+                              borderColor: "var(--alpine-teal)",
+                              background: "rgba(39,211,195,0.16)",
+                              boxShadow: "0 0 10px rgba(127,231,242,0.22)",
                             }}
                           />
                         ) : (
-                          /* Hollow dim — locked */
-                          <div className="h-[7px] w-[7px] rounded-full border border-white/10" />
+                          <div
+                            className="h-[7px] w-[7px] rounded-full border"
+                            style={{ borderColor: "rgba(95,143,179,0.18)" }}
+                          />
                         )}
                       </div>
 
@@ -434,7 +581,11 @@ export function CourseMapScreen() {
                         <div className="flex items-baseline gap-2.5">
                           <span
                             className="text-[13px] font-medium tabular-nums tracking-[0.06em]"
-                            style={{ color: module.locked ? "#3d4654" : "#5f687a" }}
+                            style={{
+                              color: module.locked
+                                ? "rgba(95,116,136,0.72)"
+                                : "var(--alpine-text-tertiary)",
+                            }}
                           >
                             {String(module.id).padStart(2, "0")}
                           </span>
@@ -442,16 +593,21 @@ export function CourseMapScreen() {
                             className="text-[28px] leading-none tracking-[-0.03em]"
                             style={{
                               fontFamily: shellSerif,
-                              color: module.completed ? "#7d8799"
-                                   : module.locked ? "#3d4654"
-                                   : "#cbd5e1",
+                              color: module.completed
+                                ? "var(--alpine-text-tertiary)"
+                                : module.locked
+                                  ? "rgba(95,116,136,0.82)"
+                                  : "var(--alpine-text)",
                             }}
                           >
                             {module.title}
                           </span>
                         </div>
                         <div className="mt-1.5">
-                          <span className="text-[12px] tracking-[0.04em] text-[#5f687a]">
+                          <span
+                            className="text-[12px] tracking-[0.04em]"
+                            style={{ color: "var(--alpine-text-tertiary)" }}
+                          >
                             {module.subtitle}
                           </span>
                         </div>
@@ -459,17 +615,25 @@ export function CourseMapScreen() {
                         {/* Per-module progress — visual, not just text */}
                         {!module.locked && (
                           <div className="mt-3 flex items-center gap-3">
-                            <div className="h-[2px] w-20 overflow-hidden rounded-full bg-white/[0.06]">
+                            <div
+                              className="h-[2px] w-20 overflow-hidden rounded-full"
+                              style={{ background: "rgba(159,199,222,0.12)" }}
+                            >
                               <div
-                                className="h-full rounded-full bg-[#10b981]"
+                                className="h-full rounded-full"
                                 style={{
                                   width: `${module.completed ? 100 : progressPct}%`,
-                                  opacity: module.completed ? 0.5 : 0.8,
+                                  opacity: module.completed ? 0.62 : 0.88,
                                   transition: "width 0.6s ease",
+                                  background:
+                                    "linear-gradient(90deg, var(--alpine-emerald) 0%, var(--alpine-teal) 100%)",
                                 }}
                               />
                             </div>
-                            <span className="text-[11px] tabular-nums text-[#5f687a]">
+                            <span
+                              className="text-[11px] tabular-nums"
+                              style={{ color: "var(--alpine-text-tertiary)" }}
+                            >
                               {module.completed
                                 ? "Complete"
                                 : `${module.completionCount}/${module.lessons.length}`
@@ -490,16 +654,23 @@ export function CourseMapScreen() {
                             fontFamily: shellSans,
                           }}
                         >
-                          <svg width="14" height="16" viewBox="0 0 22 26" fill="none" style={{ opacity: 0.35, flexShrink: 0 }}>
-                            <path d="M5 12V8a6 6 0 0 1 12 0v4" stroke="#5f687a" strokeWidth="2" strokeLinecap="round" />
-                            <rect x="1" y="12" width="20" height="13" rx="4" fill="#5f687a" fillOpacity="0.25" />
+                          <svg width="14" height="16" viewBox="0 0 22 26" fill="none" style={{ opacity: 0.62, flexShrink: 0 }}>
+                            <path d="M5 12V8a6 6 0 0 1 12 0v4" stroke="#7f97ab" strokeWidth="2" strokeLinecap="round" />
+                            <rect x="1" y="12" width="20" height="13" rx="4" fill="#7f97ab" fillOpacity="0.18" />
                           </svg>
-                          <p style={{ fontSize: 13, color: "#3d4654", margin: 0 }}>
+                          <p style={{ fontSize: 13, color: "var(--alpine-text-dim)", margin: 0 }}>
                             Complete the previous module to continue
                           </p>
                         </div>
                       ) : isMountainModule ? (
-                        <div className="rounded-[20px] border border-white/[0.04] bg-[#0d1322]/60 p-1">
+                        <div
+                          className="rounded-[20px] p-1"
+                          style={{
+                            border: "1px solid rgba(95,143,179,0.14)",
+                            background:
+                              "linear-gradient(180deg, rgba(10,22,38,0.8) 0%, rgba(8,17,29,0.56) 100%)",
+                          }}
+                        >
                           <MountainRoadmap lessons={module.lessons} />
                         </div>
                       ) : (
@@ -520,7 +691,10 @@ export function CourseMapScreen() {
                     className="absolute flex items-center justify-center"
                     style={{ left: -40, top: 4, width: 11, height: 11 }}
                   >
-                    <div className="h-[5px] w-[5px] rounded-full bg-white/[0.08]" />
+                    <div
+                      className="h-[5px] w-[5px] rounded-full"
+                      style={{ background: "rgba(159,199,222,0.16)" }}
+                    />
                   </div>
                   <FinalAchievementCard completionPercent={courseState.completionPercent} />
                 </div>

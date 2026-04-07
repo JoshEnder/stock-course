@@ -1,8 +1,8 @@
 "use client";
 
-const CREAM = "#e8e2d4";
-const MUTED = "#94a3b8";
-const DIM = "#5f687a";
+const CREAM = "var(--alpine-cream)";
+const MUTED = "var(--alpine-text-secondary)";
+const DIM = "var(--alpine-text-tertiary)";
 const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
 type LessonTooltipProps = {
@@ -35,12 +35,12 @@ export function LessonTooltip({
       }`}
       style={{
         borderRadius: 10,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(26,41,66,0.96)",
+        border: "1px solid rgba(95,143,179,0.22)",
+        background: "linear-gradient(180deg, rgba(22,49,74,0.95) 0%, rgba(10,22,38,0.98) 100%)",
         backdropFilter: "blur(12px)",
         padding: 12,
         fontFamily: sans,
-        boxShadow: "0 12px 32px rgba(0,0,0,0.4)",
+        boxShadow: "0 16px 38px rgba(3,10,20,0.34)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>

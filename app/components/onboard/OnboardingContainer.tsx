@@ -9,14 +9,14 @@ import { queueRoadmapLoginGate } from "@/app/lib/post-onboarding-login-gate";
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const F_SERIF = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const F_SANS  = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-const EMERALD = "#10b981";
-const EMERALD_GLOW = "rgba(16,185,129,0.5)";
-const BG      = "#0a0f1a";
-const SURFACE = "#1a2942";
-const SURFACE_HOVER = "#253449";
-const CREAM   = "#e8e2d4";
-const MUTED   = "#cbd5e1";
-const BODY    = "#e2e8f0";
+const EMERALD = "var(--alpine-emerald)";
+const EMERALD_GLOW = "rgba(39,211,195,0.46)";
+const BG      = "var(--alpine-bg)";
+const SURFACE = "rgba(16,36,58,0.86)";
+const SURFACE_HOVER = "rgba(22,49,74,0.96)";
+const CREAM   = "var(--alpine-cream)";
+const MUTED   = "var(--alpine-text-secondary)";
+const BODY    = "var(--alpine-text)";
 
 // ─── Questions ────────────────────────────────────────────────────────────────
 interface Opt { value: string; label: string }
@@ -67,7 +67,10 @@ const CSS = `
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #0a0f1a 0%, #0d1525 35%, #111b2e 65%, #0a0f1a 100%);
+  background:
+    radial-gradient(60rem 30rem at 10% 0%, rgba(95,143,179,0.16) 0%, transparent 58%),
+    radial-gradient(40rem 22rem at 100% 10%, rgba(39,211,195,0.1) 0%, transparent 54%),
+    linear-gradient(135deg, #08111d 0%, #0b1c2e 38%, #10243a 68%, #08111d 100%);
   background-size: 300% 300%;
   animation: obMesh 12s ease infinite;
   position: relative;
@@ -78,7 +81,7 @@ const CSS = `
   pointer-events: none;
   z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
-  opacity: 0.022;
+  opacity: 0.026;
 }
 `;
 
@@ -163,20 +166,20 @@ function OptionBtn({ opt, index, selected, dimmed, locked, onSelect }: {
         border: selected
           ? `1.5px solid ${EMERALD}`
           : hovering
-          ? `1.5px solid rgba(16,185,129,0.35)`
-          : `1px solid rgba(255,255,255,0.10)`,
+          ? `1.5px solid rgba(127,231,242,0.32)`
+          : `1px solid rgba(95,143,179,0.20)`,
         background: selected
-          ? "rgba(16,185,129,0.14)"
+          ? "rgba(39,211,195,0.14)"
           : hovering
           ? SURFACE_HOVER
           : SURFACE,
         boxShadow: selected
-          ? `0 0 20px rgba(16,185,129,0.25), inset 0 1px 0 rgba(255,255,255,0.05)`
+          ? `0 0 24px rgba(39,211,195,0.18), inset 0 1px 0 rgba(255,255,255,0.05)`
           : hovering
-          ? "0 0 12px rgba(16,185,129,0.10)"
-          : `0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)`,
+          ? "0 12px 26px rgba(3,10,20,0.22)"
+          : `0 12px 28px rgba(3,10,20,0.2), inset 0 1px 0 rgba(255,255,255,0.04)`,
         fontFamily: F_SANS, fontSize: 16, fontWeight: 500,
-        color: selected ? "#fff" : BODY,
+        color: selected ? "var(--alpine-text)" : BODY,
         cursor: locked ? "default" : "pointer",
         outline: "none",
         pointerEvents: locked ? "none" : "auto",
@@ -328,12 +331,12 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
         style={{
           width: "100%", maxWidth: 480,
-          background: "rgba(26,41,66,0.85)",
-          border: `1px solid rgba(255,255,255,0.08)`,
+          background: "linear-gradient(180deg, rgba(22,49,74,0.94) 0%, rgba(10,22,38,0.98) 100%)",
+          border: `1px solid rgba(95,143,179,0.22)`,
           borderRadius: 24, padding: "56px 44px 52px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 36,
           backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-          boxShadow: "0 40px 100px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.05) inset",
+          boxShadow: "0 40px 100px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset",
         }}
       >
         {/* ── Fixed-height slot holds dots OR button — no layout shift ── */}
@@ -382,7 +385,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
                   disabled={btnLoading}
                   style={{
                     width: "100%", height: 56, borderRadius: 12, border: "none",
-                    background: CREAM, color: "#111111",
+                    background: "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)", color: "#08111d",
                     fontFamily: F_SANS, fontSize: 15, fontWeight: 600,
                     letterSpacing: "0.012em",
                     cursor: btnLoading ? "default" : "pointer",
@@ -399,7 +402,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                         style={{ display: "inline-block", width: 16, height: 16, borderRadius: "50%",
-                          border: "2px solid rgba(17,17,17,0.3)", borderTopColor: "#111111" }}
+                          border: "2px solid rgba(8,17,29,0.3)", borderTopColor: "#08111d" }}
                       />
                       Loading...
                     </>
@@ -508,10 +511,10 @@ export default function OnboardingContainer({ onFinish }: OnboardingContainerPro
               justifyContent: "center", padding: "32px 24px 64px",
               overflowY: "auto", position: "relative", zIndex: 1,
             }}>
-              {/* Atmospheric glow — subtle emerald */}
+              {/* Atmospheric glow — subtle alpine mist */}
               <div aria-hidden style={{
                 position: "fixed", inset: 0, pointerEvents: "none",
-                background: "radial-gradient(ellipse at 50% 40%, rgba(16,185,129,0.025) 0%, transparent 65%)",
+                background: "radial-gradient(ellipse at 50% 38%, rgba(127,231,242,0.06) 0%, rgba(39,211,195,0.025) 40%, transparent 68%)",
               }} />
 
               <AnimatePresence mode="wait">

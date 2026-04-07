@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { AwardIcon, DownloadIcon } from "../components/icons";
@@ -13,6 +14,15 @@ import {
 type CertificateScreenProps = {
   printMode?: boolean;
 };
+
+function StokedLogo() {
+  return (
+    <Link href="/" className="alpine-brand-link">
+      <span className="alpine-brand-link__word">stoked</span>
+      <span className="alpine-brand-link__dot" />
+    </Link>
+  );
+}
 
 export function CertificateScreen({
   printMode = false,
@@ -48,8 +58,6 @@ export function CertificateScreen({
     [isHydrated],
   );
 
-  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-
   useEffect(() => {
     if (!printMode) {
       return;
@@ -62,143 +70,309 @@ export function CertificateScreen({
     return () => window.clearTimeout(timeout);
   }, [printMode]);
 
-  return (
-    <div
-      className="certificate-page"
-      style={{
+  const outerStyle: React.CSSProperties = printMode
+    ? {
         minHeight: "100vh",
-        background: printMode ? "#ffffff" : "#f9fafb",
-        fontFamily: font,
-      }}
-    >
-      {/* Top bar */}
-      <div
-        className="print:hidden"
-        style={{
-          borderBottom: "2px solid #e5e7eb",
-          background: "#fff",
-          padding: "16px 24px",
-          display: printMode ? "none" : "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => router.push("/completion")}
-          style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: 14, fontWeight: 700, fontFamily: font }}
-        >
-          &larr; Back
-        </button>
+        background: "#ffffff",
+        fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+      }
+    : {
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top, rgba(46,95,134,0.24), transparent 0 34%), linear-gradient(180deg, #08111d 0%, #0a1626 54%, #08111d 100%)",
+        fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+      };
 
-        <button
-          type="button"
-          onClick={() => router.push("/certificate/print")}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "10px 20px", borderRadius: 12, border: "none",
-            background: "#22c55e", boxShadow: "0 4px 0 #16a34a",
-            color: "#fff", fontFamily: font, fontWeight: 800, fontSize: 14,
-            cursor: "pointer",
-          }}
-          onMouseDown={(e) => { const el = e.currentTarget; el.style.transform = "translateY(2px)"; el.style.boxShadow = "0 2px 0 #16a34a"; }}
-          onMouseUp={(e) => { const el = e.currentTarget; el.style.transform = ""; el.style.boxShadow = "0 4px 0 #16a34a"; }}
-        >
-          <DownloadIcon style={{ width: 16, height: 16 }} />
-          Download / Print
-        </button>
-      </div>
+  return (
+    <main className={printMode ? "certificate-page" : "alpine-page"} style={outerStyle}>
+      {printMode ? null : (
+        <div className="alpine-page__inner pb-0">
+          <div className="alpine-topbar">
+            <StokedLogo />
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/completion")}
+                className="alpine-back-link"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/certificate/print")}
+                className="alpine-cta-secondary"
+              >
+                <DownloadIcon className="h-4 w-4" />
+                Download / Print
+              </button>
+            </div>
+          </div>
 
-      {/* Certificate */}
+          <div className="alpine-page-head pb-8">
+            <p className="alpine-kicker">Certificate</p>
+            <h1 className="alpine-heading">Completion certificate</h1>
+            <p className="alpine-copy">
+              A print-safe document previewed inside the alpine system, with the
+              dedicated white sheet preserved for export and printing.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div
         style={{
-          maxWidth: 800,
+          maxWidth: 860,
           margin: "0 auto",
-          padding: printMode ? "24px 16px" : "40px 24px",
+          padding: printMode ? "24px 16px" : "0 24px 48px",
         }}
       >
         <div
-          className="certificate-sheet"
-          style={{
-            background: "#fff",
-            borderRadius: 24,
-            border: "2px solid #e5e7eb",
-            boxShadow: "0 8px 0 #e5e7eb",
-            padding: printMode ? "48px 32px" : "64px 48px",
-            position: "relative",
-            textAlign: "center",
-          }}
+          className={printMode ? "certificate-sheet" : "alpine-panel alpine-panel--muted"}
+          style={
+            printMode
+              ? undefined
+              : {
+                  padding: 14,
+                }
+          }
         >
-          {/* Corner accents */}
-          <div style={{ position: "absolute", top: 20, left: 20, width: 48, height: 48, borderTop: "4px solid #bbf7d0", borderLeft: "4px solid #bbf7d0", borderRadius: "12px 0 0 0" }} />
-          <div style={{ position: "absolute", top: 20, right: 20, width: 48, height: 48, borderTop: "4px solid #bbf7d0", borderRight: "4px solid #bbf7d0", borderRadius: "0 12px 0 0" }} />
-          <div style={{ position: "absolute", bottom: 20, left: 20, width: 48, height: 48, borderBottom: "4px solid #bbf7d0", borderLeft: "4px solid #bbf7d0", borderRadius: "0 0 0 12px" }} />
-          <div style={{ position: "absolute", bottom: 20, right: 20, width: 48, height: 48, borderBottom: "4px solid #bbf7d0", borderRight: "4px solid #bbf7d0", borderRadius: "0 0 12px 0" }} />
-
-          {/* Seal */}
-          <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 80, height: 80, borderRadius: "50%", background: "#22c55e", marginBottom: 24 }}>
-            <AwardIcon style={{ width: 40, height: 40, color: "#fff" }} />
-          </div>
-
-          <h1 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 900, color: "#172b4d", letterSpacing: "-0.5px", marginBottom: 8, lineHeight: 1.2 }}>
-            Certificate of Completion
-          </h1>
-          <div style={{ width: 80, height: 4, background: "#22c55e", borderRadius: 99, margin: "0 auto 32px" }} />
-
-          <p style={{ fontSize: 16, color: "#9ca3af", marginBottom: 12 }}>This certifies that</p>
-          <h2 style={{ fontSize: "clamp(32px,5vw,56px)", fontWeight: 900, color: "#22c55e", letterSpacing: "-1px", marginBottom: 24, lineHeight: 1.1 }}>
-            {nickname}
-          </h2>
-          <p style={{ fontSize: 16, color: "#9ca3af", marginBottom: 8 }}>has successfully completed</p>
-          <h3 style={{ fontSize: "clamp(20px,3vw,28px)", fontWeight: 900, color: "#172b4d", marginBottom: 24 }}>
-            Beginner Stock Foundations
-          </h3>
-
-          <p style={{ fontSize: 15, color: "#6b7280", lineHeight: 1.7, maxWidth: 520, margin: "0 auto 40px" }}>
-            This course covered beginner-friendly concepts including ownership, fundraising, gains, dividends, exchanges, market cap, investing versus trading, risk, diversification, and chart exploration.
-          </p>
-
-          {/* Stats row */}
           <div
+            className="certificate-sheet"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: 20,
-              marginBottom: 40,
+              background: "#fcfbf7",
+              borderRadius: printMode ? 24 : 20,
+              border: "1.5px solid rgba(15, 35, 53, 0.08)",
+              boxShadow: printMode
+                ? "none"
+                : "0 28px 60px rgba(5, 14, 24, 0.34), 0 8px 26px rgba(17, 49, 74, 0.12)",
+              padding: printMode ? "48px 32px" : "64px 48px",
+              position: "relative",
+              textAlign: "center",
+              overflow: "hidden",
             }}
           >
-            <CertDetail label="Completion Date" value={completionDate} />
-            <CertDetail label="Completion Time" value="74 minutes" />
-            <CertDetail label="Lessons Finished" value="10 lessons" />
-          </div>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "radial-gradient(circle at top, rgba(95,143,179,0.12), transparent 0 38%)",
+                pointerEvents: "none",
+              }}
+            />
 
-          <p style={{ fontSize: 12, color: "#d1d5db", letterSpacing: "0.08em" }}>
-            Certificate ID: {certificateId}
-          </p>
+            <CornerAccent position="top-left" />
+            <CornerAccent position="top-right" />
+            <CornerAccent position="bottom-left" />
+            <CornerAccent position="bottom-right" />
+
+            <div
+              style={{
+                position: "relative",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 84,
+                height: 84,
+                borderRadius: "50%",
+                marginBottom: 26,
+                background:
+                  "linear-gradient(145deg, rgba(20,58,90,0.96), rgba(39,211,195,0.88))",
+                boxShadow: "0 18px 30px rgba(20, 58, 90, 0.18)",
+              }}
+            >
+              <AwardIcon style={{ width: 40, height: 40, color: "#fcfbf7" }} />
+            </div>
+
+            <h1
+              style={{
+                position: "relative",
+                fontSize: "clamp(28px,4vw,42px)",
+                fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)",
+                fontWeight: 600,
+                color: "#143a5a",
+                letterSpacing: "-0.03em",
+                marginBottom: 10,
+                lineHeight: 1.2,
+              }}
+            >
+              Certificate of Completion
+            </h1>
+            <div
+              style={{
+                position: "relative",
+                width: 84,
+                height: 4,
+                background: "linear-gradient(90deg, #143a5a, #27d3c3)",
+                borderRadius: 999,
+                margin: "0 auto 34px",
+              }}
+            />
+
+            <p
+              style={{
+                position: "relative",
+                fontSize: 16,
+                color: "#5f7488",
+                marginBottom: 12,
+              }}
+            >
+              This certifies that
+            </p>
+            <h2
+              style={{
+                position: "relative",
+                fontSize: "clamp(32px,5vw,56px)",
+                fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)",
+                fontWeight: 600,
+                color: "#143a5a",
+                letterSpacing: "-0.04em",
+                marginBottom: 24,
+                lineHeight: 1.08,
+              }}
+            >
+              {nickname}
+            </h2>
+            <p
+              style={{
+                position: "relative",
+                fontSize: 16,
+                color: "#5f7488",
+                marginBottom: 8,
+              }}
+            >
+              has successfully completed
+            </p>
+            <h3
+              style={{
+                position: "relative",
+                fontSize: "clamp(20px,3vw,28px)",
+                fontWeight: 700,
+                color: "#10243a",
+                marginBottom: 24,
+              }}
+            >
+              Beginner Stock Foundations
+            </h3>
+
+            <p
+              style={{
+                position: "relative",
+                fontSize: 15,
+                color: "#5f7488",
+                lineHeight: 1.8,
+                maxWidth: 520,
+                margin: "0 auto 40px",
+              }}
+            >
+              This course covered beginner-friendly concepts including ownership,
+              fundraising, gains, dividends, exchanges, market cap, investing
+              versus trading, risk, diversification, and chart exploration.
+            </p>
+
+            <div
+              style={{
+                position: "relative",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                gap: 20,
+                marginBottom: 40,
+              }}
+            >
+              <CertDetail label="Completion Date" value={completionDate} />
+              <CertDetail label="Completion Time" value="74 minutes" />
+              <CertDetail label="Lessons Finished" value="10 lessons" />
+            </div>
+
+            <p
+              style={{
+                position: "relative",
+                fontSize: 12,
+                color: "#7f97ab",
+                letterSpacing: "0.08em",
+              }}
+            >
+              Certificate ID: {certificateId}
+            </p>
+          </div>
         </div>
 
-        <p
-          className="print:hidden"
-          style={{
-            display: printMode ? "none" : "block",
-            textAlign: "center",
-            marginTop: 16,
-            fontSize: 13,
-            color: "#9ca3af",
-          }}
-        >
-          Tip: Use your browser&apos;s print function to save this certificate as a PDF
-        </p>
+        {printMode ? null : (
+          <p
+            style={{
+              textAlign: "center",
+              marginTop: 16,
+              fontSize: 13,
+              color: "var(--alpine-text-tertiary)",
+            }}
+          >
+            Tip: Use your browser&apos;s print function to save this certificate as a PDF.
+          </p>
+        )}
       </div>
-    </div>
+    </main>
   );
 }
 
 function CertDetail({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ textAlign: "center" }}>
-      <p style={{ fontSize: 12, color: "#9ca3af", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</p>
-      <p style={{ fontSize: 16, fontWeight: 900, color: "#172b4d" }}>{value}</p>
+      <p
+        style={{
+          fontSize: 12,
+          color: "#7f97ab",
+          fontWeight: 700,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </p>
+      <p style={{ fontSize: 16, fontWeight: 700, color: "#143a5a" }}>{value}</p>
     </div>
   );
+}
+
+function CornerAccent({
+  position,
+}: {
+  position: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+}) {
+  const style: React.CSSProperties = {
+    position: "absolute",
+    width: 54,
+    height: 54,
+    borderColor: "rgba(39, 211, 195, 0.42)",
+    borderStyle: "solid",
+    pointerEvents: "none",
+  };
+
+  if (position === "top-left") {
+    style.top = 20;
+    style.left = 20;
+    style.borderTopWidth = 4;
+    style.borderLeftWidth = 4;
+    style.borderRadius = "14px 0 0 0";
+  } else if (position === "top-right") {
+    style.top = 20;
+    style.right = 20;
+    style.borderTopWidth = 4;
+    style.borderRightWidth = 4;
+    style.borderRadius = "0 14px 0 0";
+  } else if (position === "bottom-left") {
+    style.bottom = 20;
+    style.left = 20;
+    style.borderBottomWidth = 4;
+    style.borderLeftWidth = 4;
+    style.borderRadius = "0 0 0 14px";
+  } else {
+    style.bottom = 20;
+    style.right = 20;
+    style.borderBottomWidth = 4;
+    style.borderRightWidth = 4;
+    style.borderRadius = "0 0 14px 0";
+  }
+
+  return <div style={style} />;
 }

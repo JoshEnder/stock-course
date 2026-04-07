@@ -23,11 +23,11 @@ type LessonRewardStepProps = {
   xpEarned: number;
 };
 
-const EMERALD = "#10b981";
-const CREAM = "#e8e2d4";
-const TEXT = "#cbd5e1";
-const MUTED = "#94a3b8";
-const DIM = "#5f687a";
+const EMERALD = "var(--alpine-emerald)";
+const CREAM = "var(--alpine-cream)";
+const TEXT = "var(--alpine-text)";
+const MUTED = "var(--alpine-text-secondary)";
+const DIM = "var(--alpine-text-tertiary)";
 const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
@@ -135,6 +135,12 @@ export function LessonRewardStep({
                 <AnimatedNumber className="progress-value live" value={completedLessons} />
               </span>
             </div>
+            <div className="reward-progress-row" style={{ animationDelay: "100ms", display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 12, color: DIM }}>XP earned</span>
+              <span style={{ fontSize: 18, fontWeight: 600, color: TEXT, fontVariantNumeric: "tabular-nums" }}>
+                <AnimatedNumber className="progress-value live" value={xpEarned} />
+              </span>
+            </div>
             <div className="reward-progress-row" style={{ animationDelay: "130ms" }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 8 }}>
                 <span style={{ color: DIM }}>Course</span>
@@ -174,8 +180,9 @@ export function LessonRewardStep({
         type="button"
         style={{
           width: "100%", padding: "16px", fontFamily: sans, fontWeight: 500, fontSize: 15,
-          letterSpacing: "0.01em", color: "#111", border: "none",
-          borderRadius: 10, cursor: "pointer", background: CREAM,
+          letterSpacing: "0.01em", color: "#08111d", border: "none",
+          borderRadius: 10, cursor: "pointer",
+          background: "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28), 0 12px 32px rgba(0,0,0,0.18)",
           animation: "lessonStepEnter 400ms 200ms cubic-bezier(0.22,1,0.36,1) both",
         }}

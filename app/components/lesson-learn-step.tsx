@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { learnContent, type LearnContent } from "../lib/course-data";
-import { AlertCircleIcon, LightbulbIcon } from "./icons";
 import { LessonActivity } from "./lesson-activity";
 
 function capitalizeLead(value: string) {
@@ -25,11 +24,11 @@ type LessonLearnStepProps =
   | LegacyLessonLearnStepProps
   | ModernLessonLearnStepProps;
 
-const EMERALD = "#10b981";
-const CREAM = "#e8e2d4";
-const TEXT = "#cbd5e1";
-const MUTED = "#94a3b8";
-const DIM = "#5f687a";
+const EMERALD = "var(--alpine-emerald)";
+const CREAM = "var(--alpine-cream)";
+const TEXT = "var(--alpine-text)";
+const MUTED = "var(--alpine-text-secondary)";
+const DIM = "var(--alpine-text-tertiary)";
 const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
@@ -90,7 +89,7 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
               width: index === panelIndex ? 20 : 8,
               height: 8,
               borderRadius: 99,
-              background: index <= panelIndex ? EMERALD : "rgba(255,255,255,0.08)",
+              background: index <= panelIndex ? EMERALD : "rgba(159,199,222,0.12)",
               transition: "all 300ms",
             }} />
           ))}
@@ -125,7 +124,18 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       {panel.highlights?.length ? (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
           {panel.highlights.map((item) => (
-            <span key={item} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 99, padding: "5px 13px", fontSize: 13, color: DIM, fontWeight: 500 }}>
+            <span
+              key={item}
+              style={{
+                background: "rgba(22,49,74,0.68)",
+                border: "1px solid rgba(95,143,179,0.16)",
+                borderRadius: 99,
+                padding: "5px 13px",
+                fontSize: 13,
+                color: DIM,
+                fontWeight: 500,
+              }}
+            >
               {capitalizeLead(item)}
             </span>
           ))}
@@ -165,8 +175,10 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
             fontFamily: sans,
             fontWeight: 500,
             letterSpacing: "0.01em",
-            color: isPanelReady ? "#111" : "#5f687a",
-            background: isPanelReady ? CREAM : "rgba(255,255,255,0.06)",
+            color: isPanelReady ? "#08111d" : "var(--alpine-text-dim)",
+            background: isPanelReady
+              ? "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)"
+              : "rgba(22,49,74,0.68)",
             border: "none",
             borderRadius: 10,
             cursor: isPanelReady ? "pointer" : "not-allowed",

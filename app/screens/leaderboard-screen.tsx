@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { useAuth } from "../lib/auth-context";
 import { FriendsLeaderboardPanel } from "../components/friends-leaderboard-panel";
-import {
-  getNickname,
-  subscribeToCourseStorage,
-} from "../lib/course-storage";
+import { useAuth } from "../lib/auth-context";
 import {
   getServerCourseProgressSnapshot,
   getStoredCourseProgress,
   subscribeToCourseProgress,
 } from "../lib/course-progress";
+import {
+  getNickname,
+  subscribeToCourseStorage,
+} from "../lib/course-storage";
 import {
   fetchLeaderboard,
   fetchLeaderboardEntryForUser,
@@ -26,14 +26,9 @@ import {
 
 function StokedLogo() {
   return (
-    <Link href="/" className="inline-flex items-end gap-0.5">
-      <span
-        className="text-2xl font-black tracking-tight text-[#1a2b4a]"
-        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
-      >
-        stoked
-      </span>
-      <span className="mb-[0.2em] h-3 w-3 flex-shrink-0 rounded-full bg-[#22c55e]" />
+    <Link href="/" className="alpine-brand-link">
+      <span className="alpine-brand-link__word">stoked</span>
+      <span className="alpine-brand-link__dot" />
     </Link>
   );
 }
@@ -124,9 +119,11 @@ export function LeaderboardScreen() {
     const handleRefresh = () => {
       void load();
     };
+
     const intervalId = window.setInterval(() => {
       void load();
     }, 60_000);
+
     window.addEventListener("focus", handleRefresh);
     window.addEventListener(leaderboardRefreshEventName, handleRefresh);
 
@@ -144,186 +141,176 @@ export function LeaderboardScreen() {
   );
 
   return (
-    <main
-      className="min-h-screen bg-[#f7faf8]"
-      style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
-    >
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 lg:px-8">
-        <div className="flex items-center justify-between">
+    <main className="alpine-page">
+      <div className="alpine-page__inner">
+        <div className="alpine-topbar">
           <StokedLogo />
-          <Link
-            href="/course"
-            className="rounded-2xl border-2 border-gray-200 bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-[#172b4d] shadow-[0_3px_0_#e5e7eb]"
-          >
+          <Link href="/course" className="alpine-back-link">
             Back to course
           </Link>
         </div>
 
-        <div className="mx-auto mt-10 w-full max-w-5xl">
-          <div className="mb-8">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#22c55e]">
-              Leaderboard
-            </p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-[#172b4d]">
-              XP standings
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-500">
-              Signed-in learners are ranked by total course XP. Your place updates when you
-              complete lessons and clear course milestones.
-            </p>
-          </div>
+        <div className="alpine-page-head">
+          <p className="alpine-kicker">Leaderboard</p>
+          <h1 className="alpine-heading">XP standings</h1>
+          <p className="alpine-copy">
+            Signed-in learners are ranked by total course XP. Your place updates when you
+            complete lessons and clear course milestones.
+          </p>
+        </div>
 
-          {!user ? (
-            <section className="rounded-[28px] border-2 border-[#dcfce7] bg-white p-8 shadow-[0_6px_0_#dcfce7]">
-              <h2 className="text-2xl font-black text-[#172b4d]">Sign in to join the leaderboard</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
-                The leaderboard only includes logged-in learners so XP rankings stay tied to
-                real synced progress.
+        {!user ? (
+          <section className="alpine-panel alpine-panel--accent p-8 md:p-10">
+            <div className="max-w-3xl">
+              <p className="alpine-kicker">Join the climb</p>
+              <h2 className="alpine-panel__title mt-3">Sign in to join the leaderboard</h2>
+              <p className="alpine-panel__copy">
+                The leaderboard only includes logged-in learners so XP standings stay tied to
+                real synced progress across devices.
               </p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => void signInWithGoogle("/leaderboard")}
                 disabled={authLoading}
-                className="mt-6 rounded-2xl bg-[#22c55e] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#16a34a] disabled:cursor-not-allowed disabled:opacity-70"
+                className="alpine-cta-primary"
               >
                 {authLoading ? "Loading..." : "Continue with Google"}
               </button>
-            </section>
-          ) : (
-            <>
-              <div className="mb-6 inline-flex rounded-full border-2 border-gray-200 bg-white p-1 shadow-[0_4px_0_#e5e7eb]">
+              <div className="alpine-chip">
+                Private rankings only
+              </div>
+            </div>
+          </section>
+        ) : (
+          <>
+            <div className="mb-6">
+              <div className="alpine-segmented">
                 <button
                   type="button"
                   onClick={() => setView("global")}
-                  className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.16em] ${
-                    view === "global"
-                      ? "bg-[#172b4d] text-white"
-                      : "text-[#64748b]"
-                  }`}
+                  className={`alpine-segmented__button ${view === "global" ? "is-active" : ""}`}
                 >
                   Global
                 </button>
                 <button
                   type="button"
                   onClick={() => setView("friends")}
-                  className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.16em] ${
-                    view === "friends"
-                      ? "bg-[#22c55e] text-white"
-                      : "text-[#64748b]"
-                  }`}
+                  className={`alpine-segmented__button ${view === "friends" ? "is-active" : ""}`}
                 >
                   Friends
                 </button>
               </div>
+            </div>
 
-              {view === "friends" ? (
-                <FriendsLeaderboardPanel
-                  onRequireSignIn={() => signInWithGoogle("/leaderboard")}
-                />
-              ) : (
-                <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-                  <section className="rounded-[28px] border-2 border-gray-100 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
-                    <div className="mb-5 flex items-center justify-between gap-4">
-                      <div>
-                        <h2 className="text-2xl font-black text-[#172b4d]">Top learners</h2>
-                        <p className="mt-2 text-sm text-gray-500">
-                          Ranked by total XP across all signed-in users.
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-[#f0fdf4] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#15803d]">
-                        Live ranking
-                      </span>
-                    </div>
-
-                    {loading ? (
-                      <p className="text-sm text-gray-500">Loading leaderboard...</p>
-                    ) : errorMessage ? (
-                      <p className="text-sm text-[#b91c1c]">{errorMessage}</p>
-                    ) : !entries.length ? (
-                      <p className="text-sm text-gray-500">
-                        No leaderboard entries yet. Finish a lesson while signed in to claim the first spot.
+            {view === "friends" ? (
+              <FriendsLeaderboardPanel onRequireSignIn={() => signInWithGoogle("/leaderboard")} />
+            ) : (
+              <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+                <section className="alpine-panel p-6">
+                  <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <h2 className="alpine-panel__title">Top learners</h2>
+                      <p className="alpine-panel__copy">
+                        Ranked by total XP across all signed-in users.
                       </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {entries.map((entry) => {
-                          const isCurrentUser = entry.user_id === user.id;
+                    </div>
+                    <span className="alpine-chip alpine-chip--accent">Live ranking</span>
+                  </div>
 
-                          return (
+                  {loading ? (
+                    <p style={{ color: "var(--alpine-text-secondary)" }}>Loading leaderboard...</p>
+                  ) : errorMessage ? (
+                    <div className="alpine-note-error">
+                      <p style={{ color: "var(--alpine-error)" }}>{errorMessage}</p>
+                    </div>
+                  ) : !entries.length ? (
+                    <p style={{ color: "var(--alpine-text-secondary)" }}>
+                      No leaderboard entries yet. Finish a lesson while signed in to claim the first spot.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {entries.map((entry) => {
+                        const isCurrentUser = entry.user_id === user.id;
+
+                        return (
+                          <div
+                            key={entry.user_id}
+                            className={`alpine-list-row ${isCurrentUser ? "alpine-list-row--active" : ""}`}
+                          >
                             <div
-                              key={entry.user_id}
-                              className={`flex items-center gap-4 rounded-2xl border-2 px-4 py-4 shadow-[0_4px_0_#e5e7eb] ${
-                                isCurrentUser
-                                  ? "border-[#86efac] bg-[#f0fdf4]"
-                                  : "border-gray-100 bg-white"
-                              }`}
+                              className="alpine-rank-badge"
+                              style={isCurrentUser ? { color: "var(--alpine-cyan)" } : undefined}
                             >
-                              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#172b4d] text-lg font-black text-white">
-                                #{entry.rank}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <p className="truncate text-base font-black text-[#172b4d]">
-                                    {isCurrentUser ? localNickname : entry.nickname}
-                                  </p>
-                                  {isCurrentUser ? (
-                                    <span className="rounded-full bg-white px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#15803d]">
-                                      You
-                                    </span>
-                                  ) : null}
-                                </div>
-                                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-gray-400">
-                                  {entry.completed_lessons} lessons completed • streak {entry.streak_count}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-xl font-black text-[#f59e0b]">{entry.total_xp} XP</p>
-                                <p className="mt-1 text-xs text-gray-400">{formatUpdatedAt(entry.updated_at)}</p>
-                              </div>
+                              #{entry.rank}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="truncate text-base font-semibold" style={{ color: "var(--alpine-text)" }}>
+                                  {isCurrentUser ? localNickname : entry.nickname}
+                                </p>
+                                {isCurrentUser ? (
+                                  <span className="alpine-chip alpine-chip--accent">You</span>
+                                ) : null}
+                              </div>
+                              <p
+                                className="mt-1 text-xs uppercase tracking-[0.16em]"
+                                style={{ color: "var(--alpine-text-tertiary)" }}
+                              >
+                                {entry.completed_lessons} lessons completed • streak {entry.streak_count}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-semibold" style={{ color: "var(--alpine-cream)" }}>
+                                {entry.total_xp} XP
+                              </p>
+                              <p className="mt-1 text-xs" style={{ color: "var(--alpine-text-tertiary)" }}>
+                                {formatUpdatedAt(entry.updated_at)}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <aside className="space-y-6">
+                  <section className="alpine-panel alpine-panel--accent p-6">
+                    <p className="alpine-label" style={{ color: "var(--alpine-teal)" }}>
+                      Your standing
+                    </p>
+                    <h2 className="mt-2 text-3xl font-semibold" style={{ color: "var(--alpine-cream)" }}>
+                      {currentUserEntry ? `#${currentUserEntry.rank}` : "Unranked"}
+                    </h2>
+                    <p className="mt-3 text-sm leading-7" style={{ color: "var(--alpine-text-secondary)" }}>
+                      {currentUserEntry
+                        ? `${currentUserEntry.total_xp} XP across ${currentUserEntry.completed_lessons} completed lessons as ${localNickname}.`
+                        : storedProgress.totalXp > 0
+                          ? `You have ${storedProgress.totalXp} XP locally. We are syncing your rank now.`
+                          : "Complete your next signed-in lesson to appear in the standings."}
+                    </p>
+                    {currentUserEntry && !isCurrentUserVisible ? (
+                      <p className="mt-4 text-xs uppercase tracking-[0.16em]" style={{ color: "var(--alpine-text-tertiary)" }}>
+                        Outside the top 25 right now
+                      </p>
+                    ) : null}
                   </section>
 
-                  <aside className="space-y-6">
-                    <section className="rounded-[28px] border-2 border-[#dcfce7] bg-white p-6 shadow-[0_6px_0_#dcfce7]">
-                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#22c55e]">
-                        Your standing
-                      </p>
-                      <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
-                        {currentUserEntry ? `#${currentUserEntry.rank}` : "Unranked"}
-                      </h2>
-                      <p className="mt-2 text-sm leading-6 text-gray-500">
-                        {currentUserEntry
-                          ? `${currentUserEntry.total_xp} XP across ${currentUserEntry.completed_lessons} completed lessons as ${localNickname}.`
-                          : storedProgress.totalXp > 0
-                            ? `You have ${storedProgress.totalXp} XP locally. We are syncing your rank now.`
-                            : "Complete your next signed-in lesson to appear in the standings."}
-                      </p>
-                      {currentUserEntry && !isCurrentUserVisible ? (
-                        <p className="mt-3 text-xs uppercase tracking-[0.16em] text-gray-400">
-                          Outside the top 25 right now
-                        </p>
-                      ) : null}
-                    </section>
-
-                    <section className="rounded-[28px] border-2 border-gray-100 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
-                      <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                        How ranking works
-                      </p>
-                      <ul className="mt-4 space-y-3 text-sm leading-6 text-gray-500">
-                        <li>Regular lessons add 10 XP, and boss lessons add 20 XP.</li>
-                        <li>Only signed-in users appear on the leaderboard.</li>
-                        <li>Leaderboard placement updates from synced course milestones.</li>
-                      </ul>
-                    </section>
-                  </aside>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+                  <section className="alpine-panel alpine-panel--muted p-6">
+                    <p className="alpine-label">How ranking works</p>
+                    <ul className="mt-4 space-y-3 text-sm leading-7" style={{ color: "var(--alpine-text-secondary)" }}>
+                      <li>Regular lessons add 10 XP, and boss lessons add 20 XP.</li>
+                      <li>Only signed-in users appear on the leaderboard.</li>
+                      <li>Leaderboard placement updates from synced course milestones.</li>
+                    </ul>
+                  </section>
+                </aside>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </main>
   );

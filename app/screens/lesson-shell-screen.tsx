@@ -56,14 +56,24 @@ const stepSequence: PlayerStep[] = ["learn", "practice", "check", "reward"];
 
 function BossStepSkeleton({ label }: { label: string }) {
   return (
-    <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "#1a2942", padding: "48px 32px", textAlign: "center" }}>
-      <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "#10b981" }}>
+    <div
+      style={{
+        borderRadius: 16,
+        border: "1px solid var(--alpine-border-soft)",
+        background:
+          "linear-gradient(180deg, rgba(22,49,74,0.94) 0%, rgba(10,22,38,0.96) 100%)",
+        padding: "48px 32px",
+        textAlign: "center",
+        boxShadow: "var(--alpine-shadow-lg)",
+      }}
+    >
+      <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--alpine-teal)" }}>
         Checkpoint
       </p>
-      <h2 style={{ marginTop: 16, fontSize: 22, fontWeight: 600, color: "#cbd5e1", fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)" }}>
+      <h2 style={{ marginTop: 16, fontSize: 22, fontWeight: 600, color: "var(--alpine-text)", fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)" }}>
         Loading {label.toLowerCase()}…
       </h2>
-      <p style={{ marginTop: 12, maxWidth: 400, marginLeft: "auto", marginRight: "auto", fontSize: 14, lineHeight: 1.6, color: "#5f687a" }}>
+      <p style={{ marginTop: 12, maxWidth: 400, marginLeft: "auto", marginRight: "auto", fontSize: 14, lineHeight: 1.6, color: "var(--alpine-text-tertiary)" }}>
         Preparing the checkpoint.
       </p>
     </div>
@@ -382,21 +392,34 @@ export function LessonShellScreen({
 
     if (stepLesson.state === "locked" && !qaUnlocked) {
       return (
-        <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "#1a2942", padding: "48px 32px", textAlign: "center" }}>
-          <span style={{ display: "inline-flex", width: 56, height: 56, alignItems: "center", justifyContent: "center", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#5f687a" }}>
+        <div
+          style={{
+            borderRadius: 16,
+            border: "1px solid var(--alpine-border-soft)",
+            background:
+              "linear-gradient(180deg, rgba(22,49,74,0.94) 0%, rgba(10,22,38,0.96) 100%)",
+            padding: "48px 32px",
+            textAlign: "center",
+            boxShadow: "var(--alpine-shadow-lg)",
+          }}
+        >
+          <span style={{ display: "inline-flex", width: 56, height: 56, alignItems: "center", justifyContent: "center", borderRadius: 99, background: "rgba(95,143,179,0.12)", color: "var(--alpine-text-tertiary)" }}>
             <LockIcon className="h-6 w-6" />
           </span>
-          <h2 style={{ marginTop: 20, fontSize: 22, fontWeight: 600, color: "#cbd5e1", fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)" }}>
+          <h2 style={{ marginTop: 20, fontSize: 22, fontWeight: 600, color: "var(--alpine-text)", fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)" }}>
             This lesson is still locked
           </h2>
-          <p style={{ marginTop: 12, maxWidth: 400, marginLeft: "auto", marginRight: "auto", fontSize: 14, lineHeight: 1.6, color: "#5f687a" }}>
+          <p style={{ marginTop: 12, maxWidth: 400, marginLeft: "auto", marginRight: "auto", fontSize: 14, lineHeight: 1.6, color: "var(--alpine-text-tertiary)" }}>
             Complete earlier lessons in this module to continue.
           </p>
           <JourneyLink
             className="mt-8 inline-flex items-center justify-center"
             style={{
               padding: "0 28px", height: 48, borderRadius: 10, fontSize: 14, fontWeight: 500,
-              color: "#111", background: "#e8e2d4", border: "none", letterSpacing: "0.01em",
+              color: "#08111d",
+              background: "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)",
+              border: "none",
+              letterSpacing: "0.01em",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
             }}
             href="/course"
@@ -719,22 +742,32 @@ export function LessonShellScreen({
     );
   }
 
-  const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
   const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 
   return (
     <JourneySurface surface="lesson">
       <div
         className="min-h-screen"
-        style={{ fontFamily: sans, background: "#0a0f1a" }}
+        style={{
+          fontFamily: sans,
+          background:
+            "linear-gradient(180deg, var(--alpine-bg) 0%, var(--alpine-bg-deep) 48%, var(--alpine-bg) 100%)",
+        }}
       >
         {/* ── Top bar ──────────────────────────────────────────── */}
-        <header className="sticky top-0 z-40" style={{ background: "rgba(10,15,26,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <header
+          className="sticky top-0 z-40"
+          style={{
+            background: "rgba(10,22,38,0.92)",
+            backdropFilter: "blur(12px)",
+            borderBottom: "1px solid var(--alpine-border-soft)",
+          }}
+        >
           <div className="mx-auto flex h-14 max-w-3xl items-center gap-4 px-4">
             {/* Close */}
             <JourneyLink
               className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
-              style={{ color: "#5f687a" }}
+              style={{ color: "var(--alpine-text-tertiary)" }}
               href="/course"
               intent="return"
               prefetch={false}
@@ -745,23 +778,33 @@ export function LessonShellScreen({
 
             {/* Progress bar */}
             <div className={`lesson-phase-progress flex-1 ${phaseTransitionKey ? "is-shifting" : ""}`}>
-              <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${stepProgress}%`, borderRadius: 99, background: "#10b981", transition: "width 400ms cubic-bezier(0.22,1,0.36,1)" }} />
+              <div style={{ height: 4, borderRadius: 99, background: "rgba(159,199,222,0.12)", overflow: "hidden" }}>
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${stepProgress}%`,
+                    borderRadius: 99,
+                    background:
+                      "linear-gradient(90deg, var(--alpine-emerald) 0%, var(--alpine-teal) 100%)",
+                    transition: "width 400ms cubic-bezier(0.22,1,0.36,1)",
+                    boxShadow: "0 0 16px rgba(89,240,223,0.2)",
+                  }}
+                />
               </div>
             </div>
 
             {/* Step indicator */}
-            <span style={{ fontSize: 12, fontWeight: 500, color: "#5f687a", fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--alpine-text-tertiary)", fontVariantNumeric: "tabular-nums" }}>
               {currentStepIndex + 1}/{stepSequence.length}
             </span>
           </div>
 
           {/* Lesson context — inline with close/progress row */}
           <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 pb-2" style={{ paddingLeft: 52 }}>
-            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "#3d4654", textTransform: "uppercase" }}>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "var(--alpine-text-dim)", textTransform: "uppercase" }}>
               {module.id}.{lesson.lessonNumber}
             </span>
-            <span className="hidden sm:block" style={{ fontSize: 12, fontWeight: 400, color: "#3d4654" }}>
+            <span className="hidden sm:block" style={{ fontSize: 12, fontWeight: 400, color: "var(--alpine-text-tertiary)" }}>
               {lesson.title}
             </span>
           </div>
