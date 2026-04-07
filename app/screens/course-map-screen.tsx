@@ -25,18 +25,55 @@ import {
   markRoadmapLoginGateSeen,
 } from "../lib/post-onboarding-login-gate";
 
+const shellSans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+const shellSerif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+
 // ─── Stoked logo ──────────────────────────────────────────────────────────────
 function StokedLogo() {
   return (
     <Link href="/" className="inline-flex items-end gap-0.5">
       <span
-        className="text-2xl font-black tracking-tight text-[#1a2b4a]"
-        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
+        className="text-[1.45rem] font-semibold tracking-[-0.05em] text-[#f4efe5]"
+        style={{ fontFamily: shellSerif }}
       >
         stoked
       </span>
-      <span className="mb-[0.2em] h-3 w-3 flex-shrink-0 rounded-full bg-[#22c55e]" />
+      <span className="mb-[0.26em] h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#86f6a5] shadow-[0_0_18px_rgba(134,246,165,0.5)]" />
     </Link>
+  );
+}
+
+function NavDot({ active = false }: { active?: boolean }) {
+  return (
+    <span
+      className={`inline-flex h-2.5 w-2.5 rounded-full ${
+        active
+          ? "bg-[#86f6a5] shadow-[0_0_18px_rgba(134,246,165,0.5)]"
+          : "border border-white/20 bg-white/5"
+      }`}
+      aria-hidden="true"
+    />
+  );
+}
+
+function MetricBadge({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  valueClassName: string;
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#8f98ab]">
+        {label}
+      </div>
+      <div className={`mt-1 text-[22px] font-semibold tracking-[-0.04em] ${valueClassName}`}>
+        {value}
+      </div>
+    </div>
   );
 }
 
@@ -49,58 +86,47 @@ type SidebarProps = {
 
 function LeftSidebar({ hearts, streak, totalXp }: SidebarProps) {
   const navItems = [
-    { label: "Learn",          icon: "📚", href: "/course",     active: true  },
-    { label: "Leaderboards",   icon: "🏆", href: "/leaderboard", active: false },
-    { label: "Profile",        icon: "👤", href: "/profile",    active: false },
+    { label: "Course", href: "/course", active: true },
+    { label: "Leaderboard", href: "/leaderboard", active: false },
+    { label: "Profile", href: "/profile", active: false },
   ];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[200px] flex-shrink-0 flex-col border-r border-gray-100 bg-white py-8 lg:flex">
-      {/* Logo */}
-      <div className="px-5 pb-8">
-        <StokedLogo />
-      </div>
-
-      {/* Nav */}
-      <nav className="flex flex-1 flex-col gap-1 px-3">
-        {navItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-wide transition-all ${
-              item.active
-                ? "bg-[#f0fdf4] text-[#22c55e] shadow-[0_3px_0_#bbf7d0] border-2 border-[#bbf7d0]"
-                : "text-gray-400 hover:bg-gray-50 hover:text-[#1a2b4a]"
-            }`}
-          >
-            <span className="text-xl">{item.icon}</span>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
-
-      {/* Stats */}
-      <div className="flex flex-col gap-3 border-t border-gray-100 px-3 pt-6">
-        <div className="flex items-center gap-3 rounded-2xl border-2 border-gray-100 bg-white px-4 py-3 shadow-[0_2px_0_#ebebeb]">
-          <span className="text-2xl">🔥</span>
-          <div>
-            <div className="text-lg font-black text-[#ff9600]">{streak}</div>
-            <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Day streak</div>
-          </div>
+    <aside className="sticky top-0 hidden h-screen w-[248px] flex-shrink-0 border-r border-white/8 bg-[#07111c]/92 backdrop-blur-xl lg:block">
+      <div className="flex h-full flex-col px-5 pb-6 pt-7">
+        <div className="pb-8">
+          <StokedLogo />
+          <p className="mt-3 max-w-[18ch] text-[12px] leading-5 text-[#8f98ab]">
+            A calmer course shell so the climb feels deliberate all the way through.
+          </p>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border-2 border-gray-100 bg-white px-4 py-3 shadow-[0_2px_0_#ebebeb]">
-          <span className="text-2xl">⚡</span>
-          <div>
-            <div className="text-lg font-black text-[#fbbf24]">{totalXp} XP</div>
-            <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Total earned</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 rounded-2xl border-2 border-gray-100 bg-white px-4 py-3 shadow-[0_2px_0_#ebebeb]">
-          <span className="text-2xl">❤️</span>
-          <div>
-            <div className="text-lg font-black text-[#ef4444]">{hearts} / 5</div>
-            <div className="text-[10px] font-black uppercase tracking-wider text-gray-400">Hearts left</div>
-          </div>
+
+        <nav className="flex flex-1 flex-col gap-2">
+          {navItems.map((item, index) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex items-center justify-between rounded-[18px] border px-4 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] transition-all ${
+                item.active
+                  ? "border-[#234530] bg-[linear-gradient(180deg,rgba(21,40,28,0.95),rgba(10,23,17,0.9))] text-[#eff8f0] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.16)]"
+                  : "border-white/6 bg-white/[0.03] text-[#8f98ab] hover:border-white/10 hover:bg-white/[0.05] hover:text-[#dce3ef]"
+              }`}
+            >
+              <span className="flex items-center gap-3">
+                <NavDot active={item.active} />
+                {item.label}
+              </span>
+              <span className={`text-[11px] tracking-[0.08em] ${item.active ? "text-[#86f6a5]" : "text-[#5f687a]"}`}>
+                {String(index + 1).padStart(2, "0")}
+              </span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mt-6 space-y-3 border-t border-white/8 pt-6">
+          <MetricBadge label="Streak" value={String(streak)} valueClassName="text-[#ffb767]" />
+          <MetricBadge label="XP Earned" value={`${totalXp}`} valueClassName="text-[#f4efe5]" />
+          <MetricBadge label="Hearts" value={`${hearts} / 5`} valueClassName="text-[#ff9a95]" />
         </div>
       </div>
     </aside>
@@ -116,17 +142,19 @@ type MobileBarProps = {
 
 function MobileTopBar({ streak, completionPercent, resumeHref }: MobileBarProps) {
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-100 bg-white px-4 lg:hidden">
-      <div className="flex h-14 items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-white/8 bg-[#07111c]/94 px-4 backdrop-blur-xl lg:hidden">
+      <div className="flex min-h-[72px] items-center justify-between gap-4 py-3">
         <StokedLogo />
         <div className="flex flex-1 items-center gap-3">
-          <div className="flex flex-1 items-center gap-2">
-            <span className="text-lg">🔥</span>
-            <span className="text-sm font-black text-[#ff9600]">{streak}</span>
-            <div className="flex-1">
-              <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
+          <div className="min-w-0 flex-1 rounded-[18px] border border-white/10 bg-white/[0.04] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+            <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f98ab]">
+              <span>Streak</span>
+              <span className="text-[#ffb767]">{streak}</span>
+            </div>
+            <div className="mt-2">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-white/8">
                 <div
-                  className="h-full rounded-full bg-[#22c55e]"
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#86f6a5,#e3f7da)]"
                   style={{ width: `${completionPercent}%` }}
                 />
               </div>
@@ -134,14 +162,14 @@ function MobileTopBar({ streak, completionPercent, resumeHref }: MobileBarProps)
           </div>
           <Link
             href="/profile"
-            className="rounded-xl border-2 border-gray-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-wide text-[#172b4d] shadow-[0_3px_0_#e5e7eb]"
+            className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#dce3ef]"
             prefetch={false}
           >
             Profile
           </Link>
           <Link
             href={resumeHref}
-            className="rounded-xl bg-[#22c55e] px-4 py-2 text-xs font-black uppercase tracking-wide text-white shadow-[0_3px_0_#16a34a] active:translate-y-[1px] active:shadow-[0_1px_0_#16a34a]"
+            className="rounded-[16px] border border-[#234530] bg-[linear-gradient(180deg,rgba(21,40,28,0.95),rgba(10,23,17,0.9))] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#eff8f0]"
             prefetch={false}
           >
             Resume
@@ -303,9 +331,10 @@ export function CourseMapScreen() {
   return (
     <JourneySurface surface="map">
       <div
-        className="flex min-h-screen bg-[#faf9f6]"
-        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
+        className="relative flex min-h-screen overflow-hidden bg-[#07111c]"
+        style={{ fontFamily: shellSans }}
       >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(74,222,128,0.06),transparent_28%),radial-gradient(circle_at_20%_0%,rgba(56,189,248,0.08),transparent_26%),linear-gradient(180deg,#08111a_0%,#0b1520_38%,#0d1722_100%)]" />
         {/* Left sidebar */}
         <LeftSidebar
           hearts={hearts}
@@ -314,7 +343,7 @@ export function CourseMapScreen() {
         />
 
         {/* Center content */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col">
           {/* Mobile top bar */}
           <MobileTopBar
             streak={courseState.streak}
@@ -322,57 +351,104 @@ export function CourseMapScreen() {
             resumeHref={resumeHref}
           />
 
-          <main className="mx-auto w-full max-w-[1380px] px-6 pb-24 pt-10 lg:px-8 xl:px-10">
+          <main className="mx-auto w-full max-w-[1420px] px-5 pb-24 pt-8 lg:px-8 xl:px-10">
             {/* Greeting */}
-            <div className="mb-8">
-              <p className="text-xs font-black uppercase tracking-widest text-gray-400">
-                Welcome back
-              </p>
-              <h1 className="mt-1 text-3xl font-black tracking-tight text-[#1a2b4a]">
-                {nickname}
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {courseState.completedLessons}/{courseState.totalLessons} lessons complete &mdash; keep going!
-              </p>
+            <div className="mb-8 rounded-[30px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-6 py-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_28px_80px_rgba(0,0,0,0.18)] lg:px-7">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8f98ab]">
+                    Your climb
+                  </p>
+                  <h1
+                    className="mt-2 text-[40px] leading-none tracking-[-0.05em] text-[#f4efe5] sm:text-[48px]"
+                    style={{ fontFamily: shellSerif }}
+                  >
+                    Welcome back, {nickname}
+                  </h1>
+                  <p className="mt-3 max-w-[38ch] text-[15px] leading-6 text-[#a9b2c3]">
+                    The course now opens with a calmer shell so the mountain roadmap feels like part of the same journey, not a separate product.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <div className="rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f98ab]">
+                      Completion
+                    </div>
+                    <div className="mt-1 text-[20px] font-semibold tracking-[-0.04em] text-[#f4efe5]">
+                      {courseState.completedLessons}/{courseState.totalLessons}
+                    </div>
+                  </div>
+                  <div className="rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8f98ab]">
+                      Current rank
+                    </div>
+                    <div className="mt-1 text-[20px] font-semibold tracking-[-0.04em] text-[#dff5e4]">
+                      {courseState.rank}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-16">
+            <div className="space-y-10">
               {courseState.modules.map((module) => {
+                  const isMountainModule = module.id === 1;
                   return (
                     <div
                       key={module.id}
                       id={`module-${module.slug}`}
-                      style={{ opacity: module.locked ? 0.52 : 1, transition: "opacity 400ms" }}
+                      className={`rounded-[32px] border px-5 py-5 transition-all lg:px-6 lg:py-6 ${
+                        isMountainModule
+                          ? "border-[#203242] bg-[linear-gradient(180deg,rgba(14,24,36,0.96),rgba(10,18,29,0.98))] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_40px_90px_rgba(0,0,0,0.28)]"
+                          : "border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_26px_70px_rgba(0,0,0,0.18)]"
+                      }`}
+                      style={{ opacity: module.locked ? 0.58 : 1 }}
                     >
                       {/* World header */}
-                      <div className="mb-4 flex items-center gap-3">
+                      <div className="mb-5 flex items-center gap-4">
                         <div
-                          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-sm font-black text-white"
+                          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[18px] text-sm font-semibold text-white"
                           style={{
-                            background: module.locked ? "#cbd5e1" : module.accentColor,
-                            boxShadow: module.locked ? "0 3px 0 #b0bec5" : `0 3px 0 color-mix(in srgb, ${module.accentColor} 60%, #000)`,
+                            background: module.locked
+                              ? "rgba(148,163,184,0.18)"
+                              : `linear-gradient(180deg, color-mix(in srgb, ${module.accentColor} 84%, white), color-mix(in srgb, ${module.accentColor} 58%, black))`,
+                            boxShadow: module.locked
+                              ? "inset 0 1px 0 rgba(255,255,255,0.08)"
+                              : `0 14px 32px color-mix(in srgb, ${module.accentColor} 22%, transparent), inset 0 1px 0 rgba(255,255,255,0.14)`,
                           }}
                         >
                           {module.id}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                            <span className="text-base font-black text-[#1a2b4a]">{module.title}</span>
-                            <span className="text-xs text-gray-400">{module.subtitle}</span>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span
+                              className="text-[28px] leading-none tracking-[-0.04em] text-[#f4efe5]"
+                              style={{ fontFamily: shellSerif }}
+                            >
+                              {module.title}
+                            </span>
+                            <span className="text-[12px] font-medium uppercase tracking-[0.18em] text-[#7d8799]">
+                              {module.subtitle}
+                            </span>
                           </div>
-                          <div className="mt-0.5">
+                          <div className="mt-2">
                             {module.locked ? (
-                              <span className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7d8799]">
                                 Locked — finish the previous world first
                               </span>
                             ) : module.completed ? (
-                              <span className="text-xs font-bold uppercase tracking-wide text-[#22c55e]">
-                                ✓ World complete
+                              <span className="inline-flex rounded-full border border-[#294936] bg-[#13241a] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9bf3af]">
+                                World complete
                               </span>
                             ) : (
                               <span
-                                className="text-xs font-bold uppercase tracking-wide"
-                                style={{ color: module.accentColor }}
+                                className="inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                                style={{
+                                  color: module.accentColor,
+                                  borderColor: `color-mix(in srgb, ${module.accentColor} 34%, transparent)`,
+                                  background: `color-mix(in srgb, ${module.accentColor} 10%, transparent)`,
+                                }}
                               >
                                 {module.completionCount}/{module.lessons.length} lessons done
                               </span>
@@ -385,26 +461,26 @@ export function CourseMapScreen() {
                       {module.locked ? (
                         <div
                           style={{
-                            background: "#fafaf8",
-                            border: "2px solid #e5e7eb",
+                            background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+                            border: "1px solid rgba(255,255,255,0.08)",
                             borderRadius: 24,
-                            boxShadow: "0 4px 0 #e0e0dc",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
                             padding: "52px 32px",
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
                             justifyContent: "center",
                             gap: 10,
-                            fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)",
+                            fontFamily: shellSans,
                           }}
                         >
                           <div
                             style={{
                               width: 48,
                               height: 48,
-                              background: "#f1f5f9",
+                              background: "rgba(255,255,255,0.05)",
                               borderRadius: 16,
-                              border: "2px solid #e2e8f0",
+                              border: "1px solid rgba(255,255,255,0.08)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -420,10 +496,10 @@ export function CourseMapScreen() {
                           <p
                             style={{
                               fontSize: 12,
-                              fontWeight: 800,
-                              color: "#94a3b8",
+                              fontWeight: 700,
+                              color: "#8f98ab",
                               textTransform: "uppercase",
-                              letterSpacing: "0.07em",
+                              letterSpacing: "0.18em",
                               margin: 0,
                             }}
                           >
@@ -431,7 +507,7 @@ export function CourseMapScreen() {
                           </p>
                         </div>
                       ) : module.id === 1 ? (
-                        <MountainRoadmap />
+                        <MountainRoadmap lessons={module.lessons} />
                       ) : (
                         <SkillTreeRoadmap
                           moduleName={module.title}
@@ -444,7 +520,9 @@ export function CourseMapScreen() {
                   );
                 })}
 
-                <FinalAchievementCard completionPercent={courseState.completionPercent} />
+                <div className="rounded-[32px] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_26px_70px_rgba(0,0,0,0.18)]">
+                  <FinalAchievementCard completionPercent={courseState.completionPercent} />
+                </div>
               </div>
           </main>
         </div>

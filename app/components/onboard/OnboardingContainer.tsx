@@ -51,50 +51,6 @@ const QUESTIONS: Q[] = [
   },
 ];
 
-// ─── Loading config ───────────────────────────────────────────────────────────
-
-// Traced from upscale.png — smooth diagonal that follows the actual mountain
-// ridge line. viewBox 0 0 120 160. Uses Q (quadratic bezier) for organic
-// curvature. Path is NOT a zigzag — it's a consistent upward-right traverse
-// with subtle natural drift, exactly like the real neon path in the image.
-//
-// Node anchor points (proportional to image positions):
-// 1:(10,148)  2:(22,133)  3:(35,119)  4:(47,105)  5:(56,93)
-// 6:(65,80)   7:(73,67)   8:(81,54)   9:(89,41)   10:(96,28)
-//
-// Control points are offset slightly inward/outward to create organic feel.
-const MOUNTAIN_PATH =
-  "M 10,148" +
-  " Q 14,141 22,133" +    // slight outward bow leaving the ledge
-  " Q 27,127 35,119" +    // settles into ridge
-  " Q 40,113 47,105" +    // tightens slightly (steeper rock face)
-  " Q 51,99  56,93"  +    // mid-path, mostly straight
-  " Q 60,87  65,80"  +    // gentle arc over exposed ridge
-  " Q 69,74  73,67"  +    // stays tight to the line
-  " Q 77,61  81,54"  +    // slightly inward following rock contour
-  " Q 85,48  89,41"  +    // steepens near summit
-  " Q 92,35  96,28";      // final approach
-
-// Q1 → fraction of the full path that draws (0→1)
-// Approximate cumulative arc-length fractions for each node:
-// 1=0  2=.11  3=.22  4=.33  5=.44  6=.55  7=.65  8=.75  9=.87  10=1.0
-const EXP_TO_FRACTION: Record<string, number> = {
-  new: 0.22, basics: 0.44, explored: 0.75, deeper: 1.0,
-};
-
-// Q3 → draw duration ms (default 1200 = fast, energetic)
-const STYLE_TO_DRAW_MS: Record<string, number> = {
-  structure: 1600, doing: 900, concepts: 1300, mix: 1200,
-};
-
-// Fixed message timeline (ms from screen mount)
-const MSG_SCHEDULE = [
-  { at: 300,  text: "Building your path..."           },
-  { at: 1200, text: "Crafting lessons for you..."     },
-  { at: 2400, text: "Personalizing your experience..." },
-  { at: 3600, text: ""                                 }, // silent beat
-] as const;
-
 // ─── Global CSS ───────────────────────────────────────────────────────────────
 const CSS = `
 @keyframes obMesh {
@@ -102,13 +58,6 @@ const CSS = `
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
-/* ── Line glow states ── */
-@keyframes glowIdle      { 0%,100% { filter: drop-shadow(0 0 5px rgba(34,255,0,0.55)); } 50% { filter: drop-shadow(0 0 13px rgba(34,255,0,0.9)); } }
-@keyframes glowCelebrate { 0%,100% { filter: drop-shadow(0 0 14px rgba(34,255,0,1));   } 50% { filter: drop-shadow(0 0 28px rgba(34,255,0,1));   } }
-@keyframes obBarFill     { from { width: 0%; } to { width: 100%; } }
-.glow-drawing   { filter: drop-shadow(0 0 12px rgba(34,255,0,0.9)) drop-shadow(0 0 4px #fff); }
-.glow-idle      { animation: glowIdle      2s ease-in-out infinite; }
-.glow-celebrate { animation: glowCelebrate 0.65s ease-in-out infinite; }
 .ob-root {
   min-height: 100dvh;
   display: flex;

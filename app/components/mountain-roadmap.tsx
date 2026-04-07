@@ -1,42 +1,89 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import type { DerivedLesson } from "../lib/course-engine";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA — edit coordinates here only
 // ─────────────────────────────────────────────────────────────────────────────
 
-type NodeState = "current" | "completed" | "locked";
+type NodeState = "current" | "completed" | "locked" | "unlocked";
 
-interface RoadmapNode {
-  id:           number;
-  label:        string;
-  description:  string;
-  x:            number;  // % from left (can be negative — clips at container edge)
-  y:            number;  // % from top  (can be negative — clips at container edge)
-  hitboxRadius: number;  // px diameter of invisible hit zone
-  state:        NodeState;
-  route:        string;
+interface RoadmapAnchor {
+  x: number;
+  y: number;
+  hitboxRadius: number;
 }
 
-const ROADMAP_NODES: RoadmapNode[] = [
-  { id:  1, label: "Build Your Foundation",      description: "Learn stock basics & market mechanics", x: 15, y: 82, hitboxRadius: 85, state: "current",   route: "/course/foundations/what-owning-a-stock-means"     },
-  { id:  2, label: "Understanding Fundamentals", description: "Financial statements & valuation",      x: 27, y: 75, hitboxRadius: 74, state: "completed", route: "/course/foundations/why-companies-sell-stock"       },
-  { id:  3, label: "Technical Analysis Basics",  description: "Charts, patterns & indicators",         x: 38, y: 65, hitboxRadius: 64, state: "locked",    route: "/course/foundations/how-buyers-and-sellers-meet"    },
-  { id:  4, label: "Risk Management",            description: "Position sizing & stop losses",         x: 48, y: 54, hitboxRadius: 61, state: "locked",    route: "/course/foundations/how-price-can-move-up-or-down"  },
-  { id:  5, label: "Trading Strategy",           description: "Build your edge & execute",             x: 56, y: 43, hitboxRadius: 58, state: "locked",    route: "/course/foundations/gain-loss-and-break-even"       },
-  { id:  6, label: "Advanced Techniques",        description: "Options & derivatives intro",           x: 63, y: 32, hitboxRadius: 56, state: "locked",    route: "/course/foundations/dividends-vs-price-gain"        },
-  { id:  7, label: "Market Psychology",          description: "Master your emotions",                  x: 70, y: 21, hitboxRadius: 51, state: "locked",    route: "/course/foundations/stock-vs-bond-vs-savings"       },
-  { id:  8, label: "Portfolio Construction",     description: "Diversification & rebalancing",         x: 76, y: 11, hitboxRadius: 50, state: "locked",    route: "/course/foundations/why-stock-prices-react-to-news" },
-  { id:  9, label: "Advanced Strategies",        description: "Multi-leg trades & hedging",            x: 82, y:  3, hitboxRadius: 49, state: "locked",    route: "/course/foundations/what-a-careful-beginner-does"   },
-  { id: 10, label: "Master Trader",              description: "Achieve expertise & beyond",            x: 87, y:  4, hitboxRadius: 47, state: "locked",    route: "/course/foundations/boss-ownership-walkthrough"     },
+interface RoadmapNode extends RoadmapAnchor {
+  id: number;
+  label: string;
+  description: string;
+  state: NodeState;
+  route: string;
+}
+
+const ROADMAP_ANCHORS: RoadmapAnchor[] = [
+  { x: 15, y: 82, hitboxRadius: 85 },
+  { x: 27, y: 75, hitboxRadius: 74 },
+  { x: 38, y: 65, hitboxRadius: 64 },
+  { x: 48, y: 54, hitboxRadius: 61 },
+  { x: 56, y: 43, hitboxRadius: 58 },
+  { x: 63, y: 32, hitboxRadius: 56 },
+  { x: 70, y: 21, hitboxRadius: 51 },
+  { x: 76, y: 11, hitboxRadius: 50 },
+  { x: 82, y: 3, hitboxRadius: 49 },
+  { x: 87, y: 4, hitboxRadius: 47 },
 ];
 
 const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 const GREEN = "#22ff77";
+
+function describeLesson(lesson: DerivedLesson) {
+  if (lesson.isBoss) {
+    return `${lesson.estimatedTime} boss checkpoint`;
+  }
+
+  return `${lesson.estimatedTime} lesson · Learn, practice, and check`;
+}
+
+function toRoadmapNode(lesson: DerivedLesson, anchor: RoadmapAnchor): RoadmapNode {
+  return {
+    id: lesson.lessonNumber,
+    label: lesson.title,
+    description: describeLesson(lesson),
+    state: lesson.state,
+    route: lesson.route,
+    ...anchor,
+  };
+}
+
+function getNodeStatusLabel(state: NodeState) {
+  switch (state) {
+    case "completed":
+      return "Completed";
+    case "current":
+      return "Current lesson";
+    case "unlocked":
+      return "Unlocked";
+    case "locked":
+    default:
+      return "Locked";
+  }
+}
+
+function getNodeAriaLabel(node: RoadmapNode) {
+  const base = `Lesson ${node.id}, ${node.label}. ${getNodeStatusLabel(node.state)}.`;
+
+  if (node.state === "locked") {
+    return `${base} ${node.description}.`;
+  }
+
+  return `${base} ${node.description}. Activate to open lesson details.`;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TOOLTIP
@@ -120,6 +167,8 @@ function InfoPanel({
   onStart: (route: string) => void;
 }) {
   const isLocked = node.state === "locked";
+  const isCompleted = node.state === "completed";
+  const isCurrent = node.state === "current";
 
   return (
     <>
@@ -181,7 +230,9 @@ function InfoPanel({
 
           {/* × close */}
           <button
+            type="button"
             onClick={onClose}
+            className="mountain-panel-close"
             style={{
               flexShrink: 0, width: 26, height: 26,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -189,6 +240,7 @@ function InfoPanel({
               border: "1px solid rgba(255,255,255,0.10)",
               borderRadius: 6, cursor: "pointer",
               color: "rgba(180,190,205,0.7)", fontSize: 15, lineHeight: 1, padding: 0,
+              outline: "none",
             }}
             aria-label="Close"
           >
@@ -206,8 +258,10 @@ function InfoPanel({
 
         {/* CTA */}
         <button
+          type="button"
           onClick={() => !isLocked && onStart(node.route)}
           disabled={isLocked}
+          className="mountain-panel-cta"
           style={{
             width: "100%", height: 38, borderRadius: 8, border: "none",
             background: isLocked ? "rgba(55,65,80,0.6)" : GREEN,
@@ -218,6 +272,7 @@ function InfoPanel({
             boxShadow: isLocked ? "none" : `0 0 14px rgba(34,255,119,0.22), 0 3px 10px rgba(0,0,0,0.3)`,
             transition: "opacity 0.12s ease",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            outline: "none",
           }}
           onMouseEnter={(e) => { if (!isLocked) e.currentTarget.style.opacity = "0.88"; }}
           onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
@@ -231,10 +286,12 @@ function InfoPanel({
               </svg>
               Locked
             </>
-          ) : node.state === "completed" ? (
+          ) : isCompleted ? (
             "Review lesson"
+          ) : isCurrent ? (
+            "Continue lesson"
           ) : (
-            "Start lesson →"
+            "Start lesson"
           )}
         </button>
       </motion.div>
@@ -246,13 +303,35 @@ function InfoPanel({
 // MAIN
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function MountainRoadmap() {
+type MountainRoadmapProps = {
+  lessons: DerivedLesson[];
+};
+
+export function MountainRoadmap({ lessons }: MountainRoadmapProps) {
   const router = useRouter();
   const [hoveredId,  setHoveredId]  = useState<number | null>(null);
+  const [focusedId,  setFocusedId]  = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const roadmapNodes = lessons
+    .slice(0, ROADMAP_ANCHORS.length)
+    .map((lesson, index) => toRoadmapNode(lesson, ROADMAP_ANCHORS[index]));
 
-  const hoveredNode  = ROADMAP_NODES.find((n) => n.id === hoveredId)  ?? null;
-  const selectedNode = ROADMAP_NODES.find((n) => n.id === selectedId) ?? null;
+  const activeTooltipNodeId = selectedId === null ? focusedId ?? hoveredId : null;
+  const hoveredNode  = roadmapNodes.find((node) => node.id === activeTooltipNodeId)  ?? null;
+  const selectedNode = roadmapNodes.find((node) => node.id === selectedId) ?? null;
+  const controlStates = useMemo(() => {
+    return new Map(
+      roadmapNodes.map((node) => [
+        node.id,
+        {
+          isHovered: hoveredId === node.id,
+          isFocused: focusedId === node.id,
+          isSelected: selectedId === node.id,
+          isLocked: node.state === "locked",
+        },
+      ]),
+    );
+  }, [focusedId, hoveredId, roadmapNodes, selectedId]);
 
   function handleClick(node: RoadmapNode) {
     if (node.state === "locked") return;
@@ -271,6 +350,12 @@ export function MountainRoadmap() {
         boxShadow: "0 8px 40px rgba(0,0,0,0.24)",
         userSelect: "none",
       }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && selectedId !== null) {
+          e.stopPropagation();
+          setSelectedId(null);
+        }
+      }}
       onClick={(e) => { if (e.target === e.currentTarget) setSelectedId(null); }}
     >
       {/* ── Image ─────────────────────────────────────────────────────────── */}
@@ -283,28 +368,46 @@ export function MountainRoadmap() {
         sizes="100vw"
       />
 
-      {/* ── Invisible hitboxes ────────────────────────────────────────────── */}
-      {ROADMAP_NODES.map((node) => (
-        <div
+      {/* ── Interactive node controls ─────────────────────────────────────── */}
+      {roadmapNodes.map((node) => (
+        <button
           key={node.id}
+          type="button"
+          className={`mountain-node-button${controlStates.get(node.id)?.isSelected ? " mountain-node-button--selected" : ""}${controlStates.get(node.id)?.isLocked ? " mountain-node-button--locked" : ""}`}
+          aria-label={getNodeAriaLabel(node)}
+          aria-disabled={node.state === "locked"}
+          aria-expanded={node.state === "locked" ? undefined : selectedId === node.id}
+          aria-haspopup={node.state === "locked" ? undefined : "dialog"}
           onMouseEnter={() => setHoveredId(node.id)}
           onMouseLeave={() => setHoveredId(null)}
-          onClick={(e) => { e.stopPropagation(); handleClick(node); }}
+          onFocus={() => setFocusedId(node.id)}
+          onBlur={() => setFocusedId((current) => (current === node.id ? null : current))}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick(node);
+          }}
           style={{
             position: "absolute",
             left: `${node.x}%`,
-            top:  `${node.y}%`,
+            top: `${node.y}%`,
             transform: "translate(-50%, -50%)",
-            width:  node.hitboxRadius,
+            width: node.hitboxRadius,
             height: node.hitboxRadius,
             borderRadius: "50%",
             zIndex: 10,
+            border: "none",
+            background: "transparent",
+            padding: 0,
             cursor: node.state === "locked" ? "not-allowed" : "pointer",
-            // ── Debug mode: uncomment to visualise hitboxes ──
-            // outline: "2px dashed rgba(34,255,119,0.5)",
-            // background: "rgba(34,255,119,0.06)",
+            outline: "none",
+            WebkitTapHighlightColor: "transparent",
           }}
-        />
+        >
+          <span
+            aria-hidden="true"
+            className={`mountain-node-halo${controlStates.get(node.id)?.isHovered ? " mountain-node-halo--hovered" : ""}${controlStates.get(node.id)?.isFocused ? " mountain-node-halo--focused" : ""}${controlStates.get(node.id)?.isSelected ? " mountain-node-halo--selected" : ""}${controlStates.get(node.id)?.isLocked ? " mountain-node-halo--locked" : ""}`}
+          />
+        </button>
       ))}
 
       {/* ── Tooltip ───────────────────────────────────────────────────────── */}
@@ -325,6 +428,89 @@ export function MountainRoadmap() {
           />
         )}
       </AnimatePresence>
+
+      <style jsx>{`
+        .mountain-node-button {
+          appearance: none;
+        }
+
+        .mountain-node-halo {
+          position: absolute;
+          inset: 50%;
+          width: 22px;
+          height: 22px;
+          transform: translate(-50%, -50%);
+          border-radius: 999px;
+          border: 1px solid transparent;
+          background:
+            radial-gradient(circle, rgba(34, 255, 119, 0.16) 0%, rgba(34, 255, 119, 0.05) 46%, rgba(34, 255, 119, 0) 78%);
+          box-shadow: none;
+          opacity: 0;
+          transition:
+            opacity 140ms ease,
+            transform 160ms ease,
+            box-shadow 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease;
+          pointer-events: none;
+        }
+
+        .mountain-node-halo--hovered {
+          opacity: 0.82;
+          transform: translate(-50%, -50%) scale(1.22);
+          border-color: rgba(186, 255, 213, 0.26);
+          box-shadow:
+            0 0 0 1px rgba(18, 26, 22, 0.32),
+            0 0 24px rgba(34, 255, 119, 0.16);
+        }
+
+        .mountain-node-halo--focused {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1.34);
+          border-color: rgba(214, 255, 228, 0.6);
+          box-shadow:
+            0 0 0 1px rgba(7, 14, 11, 0.64),
+            0 0 0 4px rgba(34, 255, 119, 0.16),
+            0 0 28px rgba(34, 255, 119, 0.22);
+        }
+
+        .mountain-node-halo--selected {
+          opacity: 0.96;
+          transform: translate(-50%, -50%) scale(1.28);
+          border-color: rgba(160, 255, 196, 0.4);
+          box-shadow:
+            0 0 0 1px rgba(7, 14, 11, 0.58),
+            0 0 26px rgba(34, 255, 119, 0.18);
+        }
+
+        .mountain-node-halo--locked {
+          background:
+            radial-gradient(circle, rgba(148, 163, 184, 0.12) 0%, rgba(148, 163, 184, 0.04) 44%, rgba(148, 163, 184, 0) 76%);
+        }
+
+        .mountain-node-button--locked .mountain-node-halo--hovered,
+        .mountain-node-button--locked .mountain-node-halo--focused {
+          border-color: rgba(148, 163, 184, 0.34);
+          box-shadow:
+            0 0 0 1px rgba(7, 14, 11, 0.48),
+            0 0 22px rgba(148, 163, 184, 0.14);
+        }
+
+        .mountain-panel-close:focus-visible {
+          box-shadow:
+            0 0 0 1px rgba(7, 14, 11, 0.52),
+            0 0 0 3px rgba(34, 255, 119, 0.18),
+            0 0 20px rgba(34, 255, 119, 0.18);
+          border-color: rgba(180, 255, 205, 0.38);
+        }
+
+        .mountain-panel-cta:focus-visible {
+          box-shadow:
+            0 0 0 1px rgba(7, 14, 11, 0.58),
+            0 0 0 4px rgba(34, 255, 119, 0.16),
+            0 0 26px rgba(34, 255, 119, 0.24);
+        }
+      `}</style>
     </div>
   );
 }

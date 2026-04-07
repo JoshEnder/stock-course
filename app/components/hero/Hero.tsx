@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 
@@ -33,10 +33,16 @@ const T = {
   // Dissolve-out timing
   dissolveDuration:  360,    // text exits over this duration
   atmosphereFade:    520,    // atmosphere layers linger slightly longer
+
+  // Reveal fallback
+  fallbackRevealMs:  3200,   // used until metadata gives us the real duration
+  revealTailMs:       120,   // keeps the reveal from feeling early versus video end
 } as const;
 
 export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasRevealedRef = useRef(false);
   const [logoVisible, setLogoVisible] = useState(false);
   const [revealed,    setRevealed]    = useState(false);
   const [dissolving,  setDissolving]  = useState(false);
@@ -47,14 +53,70 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
     return () => clearTimeout(id);
   }, []);
 
-  // Headline + CTA fire when video ends
+  const clearRevealTimeout = useCallback(() => {
+    if (revealTimeoutRef.current !== null) {
+      clearTimeout(revealTimeoutRef.current);
+      revealTimeoutRef.current = null;
+    }
+  }, []);
+
+  const revealOnce = useCallback(() => {
+    if (hasRevealedRef.current) {
+      return;
+    }
+
+    hasRevealedRef.current = true;
+    clearRevealTimeout();
+    setRevealed(true);
+  }, [clearRevealTimeout]);
+
+  const scheduleRevealFallback = useCallback((ms: number) => {
+    if (hasRevealedRef.current) {
+      return;
+    }
+
+    clearRevealTimeout();
+    revealTimeoutRef.current = setTimeout(() => {
+      revealOnce();
+    }, ms);
+  }, [clearRevealTimeout, revealOnce]);
+
+  // Headline + CTA fire at video end, with timeout/error fallbacks if playback never completes.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    const onEnd = () => setRevealed(true);
-    video.addEventListener("ended", onEnd);
-    return () => video.removeEventListener("ended", onEnd);
-  }, []);
+
+    const scheduleFromVideoState = () => {
+      const hasRealDuration = Number.isFinite(video.duration) && video.duration > 0;
+      const durationMs = hasRealDuration
+        ? Math.round(video.duration * 1000) + T.revealTailMs
+        : T.fallbackRevealMs;
+
+      scheduleRevealFallback(durationMs);
+    };
+
+    const handleEnded = () => revealOnce();
+    const handleError = () => revealOnce();
+
+    scheduleFromVideoState();
+
+    if (video.readyState >= 1) {
+      scheduleFromVideoState();
+    }
+
+    video.addEventListener("loadedmetadata", scheduleFromVideoState);
+    video.addEventListener("ended", handleEnded);
+    video.addEventListener("error", handleError);
+    video.addEventListener("abort", handleError);
+
+    return () => {
+      clearRevealTimeout();
+      video.removeEventListener("loadedmetadata", scheduleFromVideoState);
+      video.removeEventListener("ended", handleEnded);
+      video.removeEventListener("error", handleError);
+      video.removeEventListener("abort", handleError);
+    };
+  }, [clearRevealTimeout, revealOnce, scheduleRevealFallback]);
 
   function handleCTAClick() {
     setDissolving(true);

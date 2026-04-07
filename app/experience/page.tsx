@@ -1,5 +1,5 @@
-import UnifiedFlowContainer from "@/app/components/experience/UnifiedFlowContainer";
+import OnboardingContainer from "@/app/components/onboard/OnboardingContainer";
 
 export default function ExperiencePage() {
-  return <UnifiedFlowContainer />;
+  return <OnboardingContainer />;
 }
