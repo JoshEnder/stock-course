@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
-import StokedMark from "./StokedMark";
+import { useState, useEffect } from "react";
 import { CONTENT_W } from "./OnboardShell";
 
 const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
@@ -19,6 +18,7 @@ interface ScreenQuestionProps {
   options: QuestionOption[];
   onSelect: (value: string) => void;
   selected: string | null;
+  onAutoAdvance?: () => void;
 }
 
 export default function ScreenQuestion({
@@ -27,33 +27,42 @@ export default function ScreenQuestion({
   options,
   onSelect,
   selected,
+  onAutoAdvance,
 }: ScreenQuestionProps) {
-  const [showFeedback, setShowFeedback] = useState(false);
   const [localSelected, setLocalSelected] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  useEffect(() => {
+    if (!localSelected) return;
+    const feedbackTimer = setTimeout(() => setShowFeedback(true), 140);
+    const advanceTimer = setTimeout(() => { onAutoAdvance?.(); }, 1100);
+    return () => {
+      clearTimeout(feedbackTimer);
+      clearTimeout(advanceTimer);
+    };
+  }, [localSelected, onAutoAdvance]);
 
   function handleSelect(value: string) {
     if (localSelected !== null) return;
     setLocalSelected(value);
     onSelect(value);
-    setTimeout(() => setShowFeedback(true), 120);
   }
 
   const sel = localSelected ?? selected;
   const selectedOption = options.find((o) => o.value === sel);
 
   return (
-    // Content area: full width, left-aligned, top-padded — question screens don't center vertically
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        justifyContent: "flex-start",
         width: "100%",
-        paddingTop: 32,
-        paddingBottom: 120,
+        paddingTop: "clamp(48px, 9vh, 96px)",
+        paddingBottom: 140,
       }}
     >
-      {/* Tight content column — same constraint as Brilliant's max-w-[290px] but slightly wider for our text */}
       <div
         style={{
           width: "100%",
@@ -62,67 +71,88 @@ export default function ScreenQuestion({
           paddingRight: 24,
         }}
       >
-        {/* Header row: small mark + question text */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 11,
-            marginBottom: 28,
-          }}
-        >
-          <div style={{ paddingTop: 3, flexShrink: 0 }}>
-            <StokedMark size={28} />
-          </div>
-
-          {/* Question / affirmation crossfade */}
-          <div style={{ flex: 1, position: "relative", minHeight: 48 }}>
-            <AnimatePresence mode="wait">
-              {!sel ? (
-                <motion.h2
-                  key="question"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.2 }}
+        {/* Question / affirmation — crossfade ─────────────────────────── */}
+        <div style={{ position: "relative", minHeight: "clamp(72px, 11vh, 112px)", marginBottom: 28 }}>
+          <AnimatePresence mode="wait">
+            {!sel ? (
+              <motion.h2
+                key="question"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                style={{
+                  fontFamily: font,
+                  fontSize: "clamp(26px, 3.2vw, 34px)",
+                  fontWeight: 600,
+                  color: "#0a0a0a",
+                  letterSpacing: "-0.025em",
+                  lineHeight: 1.15,
+                  margin: 0,
+                }}
+              >
+                {question}
+              </motion.h2>
+            ) : (
+              <motion.div
+                key="affirmation"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <h2
                   style={{
                     fontFamily: font,
-                    fontSize: 17,
+                    fontSize: "clamp(26px, 3.2vw, 34px)",
                     fontWeight: 600,
-                    color: "#111111",
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.3,
-                    margin: 0,
-                  }}
-                >
-                  {question}
-                </motion.h2>
-              ) : (
-                <motion.h2
-                  key="affirmation"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.22 }}
-                  style={{
-                    fontFamily: font,
-                    fontSize: 17,
-                    fontWeight: 600,
-                    color: "#111111",
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.3,
+                    color: "#0a0a0a",
+                    letterSpacing: "-0.025em",
+                    lineHeight: 1.15,
                     margin: 0,
                   }}
                 >
                   {affirmation}
-                </motion.h2>
-              )}
-            </AnimatePresence>
-          </div>
+                </h2>
+                <AnimatePresence>
+                  {showFeedback && selectedOption && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 12,
+                      }}
+                    >
+                      <div style={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        backgroundColor: "#10b981",
+                        flexShrink: 0,
+                      }} />
+                      <p style={{
+                        fontFamily: font,
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "#10b981",
+                        margin: 0,
+                        letterSpacing: "-0.01em",
+                      }}>
+                        {selectedOption.feedback}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Options */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {/* Options — stacked tactile pills ────────────────────────────── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {options.map((opt, i) => {
             const isSel = sel === opt.value;
             const isDim = sel !== null && !isSel;
@@ -130,73 +160,78 @@ export default function ScreenQuestion({
             return (
               <motion.button
                 key={opt.value}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{
-                  opacity: isDim ? 0.28 : 1,
+                  opacity: isDim ? 0.32 : 1,
                   y: 0,
-                  scale: isSel ? 1.025 : 1,
-                  backgroundColor: isSel ? "#f0fdf4" : "#f5f5f4",
                 }}
                 transition={{
-                  opacity: { duration: 0.18 },
-                  scale: { type: "spring", stiffness: 420, damping: 28 },
-                  y: { duration: 0.28, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] },
-                  backgroundColor: { duration: 0.14 },
+                  opacity: { duration: 0.22 },
+                  y: { duration: 0.32, delay: i * 0.045, ease: [0.22, 1, 0.36, 1] },
                 }}
                 whileHover={sel === null ? {
-                  backgroundColor: "#efefed",
-                  scale: 1.01,
-                  transition: { duration: 0.12 },
+                  backgroundColor: "#ffffff",
+                  borderColor: "#111111",
+                  y: -1,
+                  transition: { duration: 0.14 },
                 } : {}}
-                whileTap={sel === null ? { scale: 0.98 } : {}}
+                whileTap={sel === null ? { scale: 0.985, y: 0 } : {}}
                 onClick={() => handleSelect(opt.value)}
                 disabled={sel !== null}
                 style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "space-between",
                   width: "100%",
-                  border: isSel ? "2px solid #10b981" : "2px solid transparent",
-                  borderRadius: 9999,
-                  padding: "13px 20px",
+                  border: isSel ? "1.5px solid #10b981" : "1.5px solid #ececeb",
+                  borderRadius: 14,
+                  padding: "18px 22px",
                   fontFamily: font,
-                  fontSize: 15,
-                  fontWeight: isSel ? 600 : 400,
-                  color: isSel ? "#065f46" : "#374151",
+                  fontSize: 16,
+                  fontWeight: isSel ? 600 : 500,
+                  color: isSel ? "#065f46" : "#1f2937",
+                  backgroundColor: isSel ? "#f0fdf4" : "#fafaf9",
                   textAlign: "left",
                   cursor: sel !== null ? "default" : "pointer",
                   outline: "none",
-                  boxShadow: isSel ? "0 0 0 3px rgba(16,185,129,0.12)" : "none",
-                  transition: "border-color 0.14s, box-shadow 0.14s, color 0.14s",
-                }}
-              >
-                {opt.label}
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* Feedback text — appears 120ms after selection */}
-        <div style={{ minHeight: 24, marginTop: 14 }}>
-          <AnimatePresence>
-            {showFeedback && selectedOption && (
-              <motion.p
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                style={{
-                  fontFamily: font,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#10b981",
-                  margin: 0,
+                  boxShadow: isSel
+                    ? "0 0 0 4px rgba(16,185,129,0.10), 0 2px 8px rgba(16,185,129,0.08)"
+                    : "0 1px 0 rgba(255,255,255,0.9) inset",
+                  transition: "border-color 0.18s ease, box-shadow 0.18s ease, color 0.18s ease, background-color 0.18s ease",
                   letterSpacing: "-0.01em",
                 }}
               >
-                {selectedOption.feedback}
-              </motion.p>
-            )}
-          </AnimatePresence>
+                <span>{opt.label}</span>
+
+                {/* Selection indicator — only visible on selected */}
+                <AnimatePresence>
+                  {isSel && (
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.5 }}
+                      transition={{ duration: 0.22, ease: [0.34, 1.56, 0.64, 1] }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 22,
+                        height: 22,
+                        borderRadius: "50%",
+                        backgroundColor: "#10b981",
+                        color: "#ffffff",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          })}
         </div>
       </div>
     </div>

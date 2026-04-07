@@ -19,8 +19,8 @@ export function useHeroState() {
   }, []);
 
   const focusCard = useCallback((index: number) => {
+    setActiveCard(index);
     if (!lessons[index].locked) {
-      setActiveCard(index);
       setRevealedCards((prev) => new Set(prev).add(index));
     }
   }, []);

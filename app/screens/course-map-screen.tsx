@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SkillTreeRoadmap, type SkillLesson } from "../components/skill-tree-roadmap";
+import { MountainRoadmap } from "../components/mountain-roadmap";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { FinalAchievementCard } from "../components/final-achievement-card";
 import { JourneySurface } from "../components/journey-surface";
@@ -429,6 +430,8 @@ export function CourseMapScreen() {
                             Finish the previous world to unlock
                           </p>
                         </div>
+                      ) : module.id === 1 ? (
+                        <MountainRoadmap />
                       ) : (
                         <SkillTreeRoadmap
                           moduleName={module.title}

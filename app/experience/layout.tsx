@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Market Instinct Challenge · Stoked",
-  description:
-    "Three real market scenarios. Make the call. Discover your instincts.",
+  title: "Start Your Climb · Stoked",
+  description: "A few quick questions to build your path.",
 };
 
 export default function ExperienceLayout({
@@ -11,14 +10,8 @@ export default function ExperienceLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "#f7f6f3",
-        minHeight: "100svh",
-      }}
-    >
-      {children}
-    </div>
-  );
+  // The mountain background is handled by the Hero in landing-screen when
+  // accessed via the overlay path. This layout is a passthrough for direct
+  // /experience URL access (e.g. deep links, logged-in return visits).
+  return <>{children}</>;
 }

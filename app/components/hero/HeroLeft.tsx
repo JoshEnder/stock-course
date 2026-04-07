@@ -12,76 +12,101 @@ export function HeroLeft() {
         flexDirection: "column",
         justifyContent: "flex-start",
         gap: 0,
-        maxWidth: 580,
+        maxWidth: 540,
       }}
     >
-      {/* Headline */}
-      <motion.h1
-        initial={{ opacity: 0, y: 28 }}
+      {/* Eyebrow */}
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          fontFamily: fonts.sans,
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.16em",
+          textTransform: "uppercase",
+          color: colors.green,
+          margin: 0,
+          marginBottom: 18,
+          opacity: 0.80,
+        }}
+      >
+        Interactive Market Learning
+      </motion.p>
+
+      {/*
+        Three lines. The pause after "a logic." is the beat.
+        Italic command on its own line — no qualifier needed.
+      */}
+      <motion.h1
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.68, ease: [0.22, 1, 0.36, 1] }}
         style={{
           fontFamily: fonts.serif,
-          fontSize: "clamp(64px, 7.5vw, 110px)",
+          fontSize: "clamp(72px, 7.4vw, 114px)",
           fontWeight: 600,
           color: colors.headline,
-          lineHeight: 1.0,
-          letterSpacing: "-0.02em",
+          lineHeight: 0.91,
+          letterSpacing: "-0.036em",
           margin: 0,
         }}
       >
-        Where{" "}
+        Markets have
         <br />
-        Stock Learning{" "}
+        a logic.
         <br />
-        <span style={{ fontStyle: "italic" }}>Becomes</span>
-        <br />
-        Instinct.
+        <span style={{ fontStyle: "italic" }}>Read it.</span>
       </motion.h1>
 
-      {/* Subheadline */}
+      {/*
+        Directly references what's on the right.
+        Short enough to read in one glance.
+      */}
       <motion.p
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.56, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
         style={{
           fontFamily: fonts.sans,
-          fontSize: "clamp(22px, 2.2vw, 31px)",
+          fontSize: "clamp(16px, 1.6vw, 18px)",
           fontWeight: 400,
           color: colors.sub,
           margin: 0,
-          marginTop: 28,
-          lineHeight: 1.35,
+          marginTop: 26,
+          lineHeight: 1.5,
+          maxWidth: 290,
+          letterSpacing: "-0.01em",
         }}
       >
-        Learn investing like a pro.
+        Three layers. One decision.
       </motion.p>
 
-      {/* CTA Button */}
       <motion.div
-        initial={{ opacity: 0, y: 16 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        style={{ marginTop: 40 }}
+        transition={{ duration: 0.48, delay: 0.26, ease: [0.22, 1, 0.36, 1] }}
+        style={{ marginTop: 34 }}
       >
-        <Button href="/experience">Get Started</Button>
+        <Button href="/experience">Make Your First Call</Button>
       </motion.div>
 
-      {/* Helper text */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.45 }}
+        transition={{ duration: 0.44, delay: 0.40 }}
         style={{
           fontFamily: fonts.sans,
-          fontSize: 19,
+          fontSize: 13,
           fontWeight: 400,
           color: colors.helper,
           margin: 0,
-          marginTop: 18,
+          marginTop: 13,
+          letterSpacing: "0.01em",
         }}
       >
-        Tap to explore. No signup needed.
+        No signup required.
       </motion.p>
     </div>
   );

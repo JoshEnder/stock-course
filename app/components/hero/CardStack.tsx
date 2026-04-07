@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { lessons } from "./lessons";
 import { Card } from "./Card";
-import { colors, fonts } from "./tokens";
+import { colors } from "./tokens";
 
 interface CardStackProps {
   activeCard: number;
@@ -12,16 +13,7 @@ interface CardStackProps {
   onFocusCard: (index: number) => void;
 }
 
-/*
-  Reference layout (from design idea.png):
-  - Front card: "Ownership" quiz, large, fully visible, sitting on pedestal
-  - Behind-right: "Risk & Reward" card, smaller, faded, tilted, with chart icon
-  - Behind-right-top: "Market Pressure" card, smallest, most faded, lock icon
-  - All sitting on a brushed-metal pedestal
-  - Green glow trail connecting cards
-
-  The stack fans cards backward and to the right with increasing vertical offset.
-*/
+type StackRole = "front" | "secondary" | "tertiary" | "fourth";
 
 interface StackPosition {
   x: number;
@@ -35,137 +27,92 @@ interface StackPosition {
   height: number;
 }
 
-function getStackPositions(activeIndex: number): StackPosition[] {
-  // We show up to 4 cards in the visible stack
-  // Position 0 = front, 1 = first behind, 2 = second behind, etc.
-  const positions: StackPosition[] = [];
+const stackCards = [
+  { lessonIndex: 0, role: "front" as const },
+  { lessonIndex: 3, role: "secondary" as const },
+  { lessonIndex: 5, role: "tertiary" as const },
+  { lessonIndex: 1, role: "fourth" as const },
+];
 
-  for (let i = 0; i < lessons.length; i++) {
-    const depth = i - activeIndex;
+/*
+  COMPOSITION: 760 × 720 container, perspective depth-stack
 
-    if (depth < 0) {
-      // Cards before active: hidden to the left
-      positions.push({
-        x: -600,
-        y: 0,
-        scale: 0.85,
-        rotateY: 0,
-        rotateX: 0,
-        opacity: 0,
-        zIndex: 0,
-        width: 470,
-        height: 430,
-      });
-    } else if (depth === 0) {
-      // Front card — dominant, fully visible
-      positions.push({
-        x: 0,
-        y: 0,
-        scale: 1,
-        rotateY: 0,
-        rotateX: 0,
-        opacity: 1,
-        zIndex: 10,
-        width: 470,
-        height: 430,
-      });
-    } else if (depth === 1) {
-      // First behind — offset right & up, slightly smaller
-      positions.push({
-        x: 60,
-        y: -55,
-        scale: 0.92,
-        rotateY: -6,
-        rotateX: 2,
-        opacity: 0.75,
-        zIndex: 9,
-        width: 430,
-        height: 480,
-      });
-    } else if (depth === 2) {
-      // Second behind — further right & up
-      positions.push({
-        x: 110,
-        y: -105,
-        scale: 0.84,
-        rotateY: -10,
-        rotateX: 3,
-        opacity: 0.55,
-        zIndex: 8,
-        width: 400,
-        height: 520,
-      });
-    } else {
-      // Remaining cards — stacked further back, barely visible
-      const extraDepth = depth - 2;
-      positions.push({
-        x: 110 + extraDepth * 30,
-        y: -105 - extraDepth * 35,
-        scale: 0.84 - extraDepth * 0.06,
-        rotateY: -10 - extraDepth * 2,
-        rotateX: 3,
-        opacity: Math.max(0.15, 0.55 - extraDepth * 0.2),
-        zIndex: 7 - extraDepth,
-        width: 380,
-        height: 520,
-      });
-    }
-  }
+  Bottom anchor: 80  →  card bottoms at y = 640 from container top.
 
-  return positions;
-}
+  Front card  (h=490): natural top = 640−490 = 150  →  at rest y=0   → visual top = 150
+  Card 2      (h=460): natural top = 640−460 = 180  →  at rest y=−82 → visual top =  98  (52px peek)
+  Card 3      (h=440): natural top = 640−440 = 200  →  at rest y=−150 → visual top = 50  (48px peek)
+  Card 4      (h=420): natural top = 640−420 = 220  →  at rest y=−210 → visual top = 10  (40px peek)
 
-// Mini candlestick chart SVG for back cards
-function CandlestickIcon() {
-  return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 48 48"
-      fill="none"
-      style={{ opacity: 0.18 }}
-    >
-      {/* Candlestick bars */}
-      <rect x="8" y="20" width="4" height="14" rx="1" fill="#253744" />
-      <line x1="10" y1="16" x2="10" y2="20" stroke="#253744" strokeWidth="1.2" />
-      <line x1="10" y1="34" x2="10" y2="38" stroke="#253744" strokeWidth="1.2" />
+  The three peek strips (y=10–50, y=50–98, y=98–150) sit above the front card. Each is the
+  hover target for its card. Because each strip is the topmost element in its y-band, pointer
+  events route correctly without any explicit hit-testing.
 
-      <rect x="16" y="14" width="4" height="10" rx="1" fill="#14B874" />
-      <line x1="18" y1="10" x2="18" y2="14" stroke="#14B874" strokeWidth="1.2" />
-      <line x1="18" y1="24" x2="18" y2="30" stroke="#14B874" strokeWidth="1.2" />
+  On hover: the focused card slides RIGHT to x=460, revealing its full surface next to
+  the front card. Front card dims slightly and shifts a few pixels left to "open" the composition.
+  All other back cards recede further. Container mouseLeave resets everything.
+*/
+function getStackPositions(
+  systemHovered: boolean,
+  focusedRole: StackRole | null,
+): Record<StackRole, StackPosition> {
+  const anyFocused = focusedRole !== null;
 
-      <rect x="24" y="18" width="4" height="16" rx="1" fill="#253744" />
-      <line x1="26" y1="14" x2="26" y2="18" stroke="#253744" strokeWidth="1.2" />
-      <line x1="26" y1="34" x2="26" y2="38" stroke="#253744" strokeWidth="1.2" />
-
-      <rect x="32" y="12" width="4" height="12" rx="1" fill="#14B874" />
-      <line x1="34" y1="8" x2="34" y2="12" stroke="#14B874" strokeWidth="1.2" />
-      <line x1="34" y1="24" x2="34" y2="28" stroke="#14B874" strokeWidth="1.2" />
-
-      <rect x="40" y="16" width="4" height="8" rx="1" fill="#14B874" />
-      <line x1="42" y1="12" x2="42" y2="16" stroke="#14B874" strokeWidth="1.2" />
-      <line x1="42" y1="24" x2="42" y2="28" stroke="#14B874" strokeWidth="1.2" />
-    </svg>
-  );
-}
-
-function LockIconLarge() {
-  return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="rgba(18, 38, 52, 0.2)"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ opacity: 0.7 }}
-    >
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  );
+  return {
+    front: {
+      x: anyFocused ? 26 : 40,
+      y: 0,
+      scale: 1,
+      rotateY: -1.5,
+      rotateX: 0.8,
+      opacity: anyFocused ? 0.80 : 1,
+      zIndex: 14,
+      width: 400,
+      height: 490,
+    },
+    secondary: {
+      x: focusedRole === "secondary" ? 460 : 40,
+      y: focusedRole === "secondary" ? -25 : -82,
+      scale: focusedRole === "secondary" ? 0.97 : 0.88,
+      rotateY: focusedRole === "secondary" ? -2 : -12,
+      rotateX: focusedRole === "secondary" ? 0.5 : 3,
+      opacity: focusedRole === "secondary"
+        ? 0.93
+        : anyFocused ? 0.03
+        : systemHovered ? 0.14 : 0.09,
+      zIndex: 12,
+      width: 300,
+      height: 460,
+    },
+    tertiary: {
+      x: focusedRole === "tertiary" ? 460 : 40,
+      y: focusedRole === "tertiary" ? -38 : -150,
+      scale: focusedRole === "tertiary" ? 0.93 : 0.84,
+      rotateY: focusedRole === "tertiary" ? -3 : -16,
+      rotateX: focusedRole === "tertiary" ? 0.8 : 4.5,
+      opacity: focusedRole === "tertiary"
+        ? 0.90
+        : anyFocused ? 0.02
+        : systemHovered ? 0.10 : 0.06,
+      zIndex: 10,
+      width: 280,
+      height: 440,
+    },
+    fourth: {
+      x: focusedRole === "fourth" ? 460 : 40,
+      y: focusedRole === "fourth" ? -48 : -210,
+      scale: focusedRole === "fourth" ? 0.90 : 0.80,
+      rotateY: focusedRole === "fourth" ? -4 : -20,
+      rotateX: focusedRole === "fourth" ? 1.2 : 6,
+      opacity: focusedRole === "fourth"
+        ? 0.86
+        : anyFocused ? 0.02
+        : systemHovered ? 0.07 : 0.04,
+      zIndex: 8,
+      width: 260,
+      height: 420,
+    },
+  };
 }
 
 export function CardStack({
@@ -174,228 +121,406 @@ export function CardStack({
   onSelectAnswer,
   onFocusCard,
 }: CardStackProps) {
-  const positions = getStackPositions(activeCard);
+  const [systemHovered, setSystemHovered] = useState(false);
+  const [focusedRole, setFocusedRole] = useState<StackRole | null>(null);
+
+  const focusedCard = stackCards.some((c) => c.lessonIndex === activeCard)
+    ? activeCard
+    : 0;
+
+  const anyFocused = focusedRole !== null;
+  const positions = getStackPositions(systemHovered, focusedRole);
 
   return (
     <div
-      style={{
-        position: "relative",
-        width: 620,
-        height: 600,
-      }}
+      style={{ position: "relative", width: 760, height: 720, overflow: "visible" }}
       className="hero-card-stack"
+      onMouseEnter={() => setSystemHovered(true)}
+      onMouseLeave={() => {
+        setSystemHovered(false);
+        setFocusedRole(null);
+      }}
     >
-      {/* Perspective container for 3D depth */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          perspective: 1400,
-          perspectiveOrigin: "35% 45%",
+          perspective: 1800,
+          perspectiveOrigin: "26% 40%",
         }}
       >
-        {/* Green glow trail — runs diagonally through the stack */}
+        {/* Ground shadow */}
         <div
           style={{
             position: "absolute",
-            bottom: 90,
-            left: 80,
-            width: 340,
-            height: 3,
+            left: anyFocused ? 30 : 50,
+            right: anyFocused ? 60 : 80,
+            bottom: 50,
+            height: anyFocused ? 60 : 48,
+            borderRadius: "50%",
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(20,184,116,0.15) 15%, rgba(20,184,116,0.4) 40%, rgba(20,184,116,0.5) 55%, rgba(20,184,116,0.3) 75%, transparent 100%)",
-            borderRadius: 2,
-            filter: "blur(1px)",
-            transform: "rotate(-12deg)",
-            transformOrigin: "left center",
-            zIndex: 11,
+              "radial-gradient(circle, rgba(28,42,54,0.20) 0%, rgba(28,42,54,0.08) 38%, rgba(28,42,54,0) 72%)",
+            filter: "blur(16px)",
+            zIndex: 4,
+            pointerEvents: "none",
+            transition: "all 0.60s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        />
+
+        {/*
+          SIGNAL PATH — single foreground layer (z:16), two compositional passes per segment:
+          a thick blurred glow pass (emanates through the glass) and a crisp line pass.
+
+          The path ASCENDS from the front card's answer zone upward through the vertical
+          stack of lessons — a signal of understanding moving through layers of knowledge.
+
+          Coordinates (viewBox 0 0 760 720):
+            Origin   (120, 525) — front card, lower area near answer selection
+            S1 end   (82,  282) — inside front card body, mid-height
+            S2 end   (62,  112) — just above front card top, card 2 peek zone
+            S3 end   (56,   24) — near card 4 peek top, terminus
+            Terminal (56,   14)
+
+          The path drifts subtly leftward as it rises — the signal curves along the
+          interior spine of the card as it traces upward through the lesson layers.
+        */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 16,
             pointerEvents: "none",
           }}
-        />
+        >
+          <svg
+            viewBox="0 0 760 720"
+            fill="none"
+            aria-hidden
+            style={{ width: "100%", height: "100%" }}
+          >
+            <defs>
+              <filter id="path-glow" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="6.5" />
+              </filter>
+              <filter id="node-glow" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="9" />
+              </filter>
+              <filter id="end-glow" x="-80%" y="-80%" width="360%" height="360%">
+                <feGaussianBlur stdDeviation="9" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="trace-blur" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" />
+              </filter>
+              <radialGradient id="endHalo" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stopColor="#14B874" stopOpacity="0.54" />
+                <stop offset="44%"  stopColor="#14B874" stopOpacity="0.20" />
+                <stop offset="100%" stopColor="#14B874" stopOpacity="0" />
+              </radialGradient>
+            </defs>
 
-        {/* Subtle green dot accents along the trail */}
-        {[
-          { left: 120, bottom: 105, size: 4, opacity: 0.5 },
-          { left: 200, bottom: 120, size: 3, opacity: 0.35 },
-          { left: 280, bottom: 132, size: 5, opacity: 0.45 },
-          { left: 360, bottom: 148, size: 3, opacity: 0.3 },
-        ].map((dot, i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: dot.left,
-              bottom: dot.bottom,
-              width: dot.size,
-              height: dot.size,
-              borderRadius: "50%",
-              background: colors.green,
-              opacity: dot.opacity,
-              boxShadow: `0 0 8px rgba(20,184,116,${dot.opacity})`,
-              zIndex: 11,
-              pointerEvents: "none",
-            }}
-          />
-        ))}
+            {/* Substrate — full route, always faintly visible */}
+            <path
+              d="M120 525 C110 450 96 362 82 282 C72 218 66 164 62 112 C60 80 58 50 56 24"
+              stroke="rgba(255,255,255,0.14)"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              filter="url(#trace-blur)"
+              style={{
+                opacity: systemHovered ? 0.80 : 0.42,
+                transition: "opacity 0.5s ease",
+              }}
+            />
 
-        {/* Render cards back-to-front */}
-        {[...lessons]
-          .map((lesson, i) => ({ lesson, i, pos: positions[i] }))
+            {/* ── SEGMENT 1: lower front card — decision origin ascending ──────── */}
+            <motion.path
+              d="M120 525 C110 450 96 362 82 282"
+              stroke={colors.green}
+              strokeWidth="10"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: systemHovered ? 1 : 0,
+                opacity: systemHovered ? 0.18 : 0,
+              }}
+              filter="url(#path-glow)"
+              transition={{
+                pathLength: { duration: 0.46, delay: systemHovered ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: systemHovered ? 0.12 : 0.24 },
+              }}
+            />
+            <motion.path
+              d="M120 525 C110 450 96 362 82 282"
+              stroke={colors.green}
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: systemHovered ? 1 : 0,
+                opacity: systemHovered ? 0.72 : 0,
+              }}
+              transition={{
+                pathLength: { duration: 0.46, delay: systemHovered ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: systemHovered ? 0.12 : 0.24 },
+              }}
+            />
+
+            {/* ── SEGMENT 2: mid zone — crossing into the lesson layers ─────────── */}
+            <motion.path
+              d="M82 282 C72 218 66 164 62 112"
+              stroke={colors.green}
+              strokeWidth="8"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: systemHovered ? 1 : 0,
+                opacity: systemHovered ? 0.14 : 0,
+              }}
+              filter="url(#path-glow)"
+              transition={{
+                pathLength: { duration: 0.38, delay: systemHovered ? 0.22 : 0.18, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: systemHovered ? 0.12 : 0.20, delay: systemHovered ? 0.22 : 0 },
+              }}
+            />
+            <motion.path
+              d="M82 282 C72 218 66 164 62 112"
+              stroke={colors.green}
+              strokeWidth="2.0"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: systemHovered ? 1 : 0,
+                opacity: systemHovered ? 0.60 : 0,
+              }}
+              transition={{
+                pathLength: { duration: 0.38, delay: systemHovered ? 0.22 : 0.18, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: systemHovered ? 0.12 : 0.20, delay: systemHovered ? 0.22 : 0 },
+              }}
+            />
+
+            {/* ── SEGMENT 3: upper peek strips — signal arrives at the summit ─────── */}
+            <motion.path
+              d="M62 112 C60 80 58 50 56 24"
+              stroke={colors.green}
+              strokeWidth="6"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: systemHovered ? 1 : 0,
+                opacity: systemHovered ? 0.10 : 0,
+              }}
+              filter="url(#path-glow)"
+              transition={{
+                pathLength: { duration: 0.28, delay: systemHovered ? 0.44 : 0, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: systemHovered ? 0.10 : 0.16, delay: systemHovered ? 0.44 : 0 },
+              }}
+            />
+            <motion.path
+              d="M62 112 C60 80 58 50 56 24"
+              stroke={colors.green}
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{
+                pathLength: systemHovered ? 1 : 0,
+                opacity: systemHovered ? 0.46 : 0,
+              }}
+              transition={{
+                pathLength: { duration: 0.28, delay: systemHovered ? 0.44 : 0, ease: [0.16, 1, 0.3, 1] },
+                opacity: { duration: systemHovered ? 0.10 : 0.16, delay: systemHovered ? 0.44 : 0 },
+              }}
+            />
+
+            {/* ── ORIGIN NODE ──────────────────────────────────────────────────── */}
+
+            {/* Expansion ring */}
+            <motion.circle
+              cx="120" cy="525" r="3"
+              fill="none"
+              stroke={colors.green}
+              strokeWidth="1.5"
+              animate={{
+                r: systemHovered ? [3, 22, 24] : [3],
+                opacity: systemHovered ? [0.7, 0.45, 0] : [0],
+                strokeWidth: systemHovered ? [1.5, 0.8, 0.4] : [1.5],
+              }}
+              transition={{ duration: 0.82, ease: [0.2, 0.8, 0.4, 1], times: [0, 0.55, 1] }}
+            />
+            {/* Dark backing */}
+            <motion.circle
+              cx="120" cy="525" r="7"
+              fill="rgba(17,39,57,0.82)"
+              animate={{ opacity: systemHovered ? 1 : 0.34 }}
+              transition={{ duration: 0.18 }}
+            />
+            {/* Green core */}
+            <motion.circle
+              cx="120" cy="525" r="4.5"
+              fill={colors.green}
+              animate={{
+                r: systemHovered ? [3, 6.5, 4.5] : 3,
+                opacity: systemHovered ? 1 : 0.20,
+              }}
+              transition={{
+                r: { duration: 0.44, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.18 },
+              }}
+            />
+
+            {/* ── TERMINAL NODE: 4-layer endpoint above the stack ─────────────── */}
+
+            {/* Layer 1 — radial halo */}
+            <motion.circle
+              cx="56" cy="14" r="0"
+              fill="url(#endHalo)"
+              animate={{
+                r: systemHovered ? [0, 30, 26] : 0,
+                opacity: systemHovered ? 1 : 0,
+              }}
+              transition={{
+                r: { duration: 0.46, delay: systemHovered ? 0.62 : 0, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.30, delay: systemHovered ? 0.62 : 0 },
+              }}
+            />
+            {/* Layer 2 — feMerge glow (crisp dot + bloom simultaneously) */}
+            <motion.circle
+              cx="56" cy="14" r="0"
+              fill={colors.green}
+              filter="url(#end-glow)"
+              animate={{
+                r: systemHovered ? [0, 12, 10] : 0,
+                opacity: systemHovered ? 0.90 : 0,
+              }}
+              transition={{
+                r: { duration: 0.34, delay: systemHovered ? 0.66 : 0, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.22, delay: systemHovered ? 0.66 : 0 },
+              }}
+            />
+            {/* Layer 3 — white inner ring */}
+            <motion.circle
+              cx="56" cy="14" r="0"
+              fill="#eefff5"
+              animate={{
+                r: systemHovered ? [0, 5.5, 5] : 0,
+                opacity: systemHovered ? 1 : 0,
+              }}
+              transition={{
+                r: { duration: 0.26, delay: systemHovered ? 0.70 : 0, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.16, delay: systemHovered ? 0.70 : 0 },
+              }}
+            />
+            {/* Layer 4 — green core */}
+            <motion.circle
+              cx="56" cy="14" r="0"
+              fill={colors.green}
+              animate={{
+                r: systemHovered ? [0, 3, 2.8] : 0,
+                opacity: systemHovered ? 1 : 0,
+              }}
+              transition={{
+                r: { duration: 0.20, delay: systemHovered ? 0.72 : 0, ease: [0.22, 1, 0.36, 1] },
+                opacity: { duration: 0.12, delay: systemHovered ? 0.72 : 0 },
+              }}
+            />
+          </svg>
+        </div>
+
+        {/* Cards */}
+        {stackCards
+          .map(({ lessonIndex, role }) => ({
+            lessonIndex,
+            role,
+            lesson: lessons[lessonIndex],
+            pos: positions[role],
+          }))
           .sort((a, b) => a.pos.zIndex - b.pos.zIndex)
-          .map(({ lesson, i, pos }) => {
-            const depth = i - activeCard;
-
-            return (
-              <motion.div
-                key={lesson.id}
-                animate={{
-                  x: pos.x,
-                  y: pos.y,
-                  scale: pos.scale,
-                  rotateY: pos.rotateY,
-                  rotateX: pos.rotateX,
-                  opacity: pos.opacity,
-                }}
-                transition={{
-                  duration: 0.5,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                style={{
-                  position: "absolute",
-                  left: 20,
-                  bottom: 80,
-                  width: pos.width,
-                  height: pos.height,
-                  zIndex: pos.zIndex,
-                  transformStyle: "preserve-3d",
-                  willChange: "transform, opacity",
-                }}
-              >
-                <Card
-                  lesson={lesson}
-                  selectedAnswer={selectedAnswers[i] ?? null}
-                  onSelect={(answerIndex) => onSelectAnswer(i, answerIndex)}
-                  onFocus={() => onFocusCard(i)}
-                  depth={depth}
-                />
-
-                {/* Decorative content for back cards */}
-                {depth === 1 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 20,
-                      right: 20,
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <CandlestickIcon />
-                  </div>
-                )}
-                {depth >= 2 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 20,
-                      right: 20,
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <LockIconLarge />
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
+          .map(({ lessonIndex, role, lesson, pos }) => (
+            <motion.div
+              key={lesson.id}
+              className={`hero-card-layer hero-card-layer-${role}`}
+              animate={{
+                x: pos.x,
+                y: pos.y,
+                scale: pos.scale,
+                rotateY: pos.rotateY,
+                rotateX: pos.rotateX,
+                opacity: pos.opacity,
+              }}
+              transition={
+                role === "front"
+                  ? {
+                      x: { type: "spring", stiffness: 460, damping: 34 },
+                      y: { type: "spring", stiffness: 460, damping: 34 },
+                      scale: { type: "spring", stiffness: 420, damping: 30 },
+                      rotateY: { duration: 0.26, ease: [0.22, 1, 0.36, 1] },
+                      rotateX: { duration: 0.26, ease: [0.22, 1, 0.36, 1] },
+                      opacity: { duration: 0.28, ease: "easeOut" },
+                    }
+                  : focusedRole === role
+                  ? {
+                      // Reveal: elegant forward emergence
+                      duration: 0.54,
+                      ease: [0.14, 1, 0.3, 1],
+                      opacity: { duration: 0.36, ease: "easeOut" },
+                    }
+                  : {
+                      // Retract: clean recession
+                      duration: 0.42,
+                      ease: [0.22, 1, 0.4, 1],
+                      opacity: { duration: 0.28, ease: "easeOut" },
+                    }
+              }
+              style={{
+                position: "absolute",
+                left: 0,
+                bottom: 80,
+                width: pos.width,
+                height: pos.height,
+                zIndex: pos.zIndex,
+                transformStyle: "preserve-3d",
+                willChange: "transform, opacity",
+                cursor: role !== "front" ? "pointer" : "default",
+              }}
+              onHoverStart={() => {
+                if (role !== "front") {
+                  setFocusedRole(role);
+                  onFocusCard(lessonIndex);
+                }
+              }}
+            >
+              <Card
+                lesson={lesson}
+                selectedAnswer={selectedAnswers[lessonIndex] ?? null}
+                onSelect={(answerIndex) => onSelectAnswer(lessonIndex, answerIndex)}
+                onFocus={() => onFocusCard(lessonIndex)}
+                layer={role}
+                isActive={focusedCard === lessonIndex}
+                // Front card uses container hover; back cards use their own reveal state
+                systemHovered={role === "front" ? systemHovered : focusedRole === role}
+              />
+            </motion.div>
+          ))}
       </div>
 
-      {/* Brushed metal pedestal */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: -10,
-          width: 560,
-          height: 24,
-          zIndex: 12,
-          pointerEvents: "none",
-        }}
-      >
-        {/* Top surface — bright metallic */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 20,
-            right: 20,
-            height: 6,
-            borderRadius: "3px 3px 0 0",
-            background:
-              "linear-gradient(90deg, rgba(190,198,206,0.4) 0%, rgba(210,216,222,0.7) 25%, rgba(225,229,233,0.85) 50%, rgba(210,216,222,0.7) 75%, rgba(190,198,206,0.4) 100%)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
-          }}
-        />
-        {/* Base — darker metallic with depth */}
-        <div
-          style={{
-            position: "absolute",
-            top: 5,
-            left: 0,
-            right: 0,
-            height: 18,
-            borderRadius: "0 0 8px 8px",
-            background:
-              "linear-gradient(180deg, rgba(175,183,191,0.6) 0%, rgba(155,163,171,0.45) 50%, rgba(140,148,156,0.3) 100%)",
-            boxShadow:
-              "0 6px 24px rgba(28,42,54,0.08), 0 2px 8px rgba(28,42,54,0.05), inset 0 1px 0 rgba(255,255,255,0.25)",
-          }}
-        />
-        {/* Reflection line */}
-        <div
-          style={{
-            position: "absolute",
-            top: 8,
-            left: 40,
-            right: 40,
-            height: 1,
-            background:
-              "linear-gradient(90deg, transparent, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.3) 70%, transparent)",
-          }}
-        />
-      </div>
-
-      {/* "HOVER TO EXPLORE" */}
-      <p
-        style={{
-          position: "absolute",
-          bottom: -32,
-          right: 30,
-          fontFamily: fonts.sans,
-          fontSize: 10,
-          fontWeight: 600,
-          color: "rgba(18, 38, 52, 0.22)",
-          letterSpacing: "0.16em",
-          textTransform: "uppercase",
-          margin: 0,
-          userSelect: "none",
-        }}
-      >
-        Hover to explore
-      </p>
-
-      {/* Responsive sizing */}
       <style jsx global>{`
         @media (max-width: 640px) {
           .hero-card-stack {
-            width: 340px !important;
-            height: 420px !important;
-            transform: scale(0.72);
-            transform-origin: center center;
+            width: 380px !important;
+            height: 520px !important;
+            transform: scale(0.78) translateX(-6px);
+            transform-origin: top center;
+          }
+          .hero-card-layer-tertiary,
+          .hero-card-layer-fourth {
+            display: none !important;
           }
         }
         @media (min-width: 641px) and (max-width: 1024px) {
           .hero-card-stack {
-            transform: scale(0.85);
+            transform: scale(0.86) translateX(-40px);
             transform-origin: center center;
           }
         }

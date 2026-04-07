@@ -11,9 +11,9 @@ export const lessons: Lesson[] = [
   {
     id: "stock-basics",
     title: "Ownership",
-    question: "What does owning a stock mean?",
-    answers: ["A. Loan", "B. Share", "C. Dividend"],
-    correctIndex: 1,
+    question: "A company keeps growing revenue. What are you actually buying?",
+    answers: ["A stake in its earnings.", "Access to its products.", "A prediction on price."],
+    correctIndex: 0,
     locked: false,
   },
   {

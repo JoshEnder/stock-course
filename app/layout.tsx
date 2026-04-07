@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Serif_Display, DM_Sans } from "next/font/google";
+import { Cormorant_Garamond, DM_Serif_Display, DM_Sans, EB_Garamond } from "next/font/google";
 import { AppProviders } from "./components/app-providers";
 import "./globals.css";
 
@@ -18,9 +18,16 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 const dmSans = DM_Sans({
-  weight: ["400", "600"],
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const ebGaramond = EB_Garamond({
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["latin"],
+  variable: "--font-eb-garamond",
   display: "swap",
 });
 
@@ -35,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorantGaramond.variable} ${dmSerifDisplay.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${cormorantGaramond.variable} ${dmSerifDisplay.variable} ${dmSans.variable} ${ebGaramond.variable}`}>
       <body>
         <AppProviders>{children}</AppProviders>
       </body>
