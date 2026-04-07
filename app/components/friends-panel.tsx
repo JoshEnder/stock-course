@@ -18,6 +18,15 @@ import {
   type FriendSearchResult,
 } from "../lib/friends";
 
+const EMERALD = "#10b981";
+const SURFACE = "#1a2942";
+const CREAM = "#e8e2d4";
+const TEXT = "#cbd5e1";
+const MUTED = "#94a3b8";
+const DIM = "#5f687a";
+const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
 function formatFriendshipDate(value: string | null) {
   if (!value) {
     return null;
@@ -36,9 +45,55 @@ function formatFriendshipDate(value: string | null) {
 
 function StatChip({ label, value }: { label: string; value: string }) {
   return (
-    <span className="rounded-full bg-[#f8fafc] px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#64748b]">
+    <span style={{ fontSize: 11, fontWeight: 500, color: DIM }}>
       {label} {value}
     </span>
+  );
+}
+
+function PremiumBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "10px 22px", borderRadius: 10, border: "none",
+        background: CREAM, color: "#111",
+        fontFamily: sans, fontWeight: 500, fontSize: 14,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
+        transition: "opacity 200ms",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GhostBtn({ children, onClick, disabled, href }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; href?: string }) {
+  const style = {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "10px 22px", borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent", color: TEXT,
+    fontFamily: sans, fontWeight: 500, fontSize: 14,
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.5 : 1,
+    textDecoration: "none",
+    transition: "opacity 200ms",
+  } as const;
+  if (href) return <Link href={href} style={style}>{children}</Link>;
+  return <button type="button" onClick={onClick} disabled={disabled} style={style}>{children}</button>;
+}
+
+function SubSection({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.04)", background: "rgba(255,255,255,0.02)", padding: 20 }}>
+      {children}
+    </div>
   );
 }
 
@@ -216,70 +271,54 @@ export function FriendsPanel() {
   }
 
   return (
-    <section className="rounded-[28px] border-2 border-gray-200 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <section style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", background: SURFACE, padding: 24 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
         <div>
-          <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-            Friends
-          </p>
-          <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
+          <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>Friends</p>
+          <h2 style={{ fontSize: 20, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 6 }}>
             Build your private crew
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-            Find friends by username, manage requests, and compare streak and XP without turning Stoked into a noisy social app.
+          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 6, maxWidth: 480 }}>
+            Find friends by username, manage requests, and compare streak and XP.
           </p>
         </div>
         {socialReady ? (
-          <Link
-            href="/leaderboard"
-            className="rounded-2xl border-2 border-[#22c55e] bg-[#f0fdf4] px-4 py-3 text-sm font-black uppercase tracking-wide text-[#166534] shadow-[0_4px_0_#bbf7d0]"
-          >
-            View friends ranking
-          </Link>
+          <GhostBtn href="/leaderboard">View friends ranking</GhostBtn>
         ) : null}
       </div>
 
       {!user ? (
-        <div className="mt-6 rounded-[24px] border-2 border-[#dcfce7] bg-[#f8fffb] p-5">
-          <h3 className="text-lg font-black text-[#172b4d]">Sign in to add friends</h3>
-          <p className="mt-2 text-sm leading-6 text-gray-500">
+        <div style={{ marginTop: 20, borderLeft: `2px solid ${EMERALD}`, paddingLeft: 16 }}>
+          <p style={{ fontSize: 15, fontFamily: serif, fontWeight: 600, color: CREAM }}>Sign in to add friends</p>
+          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 4 }}>
             Friends are private to logged-in learners with usernames.
           </p>
-          <button
-            type="button"
-            onClick={() => void signInWithGoogle("/profile")}
-            disabled={authLoading}
-            className="mt-4 rounded-2xl bg-[#22c55e] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#16a34a] disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {authLoading ? "Loading..." : "Continue with Google"}
-          </button>
+          <div style={{ marginTop: 12 }}>
+            <PremiumBtn onClick={() => void signInWithGoogle("/profile")} disabled={authLoading}>
+              {authLoading ? "Loading..." : "Continue with Google"}
+            </PremiumBtn>
+          </div>
         </div>
       ) : !profile?.username ? (
-        <div className="mt-6 rounded-[24px] border-2 border-[#fef3c7] bg-[#fffbeb] p-5">
-          <h3 className="text-lg font-black text-[#172b4d]">Choose a username first</h3>
-          <p className="mt-2 text-sm leading-6 text-gray-500">
+        <div style={{ marginTop: 20, borderLeft: "2px solid #f59e0b", paddingLeft: 16 }}>
+          <p style={{ fontSize: 15, fontFamily: serif, fontWeight: 600, color: CREAM }}>Choose a username first</p>
+          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 4 }}>
             Friends search and private rankings use your username, not your email.
           </p>
-          <Link
-            href="/username?next=/profile"
-            className="mt-4 inline-flex rounded-2xl border-2 border-[#f59e0b] bg-white px-5 py-3 text-sm font-black uppercase tracking-wide text-[#92400e] shadow-[0_4px_0_#fde68a]"
-          >
-            Set username
-          </Link>
+          <div style={{ marginTop: 12 }}>
+            <GhostBtn href="/username?next=/profile">Set username</GhostBtn>
+          </div>
         </div>
       ) : (
-        <div className="mt-6 space-y-6">
-          <section className="rounded-[24px] border-2 border-gray-100 bg-[#fcfdfc] p-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
+        <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Search */}
+          <SubSection>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                  Search by username
-                </p>
-                <h3 className="mt-2 text-xl font-black text-[#172b4d]">Add a friend</h3>
+                <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>Search by username</p>
+                <p style={{ fontSize: 17, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 4 }}>Add a friend</p>
               </div>
-              <p className="text-xs font-semibold text-gray-400">
-                Search uses unique usernames only
-              </p>
+              <span style={{ fontSize: 11, color: DIM }}>Search uses unique usernames only</span>
             </div>
             <input
               type="text"
@@ -290,28 +329,30 @@ export function FriendsPanel() {
                 setErrorMessage(null);
               }}
               placeholder="Search username"
-              className="mt-4 w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-4 text-base font-semibold text-[#172b4d] outline-none placeholder:text-gray-400"
+              style={{
+                width: "100%", marginTop: 14, padding: "12px 16px",
+                borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.03)", color: CREAM,
+                fontFamily: sans, fontSize: 15, fontWeight: 500,
+                outline: "none",
+              }}
             />
 
-            <div className="mt-4 space-y-3">
+            <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
               {searchLoading ? (
-                <p className="text-sm text-gray-500">Searching usernames...</p>
+                <p style={{ fontSize: 13, color: DIM }}>Searching usernames...</p>
               ) : trimmedQuery.length >= 2 && searchResults.length === 0 ? (
-                <p className="rounded-2xl border-2 border-dashed border-gray-200 bg-white px-4 py-4 text-sm text-gray-500">
-                  No username matches yet.
-                </p>
+                <p style={{ fontSize: 13, color: DIM }}>No username matches yet.</p>
               ) : null}
 
               {searchResults.map((result) => (
                 <div
                   key={result.user_id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-gray-100 bg-white px-4 py-4"
+                  style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 10 }}
                 >
                   <div>
-                    <p className="text-base font-black text-[#172b4d]">
-                      @{result.username}
-                    </p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.14em] text-gray-400">
+                    <p style={{ fontSize: 15, fontWeight: 600, color: CREAM }}>@{result.username}</p>
+                    <p style={{ fontSize: 11, color: DIM, textTransform: "uppercase", letterSpacing: "0.1em", marginTop: 2 }}>
                       {result.state === "friend"
                         ? "Already in your friends list"
                         : result.state === "outgoing"
@@ -323,16 +364,11 @@ export function FriendsPanel() {
                   </div>
 
                   {result.state === "available" ? (
-                    <button
-                      type="button"
-                      onClick={() => void handleSendRequest(result)}
-                      disabled={busyKey === `send-${result.user_id}`}
-                      className="rounded-2xl bg-[#172b4d] px-4 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#0f172a] disabled:cursor-not-allowed disabled:opacity-70"
-                    >
+                    <PremiumBtn onClick={() => void handleSendRequest(result)} disabled={busyKey === `send-${result.user_id}`}>
                       {busyKey === `send-${result.user_id}` ? "Sending..." : "Send request"}
-                    </button>
+                    </PremiumBtn>
                   ) : (
-                    <span className="rounded-full bg-[#f8fafc] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#64748b]">
+                    <span style={{ fontSize: 11, fontWeight: 500, color: DIM, textTransform: "uppercase", letterSpacing: "0.1em" }}>
                       {result.state === "friend"
                         ? "Friends"
                         : result.state === "outgoing"
@@ -343,63 +379,45 @@ export function FriendsPanel() {
                 </div>
               ))}
             </div>
-          </section>
+          </SubSection>
 
-          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <section className="rounded-[24px] border-2 border-gray-100 bg-[#fcfdfc] p-5">
-              <div className="flex items-center justify-between gap-3">
+          <div className="grid gap-4 xl:grid-cols-2">
+            {/* Requests */}
+            <SubSection>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                    Requests
-                  </p>
-                  <h3 className="mt-2 text-xl font-black text-[#172b4d]">
-                    Incoming
-                  </h3>
+                  <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>Requests</p>
+                  <p style={{ fontSize: 17, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 4 }}>Incoming</p>
                 </div>
-                <span className="rounded-full bg-[#f0fdf4] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#15803d]">
-                  {incomingRequests.length} pending
-                </span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: EMERALD }}>{incomingRequests.length} pending</span>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                 {panelLoading ? (
-                  <p className="text-sm text-gray-500">Loading requests...</p>
+                  <p style={{ fontSize: 13, color: DIM }}>Loading requests...</p>
                 ) : incomingRequests.length === 0 ? (
-                  <p className="rounded-2xl border-2 border-dashed border-gray-200 bg-white px-4 py-4 text-sm text-gray-500">
-                    No incoming requests right now.
-                  </p>
+                  <p style={{ fontSize: 13, color: DIM }}>No incoming requests right now.</p>
                 ) : (
                   incomingRequests.map((request) => (
-                    <div
-                      key={request.id}
-                      className="rounded-2xl border-2 border-gray-100 bg-white px-4 py-4"
-                    >
-                      <div className="flex items-center justify-between gap-3">
+                    <div key={request.id} style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                         <div>
-                          <p className="text-base font-black text-[#172b4d]">
-                            @{request.user?.username ?? "learner"}
-                          </p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.14em] text-gray-400">
-                            Sent {formatFriendshipDate(request.created_at) ?? "recently"}
-                          </p>
+                          <p style={{ fontSize: 15, fontWeight: 600, color: CREAM }}>@{request.user?.username ?? "learner"}</p>
+                          <p style={{ fontSize: 11, color: DIM, marginTop: 2 }}>Sent {formatFriendshipDate(request.created_at) ?? "recently"}</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <PremiumBtn
                             onClick={() => void handleIncomingAction(request.id, "accept")}
                             disabled={busyKey === `accept-${request.id}` || Boolean(busyKey && busyKey !== `accept-${request.id}` && busyKey !== `decline-${request.id}`)}
-                            className="rounded-xl bg-[#22c55e] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white shadow-[0_3px_0_#16a34a] disabled:cursor-not-allowed disabled:opacity-70"
                           >
-                            {busyKey === `accept-${request.id}` ? "Accepting..." : "Accept"}
-                          </button>
-                          <button
-                            type="button"
+                            {busyKey === `accept-${request.id}` ? "..." : "Accept"}
+                          </PremiumBtn>
+                          <GhostBtn
                             onClick={() => void handleIncomingAction(request.id, "decline")}
                             disabled={busyKey === `decline-${request.id}` || Boolean(busyKey && busyKey !== `accept-${request.id}` && busyKey !== `decline-${request.id}`)}
-                            className="rounded-xl border-2 border-gray-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#475569] shadow-[0_3px_0_#e5e7eb] disabled:cursor-not-allowed disabled:opacity-70"
                           >
-                            {busyKey === `decline-${request.id}` ? "Declining..." : "Decline"}
-                          </button>
+                            {busyKey === `decline-${request.id}` ? "..." : "Decline"}
+                          </GhostBtn>
                         </div>
                       </div>
                     </div>
@@ -407,71 +425,50 @@ export function FriendsPanel() {
                 )}
               </div>
 
-              <div className="mt-6 border-t-2 border-gray-100 pt-5">
-                <div className="flex items-center justify-between gap-3">
+              <div style={{ marginTop: 16, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                      Requests
-                    </p>
-                    <h3 className="mt-2 text-xl font-black text-[#172b4d]">
-                      Sent
-                    </h3>
+                    <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>Requests</p>
+                    <p style={{ fontSize: 17, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 4 }}>Sent</p>
                   </div>
-                  <span className="rounded-full bg-[#f8fafc] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#64748b]">
-                    {outgoingRequests.length} pending
-                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: DIM }}>{outgoingRequests.length} pending</span>
                 </div>
-                <div className="mt-4 space-y-3">
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                   {panelLoading ? null : outgoingRequests.length === 0 ? (
-                    <p className="rounded-2xl border-2 border-dashed border-gray-200 bg-white px-4 py-4 text-sm text-gray-500">
-                      No outgoing requests waiting right now.
-                    </p>
+                    <p style={{ fontSize: 13, color: DIM }}>No outgoing requests waiting right now.</p>
                   ) : (
                     outgoingRequests.map((request) => (
                       <div
                         key={request.id}
-                        className="flex items-center justify-between gap-3 rounded-2xl border-2 border-gray-100 bg-white px-4 py-4"
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 10 }}
                       >
                         <div>
-                          <p className="text-base font-black text-[#172b4d]">
-                            @{request.user?.username ?? "learner"}
-                          </p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.14em] text-gray-400">
-                            Waiting since {formatFriendshipDate(request.created_at) ?? "recently"}
-                          </p>
+                          <p style={{ fontSize: 15, fontWeight: 600, color: CREAM }}>@{request.user?.username ?? "learner"}</p>
+                          <p style={{ fontSize: 11, color: DIM, marginTop: 2 }}>Waiting since {formatFriendshipDate(request.created_at) ?? "recently"}</p>
                         </div>
-                        <span className="rounded-full bg-[#f8fafc] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#64748b]">
-                          Pending
-                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 500, color: DIM, textTransform: "uppercase", letterSpacing: "0.1em" }}>Pending</span>
                       </div>
                     ))
                   )}
                 </div>
               </div>
-            </section>
+            </SubSection>
 
-            <section className="rounded-[24px] border-2 border-gray-100 bg-[#fcfdfc] p-5">
-              <div className="flex items-center justify-between gap-3">
+            {/* Friends list */}
+            <SubSection>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                    Friends list
-                  </p>
-                  <h3 className="mt-2 text-xl font-black text-[#172b4d]">
-                    Accepted friends
-                  </h3>
+                  <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>Friends list</p>
+                  <p style={{ fontSize: 17, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 4 }}>Accepted friends</p>
                 </div>
-                <span className="rounded-full bg-[#eef2ff] px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#4338ca]">
-                  {friends.length} friends
-                </span>
+                <span style={{ fontSize: 11, fontWeight: 500, color: EMERALD }}>{friends.length} friends</span>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
                 {panelLoading ? (
-                  <p className="text-sm text-gray-500">Loading friends...</p>
+                  <p style={{ fontSize: 13, color: DIM }}>Loading friends...</p>
                 ) : friends.length === 0 ? (
-                  <p className="rounded-2xl border-2 border-dashed border-gray-200 bg-white px-4 py-4 text-sm text-gray-500">
-                    Add your first friend to start a private comparison list.
-                  </p>
+                  <p style={{ fontSize: 13, color: DIM }}>Add your first friend to start a private comparison list.</p>
                 ) : (
                   friends.map((friend) => {
                     const userSummary = friend.user;
@@ -480,30 +477,26 @@ export function FriendsPanel() {
                     return (
                       <div
                         key={userSummary?.user_id ?? friend.created_at}
-                        className="rounded-2xl border-2 border-gray-100 bg-white px-4 py-4"
+                        style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 10 }}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                           <div>
-                            <p className="text-base font-black text-[#172b4d]">
-                              @{userSummary?.username ?? "learner"}
-                            </p>
-                            <p className="mt-1 text-xs uppercase tracking-[0.14em] text-gray-400">
+                            <p style={{ fontSize: 15, fontWeight: 600, color: CREAM }}>@{userSummary?.username ?? "learner"}</p>
+                            <p style={{ fontSize: 11, color: DIM, marginTop: 2 }}>
                               Friends since {formatFriendshipDate(friend.created_at) ?? "recently"}
                             </p>
                           </div>
                           {stats?.hasSyncedProgress ? (
-                            <p className="text-lg font-black text-[#f59e0b]">
+                            <p style={{ fontSize: 16, fontWeight: 600, color: EMERALD, fontVariantNumeric: "tabular-nums" }}>
                               {stats.total_xp} XP
                             </p>
                           ) : (
-                            <span className="rounded-full bg-[#f8fafc] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#64748b]">
-                              No synced XP yet
-                            </span>
+                            <span style={{ fontSize: 11, fontWeight: 500, color: DIM }}>No synced XP yet</span>
                           )}
                         </div>
 
                         {stats?.hasSyncedProgress ? (
-                          <div className="mt-4 flex flex-wrap gap-2">
+                          <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 12 }}>
                             <StatChip label="Streak" value={String(stats.streak_count ?? 0)} />
                             <StatChip label="Lessons" value={String(stats.completed_lessons ?? 0)} />
                             {stats.rank ? <StatChip label="Global rank" value={`#${stats.rank}`} /> : null}
@@ -514,19 +507,19 @@ export function FriendsPanel() {
                   })
                 )}
               </div>
-            </section>
+            </SubSection>
           </div>
 
           {successMessage ? (
-            <p className="rounded-2xl border-2 border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-sm font-semibold text-[#15803d]">
-              {successMessage}
-            </p>
+            <div style={{ borderLeft: `3px solid ${EMERALD}`, paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
+              <p style={{ fontSize: 14, color: EMERALD }}>{successMessage}</p>
+            </div>
           ) : null}
 
           {errorMessage ? (
-            <p className="rounded-2xl border-2 border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-semibold text-[#b91c1c]">
-              {errorMessage}
-            </p>
+            <div style={{ borderLeft: "3px solid #ef4444", paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
+              <p style={{ fontSize: 14, color: "#f87171" }}>{errorMessage}</p>
+            </div>
           ) : null}
         </div>
       )}

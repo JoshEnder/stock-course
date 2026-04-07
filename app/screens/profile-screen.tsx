@@ -16,18 +16,76 @@ import { resetCourseProgress } from "../lib/course-progress";
 import { getSupabaseBrowserClient } from "../lib/supabase-browser";
 import { saveNicknameForCurrentUser } from "../lib/remote-progress";
 
+const EMERALD = "#10b981";
+const BG = "#0a0f1a";
+const SURFACE = "#1a2942";
+const CREAM = "#e8e2d4";
+const TEXT = "#cbd5e1";
+const MUTED = "#94a3b8";
+const DIM = "#5f687a";
+const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
 function StokedLogo() {
   return (
     <Link href="/" className="inline-flex items-end gap-0.5">
-      <span
-        className="text-2xl font-black tracking-tight text-[#1a2b4a]"
-        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
-      >
+      <span className="text-xl font-medium tracking-tight" style={{ fontFamily: serif, color: CREAM }}>
         stoked
       </span>
-      <span className="mb-[0.2em] h-3 w-3 flex-shrink-0 rounded-full bg-[#22c55e]" />
+      <span className="mb-[0.22em] h-2 w-2 flex-shrink-0 rounded-full" style={{ background: EMERALD }} />
     </Link>
   );
+}
+
+function SectionBlock({ children, variant = "default" }: { children: React.ReactNode; variant?: "default" | "danger" }) {
+  return (
+    <section style={{
+      borderRadius: 12,
+      border: `1px solid ${variant === "danger" ? "rgba(239,68,68,0.2)" : "rgba(255,255,255,0.06)"}`,
+      background: SURFACE,
+      padding: 24,
+    }}>
+      {children}
+    </section>
+  );
+}
+
+function PrimaryBtn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        padding: "10px 22px", borderRadius: 10, border: "none",
+        background: CREAM, color: "#111",
+        fontFamily: sans, fontWeight: 500, fontSize: 14,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
+        transition: "opacity 200ms",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GhostBtn({ children, onClick, disabled, href }: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; href?: string }) {
+  const style = {
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "10px 22px", borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent", color: TEXT,
+    fontFamily: sans, fontWeight: 500, fontSize: 14,
+    cursor: disabled ? "not-allowed" : "pointer",
+    opacity: disabled ? 0.5 : 1,
+    textDecoration: "none",
+    transition: "opacity 200ms",
+  } as const;
+  if (href) return <Link href={href} style={style}>{children}</Link>;
+  return <button type="button" onClick={onClick} disabled={disabled} style={style}>{children}</button>;
 }
 
 export function ProfileScreen() {
@@ -70,10 +128,7 @@ export function ProfileScreen() {
   }, [storedNickname]);
 
   async function handleGoogleSignIn() {
-    if (googleLoading) {
-      return;
-    }
-
+    if (googleLoading) return;
     try {
       setGoogleLoading(true);
       setErrorMessage(null);
@@ -81,57 +136,35 @@ export function ProfileScreen() {
       await signInWithGoogle("/profile");
     } catch (error) {
       setGoogleLoading(false);
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to sign in with Google.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Unable to sign in with Google.");
     }
   }
 
   async function handleSaveNickname() {
-    if (!nicknameReady || saveLoading) {
-      return;
-    }
-
+    if (!nicknameReady || saveLoading) return;
     try {
       setSaveLoading(true);
       setErrorMessage(null);
       setMessage(null);
       const nextNickname = nicknameDraft.trim();
-
       setNickname(nextNickname);
       setMessage("Nickname updated.");
-
-      if (!signedInEmail) {
-        return;
-      }
-
+      if (!signedInEmail) return;
       await saveNicknameForCurrentUser(nextNickname);
-
       const supabase = getSupabaseBrowserClient();
-      void supabase.auth
-        .updateUser({
-          data: {
-            nickname: nextNickname,
-          },
-        })
-        .catch((error) => {
-          console.warn("Auth metadata nickname update failed.", error);
-        });
+      void supabase.auth.updateUser({ data: { nickname: nextNickname } }).catch((error) => {
+        console.warn("Auth metadata nickname update failed.", error);
+      });
     } catch (error) {
       console.warn("Nickname save failed after local update.", error);
-      setErrorMessage(
-        "Nickname updated on this device, but cloud save did not finish. Try again in a moment if the leaderboard name stays stale.",
-      );
+      setErrorMessage("Nickname updated on this device, but cloud save did not finish.");
     } finally {
       setSaveLoading(false);
     }
   }
 
   async function handleLogout() {
-    if (logoutLoading) {
-      return;
-    }
-
+    if (logoutLoading) return;
     try {
       setLogoutLoading(true);
       setErrorMessage(null);
@@ -141,52 +174,26 @@ export function ProfileScreen() {
       router.refresh();
       window.location.href = "/onboard";
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to log out right now.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Unable to log out right now.");
     } finally {
       setLogoutLoading(false);
     }
   }
 
   async function handleDeleteAccount() {
-    if (deleteLoading) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      "Delete this account permanently? This will remove your Google sign-in account for this app and clear this device's saved progress.",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
+    if (deleteLoading) return;
+    const confirmed = window.confirm("Delete this account permanently? This will remove your Google sign-in and clear saved progress.");
+    if (!confirmed) return;
     try {
       setDeleteLoading(true);
       setErrorMessage(null);
       setMessage(null);
       const supabase = getSupabaseBrowserClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error("You need to be signed in before deleting your account.");
-      }
-
-      const response = await fetch("/api/account/delete", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("You need to be signed in before deleting your account.");
+      const response = await fetch("/api/account/delete", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } });
       const result = (await response.json()) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(result.error || "Unable to delete your account.");
-      }
-
+      if (!response.ok) throw new Error(result.error || "Unable to delete your account.");
       await supabase.auth.signOut();
       clearNickname();
       clearCertificateId();
@@ -194,181 +201,151 @@ export function ProfileScreen() {
       setNicknameDraft("Learner");
       router.push("/onboard");
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to delete your account.",
-      );
+      setErrorMessage(error instanceof Error ? error.message : "Unable to delete your account.");
     } finally {
       setDeleteLoading(false);
     }
   }
 
   return (
-    <main
-      className="min-h-screen bg-[#f7faf8]"
-      style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
-    >
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 lg:px-8">
+    <main className="min-h-screen" style={{ fontFamily: sans, background: BG }}>
+      <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-8 lg:px-8">
         <div className="flex items-center justify-between">
           <StokedLogo />
-          <Link
-            href="/course"
-            className="rounded-2xl border-2 border-gray-200 bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-[#172b4d] shadow-[0_3px_0_#e5e7eb]"
-          >
-            Back to course
-          </Link>
+          <GhostBtn href="/course">Back to course</GhostBtn>
         </div>
 
-        <div className="mx-auto mt-10 w-full max-w-3xl">
+        <div className="mt-10 w-full">
           <div className="mb-8">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#22c55e]">
+            <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>
               Profile
             </p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-[#172b4d]">
-              Account and identity
+            <h1 style={{ fontSize: "clamp(28px,4vw,38px)", fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 8, letterSpacing: "-0.01em" }}>
+              Account
             </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-gray-500">
-              Manage your Google sign-in, edit the nickname that appears across the course,
-              and control this account from one place.
+            <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.6, marginTop: 8, maxWidth: 520 }}>
+              Manage your sign-in, display name, and account settings.
             </p>
           </div>
 
-          <div className="space-y-6">
-            <section className="rounded-[28px] border-2 border-[#dcfce7] bg-white p-6 shadow-[0_6px_0_#dcfce7]">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Google account */}
+            <SectionBlock>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
                 <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#22c55e]">
-                    Google account
-                  </p>
-                  <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
+                  <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>Google account</p>
+                  <h2 style={{ fontSize: 20, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 6 }}>
                     {signedInEmail ? "Connected" : "Not connected"}
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-gray-500">
-                    {signedInEmail
-                      ? `Signed in as ${signedInEmail}`
-                      : "Connect the same Google account you used on the older version."}
+                  <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 6 }}>
+                    {signedInEmail ? `Signed in as ${signedInEmail}` : "Connect a Google account to sync progress."}
                   </p>
                 </div>
                 {signedInEmail ? (
-                  <span className="rounded-full bg-[#f0fdf4] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#15803d]">
-                    Active session
-                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: EMERALD }}>Active</span>
                 ) : null}
               </div>
-
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {signedInEmail ? (
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    disabled={logoutLoading}
-                    className="rounded-2xl bg-[#22c55e] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#16a34a] disabled:cursor-not-allowed disabled:opacity-70"
-                  >
+                  <PrimaryBtn onClick={handleLogout} disabled={logoutLoading}>
                     {logoutLoading ? "Logging out..." : "Log out"}
-                  </button>
+                  </PrimaryBtn>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    disabled={googleLoading || authLoading}
-                    className="rounded-2xl border-2 border-gray-200 bg-white px-5 py-3 text-sm font-black uppercase tracking-wide text-[#172b4d] shadow-[0_4px_0_#e5e7eb] disabled:cursor-not-allowed disabled:opacity-70"
-                  >
+                  <PrimaryBtn onClick={handleGoogleSignIn} disabled={googleLoading || authLoading}>
                     {googleLoading ? "Connecting..." : "Continue with Google"}
-                  </button>
+                  </PrimaryBtn>
                 )}
               </div>
-            </section>
+            </SectionBlock>
 
-            <section className="rounded-[28px] border-2 border-gray-200 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                Username
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
+            {/* Username */}
+            <SectionBlock>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>Username</p>
+              <h2 style={{ fontSize: 20, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 6 }}>
                 {profile?.username ? `@${profile.username}` : "Set your username"}
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                Your username powers friends, private leaderboards, and saved identity across Stoked.
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 6 }}>
+                Your username is used for friends and leaderboards.
               </p>
-
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <Link
-                  className="rounded-2xl border-2 border-[#22c55e] bg-[#f0fdf4] px-5 py-3 text-sm font-black uppercase tracking-wide text-[#166534] shadow-[0_4px_0_#bbf7d0]"
-                  href="/username?next=/profile"
-                >
+              <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
+                <GhostBtn href="/username?next=/profile">
                   {profile?.username ? "Update username" : "Choose username"}
-                </Link>
+                </GhostBtn>
                 {!profile?.username || needsUsername ? (
-                  <span className="rounded-full bg-[#fef3c7] px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#92400e]">
-                    Required before continuing
-                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: "#f59e0b" }}>Required</span>
                 ) : null}
               </div>
-            </section>
+            </SectionBlock>
 
+            {/* Friends */}
             <FriendsPanel />
 
-            <section className="rounded-[28px] border-2 border-gray-200 bg-white p-6 shadow-[0_6px_0_#e5e7eb]">
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-400">
-                Display name
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
-                Change your nickname
+            {/* Nickname */}
+            <SectionBlock>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>Display name</p>
+              <h2 style={{ fontSize: 20, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 6 }}>
+                Nickname
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                This name appears naturally across the app and on your certificate.
-                {signedInName ? ` Google currently knows you as ${signedInName}.` : ""}
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 6 }}>
+                Shown across the app and on your certificate.
+                {signedInName ? ` Google knows you as ${signedInName}.` : ""}
               </p>
-
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }} className="sm:flex-row">
                 <input
                   type="text"
                   value={nicknameDraft}
                   onChange={(event) => setNicknameDraft(event.target.value)}
                   maxLength={20}
-                  className="min-w-0 flex-1 rounded-2xl border-2 border-gray-200 px-4 py-4 text-base font-semibold text-[#172b4d] outline-none"
                   placeholder="Your nickname"
+                  style={{
+                    flex: 1, minWidth: 0, padding: "12px 16px",
+                    borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)", color: CREAM,
+                    fontFamily: sans, fontSize: 15, fontWeight: 500,
+                    outline: "none",
+                  }}
                 />
-                <button
-                  type="button"
-                  onClick={handleSaveNickname}
-                  disabled={!nicknameReady || !isNicknameChanged || saveLoading}
-                  className="rounded-2xl bg-[#172b4d] px-5 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#0f172a] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {saveLoading ? "Saving..." : "Save nickname"}
-                </button>
+                <PrimaryBtn onClick={handleSaveNickname} disabled={!nicknameReady || !isNicknameChanged || saveLoading}>
+                  {saveLoading ? "Saving..." : "Save"}
+                </PrimaryBtn>
               </div>
-            </section>
+            </SectionBlock>
 
-            <section className="rounded-[28px] border-2 border-[#fecaca] bg-white p-6 shadow-[0_6px_0_#fee2e2]">
-              <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#dc2626]">
-                Danger zone
-              </p>
-              <h2 className="mt-2 text-2xl font-black text-[#172b4d]">
-                Delete this account
+            {/* Danger zone */}
+            <SectionBlock variant="danger">
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#ef4444" }}>Danger zone</p>
+              <h2 style={{ fontSize: 20, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 6 }}>
+                Delete account
               </h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">
-                Permanently delete the connected account and clear this device&apos;s saved
-                nickname, certificate ID, and course progress.
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 6 }}>
+                Permanently delete the connected account and clear all saved progress.
               </p>
               <button
                 type="button"
                 onClick={handleDeleteAccount}
                 disabled={!signedInEmail || deleteLoading}
-                className="mt-5 rounded-2xl bg-[#ef4444] px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#dc2626] disabled:cursor-not-allowed disabled:opacity-70"
+                style={{
+                  marginTop: 16, padding: "10px 22px", borderRadius: 10,
+                  border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.1)",
+                  color: "#f87171", fontFamily: sans, fontWeight: 500, fontSize: 14,
+                  cursor: !signedInEmail || deleteLoading ? "not-allowed" : "pointer",
+                  opacity: !signedInEmail || deleteLoading ? 0.5 : 1,
+                }}
               >
                 {deleteLoading ? "Deleting..." : "Delete account"}
               </button>
-            </section>
+            </SectionBlock>
 
+            {/* Messages */}
             {message ? (
-              <p className="rounded-2xl border-2 border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-sm font-semibold text-[#15803d]">
-                {message}
-              </p>
+              <div style={{ borderLeft: `3px solid ${EMERALD}`, paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
+                <p style={{ fontSize: 14, color: EMERALD }}>{message}</p>
+              </div>
             ) : null}
-
             {errorMessage ? (
-              <p className="rounded-2xl border-2 border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-sm font-semibold text-[#b91c1c]">
-                {errorMessage}
-              </p>
+              <div style={{ borderLeft: "3px solid #ef4444", paddingLeft: 16, paddingTop: 4, paddingBottom: 4 }}>
+                <p style={{ fontSize: 14, color: "#f87171" }}>{errorMessage}</p>
+              </div>
             ) : null}
           </div>
         </div>

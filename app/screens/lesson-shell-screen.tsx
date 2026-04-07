@@ -12,10 +12,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import type { CourseLesson, CourseModule } from "../data/course-data";
 import {
-  ClockIcon,
-  HeartIcon,
   LockIcon,
-  SparklesIcon,
   XIcon,
 } from "../components/icons";
 import { JourneyLink } from "../components/journey-link";
@@ -24,7 +21,6 @@ import { LessonCheckStep } from "../components/lesson-check-step";
 import { LessonLearnStep } from "../components/lesson-learn-step";
 import { LessonPracticeStep } from "../components/lesson-practice-step";
 import { LessonRewardStep } from "../components/lesson-reward-step";
-import { ProgressBar } from "../components/progress-bar";
 import {
   type DerivedLesson,
   type DerivedModule,
@@ -37,7 +33,6 @@ import {
 } from "../lib/lesson-experience";
 import {
   completeLesson,
-  getEffectiveHearts,
   getProgressWithCompletedLesson,
   getServerCourseProgressSnapshot,
   getStoredCourseProgress,
@@ -61,15 +56,15 @@ const stepSequence: PlayerStep[] = ["learn", "practice", "check", "reward"];
 
 function BossStepSkeleton({ label }: { label: string }) {
   return (
-    <div className="rounded-3xl border-2 border-gray-100 bg-white px-8 py-12 text-center shadow-[0_4px_0_#e5e5e5]">
-      <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#22c55e]">
-        Boss checkpoint
+    <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "#1a2942", padding: "48px 32px", textAlign: "center" }}>
+      <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.12em", color: "#10b981" }}>
+        Checkpoint
       </p>
-      <h2 className="mt-4 text-2xl font-black text-[#1a2b4a]">
-        Loading {label.toLowerCase()}...
+      <h2 style={{ marginTop: 16, fontSize: 22, fontWeight: 600, color: "#cbd5e1", fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)" }}>
+        Loading {label.toLowerCase()}…
       </h2>
-      <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">
-        Pulling in the checkpoint without blocking the rest of the lesson route.
+      <p style={{ marginTop: 12, maxWidth: 400, marginLeft: "auto", marginRight: "auto", fontSize: 14, lineHeight: 1.6, color: "#5f687a" }}>
+        Preparing the checkpoint.
       </p>
     </div>
   );
@@ -252,7 +247,6 @@ export function LessonShellScreen({
   const [phaseDirection, setPhaseDirection] = useState<"forward" | "back">("forward");
   const [phaseTransitionKey, setPhaseTransitionKey] = useState(0);
   const previousStepIndexRef = useRef(0);
-  const hearts = getEffectiveHearts(storedProgress, Boolean(user));
 
   function handleIncorrect(reviewPrompt: string) {
     addReviewPrompt(reviewPrompt);
@@ -388,18 +382,23 @@ export function LessonShellScreen({
 
     if (stepLesson.state === "locked" && !qaUnlocked) {
       return (
-        <div className="rounded-3xl border-2 border-gray-100 bg-white px-8 py-12 text-center shadow-[0_4px_0_#e5e5e5]">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-            <LockIcon className="h-7 w-7" />
+        <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", background: "#1a2942", padding: "48px 32px", textAlign: "center" }}>
+          <span style={{ display: "inline-flex", width: 56, height: 56, alignItems: "center", justifyContent: "center", borderRadius: 99, background: "rgba(255,255,255,0.04)", color: "#5f687a" }}>
+            <LockIcon className="h-6 w-6" />
           </span>
-          <h2 className="mt-5 text-2xl font-black text-[#1a2b4a]">
-            This lesson is still locked.
+          <h2 style={{ marginTop: 20, fontSize: 22, fontWeight: 600, color: "#cbd5e1", fontFamily: "var(--font-eb-garamond,'EB Garamond',Georgia,serif)" }}>
+            This lesson is still locked
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-gray-500">
-            Complete every lesson earlier in this module path before entering this screen.
+          <p style={{ marginTop: 12, maxWidth: 400, marginLeft: "auto", marginRight: "auto", fontSize: 14, lineHeight: 1.6, color: "#5f687a" }}>
+            Complete earlier lessons in this module to continue.
           </p>
           <JourneyLink
-            className="mt-8 inline-flex rounded-2xl bg-[#22c55e] px-7 py-4 text-sm font-black uppercase tracking-wide text-white shadow-[0_4px_0_#16a34a] transition-all hover:bg-[#1eb356] active:translate-y-[2px] active:shadow-[0_2px_0_#16a34a]"
+            className="mt-8 inline-flex items-center justify-center"
+            style={{
+              padding: "0 28px", height: 48, borderRadius: 10, fontSize: 14, fontWeight: 500,
+              color: "#111", background: "#e8e2d4", border: "none", letterSpacing: "0.01em",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
+            }}
             href="/course"
             intent="return"
             prefetch={false}
@@ -720,18 +719,22 @@ export function LessonShellScreen({
     );
   }
 
+  const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+  const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
   return (
     <JourneySurface surface="lesson">
       <div
-        className="min-h-screen bg-white"
-        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
+        className="min-h-screen"
+        style={{ fontFamily: sans, background: "#0a0f1a" }}
       >
-        {/* ── Duolingo-style top bar ──────────────────────────── */}
-        <header className="sticky top-0 z-40 border-b-2 border-gray-100 bg-white">
-          <div className="mx-auto flex h-16 max-w-3xl items-center gap-4 px-4">
-            {/* X / close */}
+        {/* ── Top bar ──────────────────────────────────────────── */}
+        <header className="sticky top-0 z-40" style={{ background: "rgba(10,15,26,0.92)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="mx-auto flex h-14 max-w-3xl items-center gap-4 px-4">
+            {/* Close */}
             <JourneyLink
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
+              style={{ color: "#5f687a" }}
               href="/course"
               intent="return"
               prefetch={false}
@@ -742,51 +745,30 @@ export function LessonShellScreen({
 
             {/* Progress bar */}
             <div className={`lesson-phase-progress flex-1 ${phaseTransitionKey ? "is-shifting" : ""}`}>
-              <ProgressBar className="h-4 bg-gray-100" value={stepProgress} />
+              <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${stepProgress}%`, borderRadius: 99, background: "#10b981", transition: "width 400ms cubic-bezier(0.22,1,0.36,1)" }} />
+              </div>
             </div>
 
-            {/* Hearts */}
-            <div className="flex flex-shrink-0 items-center gap-1">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <HeartIcon
-                  key={n}
-                  className={`h-5 w-5 ${n <= hearts ? "text-[#ef4444]" : "text-gray-200"}`}
-                  style={{ fill: n <= hearts ? "#ef4444" : "#e5e7eb", stroke: "none" }}
-                />
-              ))}
-            </div>
+            {/* Step indicator */}
+            <span style={{ fontSize: 12, fontWeight: 500, color: "#5f687a", fontVariantNumeric: "tabular-nums" }}>
+              {currentStepIndex + 1}/{stepSequence.length}
+            </span>
           </div>
 
-          {/* Lesson meta strip */}
-          <div
-            className="border-t border-gray-50 px-4 py-2"
-            style={{ background: `linear-gradient(90deg, ${module.accentSoft} 0%, #ffffff 80%)` }}
-          >
-            <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <p className="text-xs font-black uppercase tracking-wider" style={{ color: module.accentColor }}>
-                  Module {module.id} · Lesson {lesson.lessonNumber}
-                </p>
-                <span className="hidden text-xs font-semibold text-gray-500 sm:block">
-                  {lesson.title}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-1 text-xs font-bold text-gray-600 shadow-sm">
-                  <ClockIcon className="h-3 w-3" />
-                  {lesson.estimatedTime}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black" style={{ background: module.accentSoft, color: module.accentColor }}>
-                  <SparklesIcon className="h-3 w-3" />
-                  {lesson.xp} XP
-                </span>
-              </div>
-            </div>
+          {/* Lesson context — inline with close/progress row */}
+          <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 pb-2" style={{ paddingLeft: 52 }}>
+            <span style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "#3d4654", textTransform: "uppercase" }}>
+              {module.id}.{lesson.lessonNumber}
+            </span>
+            <span className="hidden sm:block" style={{ fontSize: 12, fontWeight: 400, color: "#3d4654" }}>
+              {lesson.title}
+            </span>
           </div>
         </header>
 
         {/* ── Lesson content ───────────────────────────────────── */}
-        <main className="mx-auto max-w-3xl px-4 py-10">
+        <main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
           <div
             className="lesson-stage lesson-phase-stage"
             data-direction={phaseDirection}

@@ -32,6 +32,14 @@ type LessonCheckStepProps =
   | LegacyLessonCheckStepProps
   | ModernLessonCheckStepProps;
 
+const EMERALD = "#10b981";
+const CREAM = "#e8e2d4";
+const TEXT = "#cbd5e1";
+const MUTED = "#94a3b8";
+const DIM = "#5f687a";
+const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
 export function LessonCheckStep(props: LessonCheckStepProps) {
   const content = (
     "content" in props
@@ -140,7 +148,6 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     setShowFeedback(false);
   }
 
-  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
   const letters = ["A", "B", "C", "D", "E", "F"];
 
   function optionStyle(
@@ -148,27 +155,23 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     showCorrect: boolean,
     showIncorrect: boolean,
   ): CSSProperties {
-    let bg = "#fff";
-    let border = "#e5e7eb";
-    let shadow = "0 4px 0 #e5e7eb";
-    let color = "#172b4d";
+    let bg = "rgba(255,255,255,0.03)";
+    let border = "rgba(255,255,255,0.06)";
+    let color = TEXT;
     if (showCorrect) {
-      bg = "#f0fdf4";
-      border = "#22c55e";
-      shadow = "none";
-      color = "#15803d";
+      bg = "rgba(16,185,129,0.12)";
+      border = EMERALD;
+      color = EMERALD;
     }
     if (showIncorrect) {
-      bg = "#fff1f2";
-      border = "#f43f5e";
-      shadow = "none";
-      color = "#be123c";
+      bg = "rgba(239,68,68,0.12)";
+      border = "#ef4444";
+      color = "#f87171";
     }
     if (active && !showFeedback) {
-      bg = "#eff6ff";
-      border = "#3b82f6";
-      shadow = "0 4px 0 #93c5fd";
-      color = "#1d4ed8";
+      bg = "rgba(16,185,129,0.08)";
+      border = "rgba(16,185,129,0.5)";
+      color = CREAM;
     }
 
     return {
@@ -180,13 +183,12 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
       textAlign: "left",
       padding: "12px 14px",
       background: bg,
-      border: `2px solid ${border}`,
-      borderRadius: 16,
-      boxShadow: shadow,
+      border: `1px solid ${border}`,
+      borderRadius: 10,
       color,
-      fontFamily: font,
-      fontSize: "clamp(14px, 2vw, 16px)" as string,
-      fontWeight: 600,
+      fontFamily: sans,
+      fontSize: "clamp(14px, 2vw, 15px)" as string,
+      fontWeight: 500,
       cursor: "pointer",
       transition: "all 150ms",
     };
@@ -197,33 +199,24 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     showCorrect: boolean,
     showIncorrect: boolean,
   ): CSSProperties {
-    const border = showCorrect
-      ? "#22c55e"
-      : showIncorrect
-        ? "#f43f5e"
-        : active
-          ? "#3b82f6"
-          : "#e5e7eb";
+    let bg = "rgba(255,255,255,0.07)";
+    let color = DIM;
+    if (showCorrect) { bg = EMERALD; color = "#fff"; }
+    if (showIncorrect) { bg = "#ef4444"; color = "#fff"; }
+    if (active && !showFeedback && !showCorrect && !showIncorrect) { bg = EMERALD; color = "#fff"; }
 
     return {
       flexShrink: 0,
-      width: 32,
-      height: 32,
-      borderRadius: 8,
-      border: `2px solid ${border}`,
-      background: active || showCorrect || showIncorrect
-        ? showCorrect
-          ? "#22c55e"
-          : showIncorrect
-            ? "#f43f5e"
-            : "#3b82f6"
-        : "#f3f4f6",
-      color: active || showCorrect || showIncorrect ? "#fff" : "#6b7280",
+      width: 28,
+      height: 28,
+      borderRadius: 6,
+      background: bg,
+      color,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      fontWeight: 800,
-      fontSize: 13,
+      fontWeight: 600,
+      fontSize: 12,
     };
   }
 
@@ -232,24 +225,16 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
     ? isCorrect
       ? isRapidFire
         ? isLastRapidFireCase
-          ? "Continue →"
-          : "Next check →"
-        : "Continue →"
+          ? "Continue"
+          : "Next"
+        : "Continue"
       : "Try again"
     : "Check answer";
 
   return (
-    <div style={{ fontFamily: font }}>
+    <div style={{ fontFamily: sans }}>
       <div style={{ marginBottom: 8 }}>
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 800,
-            textTransform: "uppercase",
-            letterSpacing: "0.12em",
-            color: "#6b7280",
-          }}
-        >
+        <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM }}>
           {isRapidFire ? "Rapid check" : "Check your knowledge"}
         </span>
       </div>
@@ -261,36 +246,35 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
               <span
                 key={item.id}
                 style={{
-                  width: index === caseIndex ? 20 : 10,
-                  height: 10,
+                  width: index === caseIndex ? 20 : 8,
+                  height: 8,
                   borderRadius: 99,
-                  background: index < caseIndex ? "#22c55e" : index === caseIndex ? "#86efac" : "#e5e7eb",
+                  background: index < caseIndex ? EMERALD : index === caseIndex ? "rgba(16,185,129,0.5)" : "rgba(255,255,255,0.08)",
                   transition: "all 220ms",
                 }}
               />
             ))}
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
-            {caseIndex + 1} / {rapidFireCases.length}
+          <span style={{ fontSize: 11, fontWeight: 500, color: DIM, fontVariantNumeric: "tabular-nums" }}>
+            {caseIndex + 1}/{rapidFireCases.length}
           </span>
         </div>
       ) : null}
 
-      <h2
-        style={{
-          fontSize: "clamp(20px,3vw,30px)",
-          fontWeight: 900,
-          color: "#172b4d",
-          letterSpacing: "-0.5px",
-          marginBottom: 24,
-          lineHeight: 1.25,
-        }}
-      >
+      <h2 style={{
+        fontSize: "clamp(20px,3vw,30px)",
+        fontFamily: serif,
+        fontWeight: 600,
+        color: CREAM,
+        letterSpacing: "-0.01em",
+        marginBottom: 24,
+        lineHeight: 1.2,
+      }}>
         {prompt}
       </h2>
 
       {answerType === "truefalse" ? (
-        <div key={`${prompt}-tf`} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+        <div key={`${prompt}-tf`} style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
           {[{ value: true, label: "True" }, { value: false, label: "False" }].map((option, idx) => {
             const active = selectedAnswer === option.value;
             const showCorrect = showFeedback && option.value === currentCorrectAnswer;
@@ -301,6 +285,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
                 ref={(el) => {
                   if (el) cardRefs.current.set(String(option.value), el);
                 }}
+                className={!active && !showFeedback ? "lesson-option" : undefined}
                 onClick={() => {
                   setSelectedAnswer(option.value);
                   if (showFeedback) setShowFeedback(false);
@@ -317,7 +302,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
           })}
         </div>
       ) : (
-        <div key={`${prompt}-${caseIndex}`} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+        <div key={`${prompt}-${caseIndex}`} style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
           {optionList.map((option, idx) => {
             const active = selectedAnswer === option.id;
             const showCorrect = showFeedback && option.correct;
@@ -328,6 +313,7 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
                 ref={(el) => {
                   if (el) cardRefs.current.set(option.id, el);
                 }}
+                className={!active && !showFeedback ? "lesson-option" : undefined}
                 onClick={() => {
                   setSelectedAnswer(option.id);
                   if (showFeedback) setShowFeedback(false);
@@ -346,26 +332,21 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
       )}
 
       {showFeedback ? (
-        <div
-          style={{
-            borderRadius: 16,
-            padding: "12px 14px",
-            marginBottom: 16,
-            background: isCorrect ? "#f0fdf4" : "#fff1f2",
-            border: `2px solid ${isCorrect ? "#22c55e" : "#f43f5e"}`,
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 800,
-              fontSize: 15,
-              color: isCorrect ? "#15803d" : "#be123c",
-              marginBottom: 4,
-            }}
-          >
-            {isCorrect ? "Correct!" : "Not quite"}
+        <div style={{
+          borderLeft: `3px solid ${isCorrect ? EMERALD : "#ef4444"}`,
+          paddingLeft: 16,
+          paddingRight: 16,
+          paddingTop: 12,
+          paddingBottom: 12,
+          marginBottom: 16,
+          background: isCorrect ? "rgba(16,185,129,0.04)" : "rgba(239,68,68,0.04)",
+          borderRadius: "0 8px 8px 0",
+          animation: "lessonStepEnter 280ms cubic-bezier(0.22,1,0.36,1) both",
+        }}>
+          <div style={{ fontWeight: 600, fontSize: 15, color: isCorrect ? EMERALD : "#f87171", marginBottom: 6 }}>
+            {isCorrect ? "Correct" : "Not quite"}
           </div>
-          <div style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>
+          <div style={{ fontSize: 14, color: TEXT, lineHeight: 1.6 }}>
             {capitalizeLead(feedbackText)}
           </div>
         </div>
@@ -378,18 +359,17 @@ export function LessonCheckStep(props: LessonCheckStepProps) {
           onClick={showFeedback ? handleAdvance : handleSubmit}
           style={{
             width: "100%",
-            padding: "16px",
-            fontFamily: font,
-            fontWeight: 800,
-            fontSize: 16,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: "#fff",
+            padding: "14px",
+            fontFamily: sans,
+            fontWeight: 500,
+            fontSize: 14,
+            letterSpacing: "0.01em",
+            color: (showFeedback || canSubmit) ? "#111" : DIM,
             border: "none",
-            borderRadius: 16,
+            borderRadius: 10,
             cursor: showFeedback || canSubmit ? "pointer" : "not-allowed",
-            background: showFeedback || canSubmit ? "#22c55e" : "#d1d5db",
-            boxShadow: showFeedback || canSubmit ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3",
+            background: (showFeedback || canSubmit) ? CREAM : "rgba(255,255,255,0.06)",
+            boxShadow: (showFeedback || canSubmit) ? "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)" : "none",
             transition: "all 200ms",
             animation: showFeedback && isCorrect ? "ha-slam-in 320ms cubic-bezier(0.22,1,0.36,1) both" : undefined,
           }}

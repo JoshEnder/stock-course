@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +9,14 @@ import { queueRoadmapLoginGate } from "@/app/lib/post-onboarding-login-gate";
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const F_SERIF = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const F_SANS  = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-const GREEN   = "#22FF00";
-const BG      = "#0F172A";
+const EMERALD = "#10b981";
+const EMERALD_GLOW = "rgba(16,185,129,0.5)";
+const BG      = "#0a0f1a";
+const SURFACE = "#1a2942";
+const SURFACE_HOVER = "#253449";
+const CREAM   = "#e8e2d4";
+const MUTED   = "#cbd5e1";
+const BODY    = "#e2e8f0";
 
 // ─── Questions ────────────────────────────────────────────────────────────────
 interface Opt { value: string; label: string }
@@ -21,32 +26,32 @@ type Answers  = Partial<Record<Q["id"], string>>;
 const QUESTIONS: Q[] = [
   {
     id: "experienceLevel",
-    text: "What's your experience level with stocks?",
+    text: "Where are you starting?",
     options: [
-      { value: "new",      label: "Complete beginner"  },
-      { value: "basics",   label: "Some experience"    },
-      { value: "explored", label: "Pretty comfortable" },
-      { value: "deeper",   label: "Very experienced"   },
+      { value: "new",      label: "Completely new to this"            },
+      { value: "basics",   label: "I know the basics"                 },
+      { value: "explored", label: "Fairly comfortable"                },
+      { value: "deeper",   label: "Well experienced"                  },
     ],
   },
   {
     id: "goal",
-    text: "Why are you learning about stocks?",
+    text: "What brought you here?",
     options: [
-      { value: "wealth",      label: "Build wealth over time"      },
-      { value: "understand",  label: "Understand investing better" },
-      { value: "opportunity", label: "Find good opportunities"     },
-      { value: "exploring",   label: "Just curious"                },
+      { value: "wealth",      label: "Build long-term wealth"         },
+      { value: "understand",  label: "Understand how markets work"    },
+      { value: "opportunity", label: "Spot real opportunities"        },
+      { value: "exploring",   label: "Just exploring"                 },
     ],
   },
   {
     id: "learningStyle",
     text: "How do you learn best?",
     options: [
-      { value: "structure", label: "Step by step"               },
-      { value: "doing",     label: "Learning by doing"          },
-      { value: "concepts",  label: "Understanding theory first" },
-      { value: "mix",       label: "A mix of everything"        },
+      { value: "structure", label: "Step by step"                     },
+      { value: "doing",     label: "Hands-on first"                   },
+      { value: "concepts",  label: "Theory before practice"           },
+      { value: "mix",       label: "A bit of everything"              },
     ],
   },
 ];
@@ -62,9 +67,9 @@ const CSS = `
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #0F172A 0%, #0a1929 35%, #0d1f2d 65%, #0F172A 100%);
+  background: linear-gradient(135deg, #0a0f1a 0%, #0d1525 35%, #111b2e 65%, #0a0f1a 100%);
   background-size: 300% 300%;
-  animation: obMesh 9s ease infinite;
+  animation: obMesh 12s ease infinite;
   position: relative;
 }
 .ob-noise {
@@ -73,13 +78,13 @@ const CSS = `
   pointer-events: none;
   z-index: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E");
-  opacity: 0.018;
+  opacity: 0.022;
 }
 `;
 
 function useInjectCSS() {
   useEffect(() => {
-    const id = "ob-css-v3";
+    const id = "ob-css-v4";
     if (document.getElementById(id)) return;
     const el = document.createElement("style");
     el.id = id;
@@ -93,27 +98,25 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
   const pct = (step / total) * 100;
   return (
     <div style={{ width: "100%", flexShrink: 0, position: "relative", zIndex: 10 }}>
-      {/* Step label */}
       <div style={{
         display: "flex", justifyContent: "flex-end",
         padding: "18px 24px 10px",
         fontFamily: F_SANS, fontSize: 11, fontWeight: 700,
         letterSpacing: "0.16em", textTransform: "uppercase" as const,
-        color: GREEN,
+        color: EMERALD,
       }}>
         STEP {String(step).padStart(2,"0")} / {String(total).padStart(2,"0")}
       </div>
-      {/* Track */}
-      <div style={{ width: "100%", height: 1.5, background: "rgba(255,255,255,0.08)" }}>
+      <div style={{ width: "100%", height: 1.5, background: "rgba(255,255,255,0.06)" }}>
         <motion.div
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-          style={{ height: "100%", background: GREEN, position: "relative" }}
+          style={{ height: "100%", background: EMERALD, position: "relative" }}
         >
           <div style={{
             position: "absolute", right: -3, top: "50%", transform: "translateY(-50%)",
-            width: 6, height: 6, borderRadius: "50%", background: GREEN,
-            boxShadow: `0 0 8px rgba(34,255,0,0.9), 0 0 16px rgba(34,255,0,0.5)`,
+            width: 6, height: 6, borderRadius: "50%", background: EMERALD,
+            boxShadow: `0 0 8px ${EMERALD_GLOW}, 0 0 14px rgba(16,185,129,0.3)`,
           }} />
         </motion.div>
       </div>
@@ -158,24 +161,22 @@ function OptionBtn({ opt, index, selected, dimmed, locked, onSelect }: {
         width: "100%", height: 56, padding: "0 20px",
         borderRadius: 12,
         border: selected
-          ? `1.5px solid ${GREEN}`
+          ? `1.5px solid ${EMERALD}`
           : hovering
-          ? "1.5px solid rgba(34,255,0,0.5)"
-          : "1px solid rgba(255,255,255,0.12)",
+          ? `1.5px solid rgba(16,185,129,0.35)`
+          : `1px solid rgba(255,255,255,0.10)`,
         background: selected
-          ? "rgba(34,255,0,0.10)"
+          ? "rgba(16,185,129,0.14)"
           : hovering
-          ? "rgba(34,255,0,0.07)"
-          : "rgba(255,255,255,0.05)",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
+          ? SURFACE_HOVER
+          : SURFACE,
         boxShadow: selected
-          ? `0 0 22px rgba(34,255,0,0.30), inset 0 1px 0 rgba(255,255,255,0.06)`
+          ? `0 0 20px rgba(16,185,129,0.25), inset 0 1px 0 rgba(255,255,255,0.05)`
           : hovering
-          ? "0 0 20px rgba(34,255,0,0.18)"
-          : "inset 0 1px 0 rgba(255,255,255,0.04)",
+          ? "0 0 12px rgba(16,185,129,0.10)"
+          : `0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)`,
         fontFamily: F_SANS, fontSize: 16, fontWeight: 500,
-        color: selected ? "#fff" : "rgba(255,255,255,0.88)",
+        color: selected ? "#fff" : BODY,
         cursor: locked ? "default" : "pointer",
         outline: "none",
         pointerEvents: locked ? "none" : "auto",
@@ -192,7 +193,7 @@ function OptionBtn({ opt, index, selected, dimmed, locked, onSelect }: {
             transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              stroke={EMERALD} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </motion.span>
@@ -215,18 +216,18 @@ function QuestionScreen({ q, qIdx, selected, onSelect }: {
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         style={{
           fontFamily: F_SERIF,
-          fontSize: "clamp(26px, 4vw, 44px)",
+          fontSize: "clamp(26px, 4vw, 40px)",
           fontWeight: 600,
-          color: "#ffffff",
-          letterSpacing: "-0.025em",
-          lineHeight: 1.12,
-          margin: "0 0 32px",
+          color: CREAM,
+          letterSpacing: "-0.02em",
+          lineHeight: 1.14,
+          margin: "0 0 28px",
         }}
       >
         {q.text}
       </motion.h2>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {q.options.map((opt, i) => (
           <OptionBtn
             key={opt.value} opt={opt} index={i}
@@ -243,52 +244,38 @@ function QuestionScreen({ q, qIdx, selected, onSelect }: {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.4 }}
         style={{
-          fontFamily: F_SANS, fontSize: 12,
-          fontStyle: "italic", color: "#94A3B8",
-          marginTop: 20, textAlign: "center",
+          fontFamily: F_SANS, fontSize: 13,
+          fontStyle: "italic", color: MUTED,
+          marginTop: 18, textAlign: "center",
         }}
       >
-        {qIdx === 0 && "Your path adapts to where you're starting."}
-        {qIdx === 1 && "We tailor lessons around what matters to you."}
-        {qIdx === 2 && "Your course is built around how you learn."}
+        {qIdx === 0 && "This shapes where your course begins."}
+        {qIdx === 1 && "We build around what matters to you."}
+        {qIdx === 2 && "Your course adapts to how you think."}
       </motion.p>
     </div>
   );
 }
 
-// ─── Message pool ─────────────────────────────────────────────────────────────
+// ─── Message pool ────────────────────────────────────────────────────────────
 const MSG_POOL = [
-  "Analyzing your profile...",
+  "Building your curriculum...",
+  "Mapping your path...",
   "Processing your answers...",
-  "Building your foundation...",
-  "Mapping your climb...",
-  "Creating your path...",
-  "Preparing your lessons...",
-  "Tailoring your experience...",
-  "Setting up your journey...",
-  "Customizing your roadmap...",
-  "Fine-tuning your course...",
-  "Getting you ready...",
-  "Learning your preferences...",
-  "Mapping your journey...",
-  "Unlocking your roadmap...",
-  "Finalizing your path...",
+  "Preparing your course...",
+  "Shaping your experience...",
+  "Setting things up...",
+  "Configuring lessons...",
+  "Tailoring your content...",
+  "Laying the groundwork...",
+  "Personalizing your route...",
+  "Analyzing your profile...",
+  "Calibrating difficulty...",
+  "Structuring your modules...",
+  "Fine-tuning your plan...",
+  "Almost ready...",
   "One more moment...",
 ];
-
-// ─── Reveal config ───────────────────────────────────────────────────────────
-// Node positions in SVG viewBox 0 0 100 100 (preserveAspectRatio="none").
-// Calibrated to land on the visible path in upscale.png at typical 16:9.
-const REVEAL_NODES = [
-  { x:  9, y: 72 }, { x: 18, y: 65 }, { x: 27, y: 58 },
-  { x: 36, y: 51 }, { x: 44, y: 45 }, { x: 52, y: 39 },
-  { x: 59, y: 33 }, { x: 66, y: 27 }, { x: 73, y: 21 },
-  { x: 79, y: 16 },
-] as const;
-
-const EXP_TO_REVEAL_NODES: Record<string, number> = {
-  new: 4, basics: 6, explored: 8, deeper: 10,
-};
 
 function pickMessages(): [string, string, string] {
   const shuffled = [...MSG_POOL].sort(() => Math.random() - 0.5);
@@ -307,21 +294,13 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
 
   useEffect(() => {
     const T: ReturnType<typeof setTimeout>[] = [];
-    //  0.5s  message 1 appears
     T.push(setTimeout(() => { setMsgText(msgs[0]); setMsgKey(k => k + 1); },  500));
-    //  2.0s  message 1 fades (blank = natural pause)
     T.push(setTimeout(() => { setMsgText("");      setMsgKey(k => k + 1); }, 2000));
-    //  2.2s  message 2 appears
     T.push(setTimeout(() => { setMsgText(msgs[1]); setMsgKey(k => k + 1); }, 2200));
-    //  3.8s  message 2 fades
     T.push(setTimeout(() => { setMsgText("");      setMsgKey(k => k + 1); }, 3800));
-    //  4.0s  message 3 appears
     T.push(setTimeout(() => { setMsgText(msgs[2]); setMsgKey(k => k + 1); }, 4000));
-    //  5.6s  message 3 fades
     T.push(setTimeout(() => { setMsgText("");      setMsgKey(k => k + 1); }, 5600));
-    //  5.8s  dots fade out
     T.push(setTimeout(() => setDotsVisible(false),                            5800));
-    //  6.0s  button fades in (200ms after dots gone)
     T.push(setTimeout(() => setShowButton(true),                              6000));
     return () => T.forEach(clearTimeout);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -349,18 +328,18 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
         style={{
           width: "100%", maxWidth: 480,
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(26,41,66,0.85)",
+          border: `1px solid rgba(255,255,255,0.08)`,
           borderRadius: 24, padding: "56px 44px 52px",
           display: "flex", flexDirection: "column", alignItems: "center", gap: 36,
-          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-          boxShadow: "0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
+          backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+          boxShadow: "0 40px 100px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.05) inset",
         }}
       >
         {/* ── Fixed-height slot holds dots OR button — no layout shift ── */}
         <div style={{ width: "100%", minHeight: 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 36 }}>
 
-          {/* Pulsing dots — fade out before button arrives */}
+          {/* Pulsing dots */}
           <AnimatePresence>
             {dotsVisible && (
               <motion.div
@@ -377,8 +356,8 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
                     transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.28 }}
                     style={{
                       width: 10, height: 10, borderRadius: "50%",
-                      background: GREEN,
-                      boxShadow: `0 0 10px rgba(34,255,0,0.7)`,
+                      background: EMERALD,
+                      boxShadow: `0 0 10px ${EMERALD_GLOW}`,
                     }}
                   />
                 ))}
@@ -386,7 +365,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
             )}
           </AnimatePresence>
 
-          {/* Button — arrives after dots are gone */}
+          {/* CTA button — warm cream, matching hero */}
           <AnimatePresence>
             {showButton && (
               <motion.div
@@ -403,44 +382,43 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
                   disabled={btnLoading}
                   style={{
                     width: "100%", height: 56, borderRadius: 12, border: "none",
-                    background: GREEN, color: "#050f00",
-                    fontFamily: F_SANS, fontSize: 16, fontWeight: 700,
-                    letterSpacing: "0.01em",
+                    background: CREAM, color: "#111111",
+                    fontFamily: F_SANS, fontSize: 15, fontWeight: 600,
+                    letterSpacing: "0.012em",
                     cursor: btnLoading ? "default" : "pointer",
                     outline: "none",
-                    boxShadow: `0 0 24px rgba(34,255,0,0.5), 0 0 56px rgba(34,255,0,0.16), 0 4px 16px rgba(0,0,0,0.3)`,
+                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28), 0 8px 28px rgba(0,0,0,0.22)`,
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     opacity: btnLoading ? 0.75 : 1,
-                    transition: "opacity 0.2s",
+                    transition: "opacity 0.2s, background-color 0.18s, transform 0.18s",
                   }}
                 >
                   {btnLoading ? (
                     <>
-                      {/* Inline spinner */}
                       <motion.span
                         animate={{ rotate: 360 }}
                         transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                         style={{ display: "inline-block", width: 16, height: 16, borderRadius: "50%",
-                          border: "2px solid rgba(5,15,0,0.3)", borderTopColor: "#050f00" }}
+                          border: "2px solid rgba(17,17,17,0.3)", borderTopColor: "#111111" }}
                       />
                       Loading...
                     </>
                   ) : (
-                    "See Your Climb →"
+                    "Continue"
                   )}
                 </motion.button>
                 <p style={{
-                  fontFamily: F_SANS, fontSize: 12, color: "#94A3B8",
+                  fontFamily: F_SANS, fontSize: 12, color: MUTED,
                   textAlign: "center", margin: "10px 0 0", fontStyle: "italic",
                 }}>
-                  Your personalized path is ready.
+                  Your course is ready.
                 </p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* ── Message — fixed-height, no layout shift ───────────────── */}
+        {/* ── Message ───────────────────────────────────────────────── */}
         <div style={{ height: 24, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
           <AnimatePresence mode="wait">
             {msgText && (
@@ -452,7 +430,7 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
                 transition={{ duration: 0.15, ease: "easeOut" }}
                 style={{
                   fontFamily: F_SANS, fontSize: 15, fontWeight: 400,
-                  color: "#ffffff", letterSpacing: "0.4px",
+                  color: BODY, letterSpacing: "0.4px",
                   margin: 0, textAlign: "center", whiteSpace: "nowrap",
                 }}
               >
@@ -462,166 +440,6 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
           </AnimatePresence>
         </div>
       </motion.div>
-    </motion.div>
-  );
-}
-
-// ─── Reveal screen — cinematic entrance before /course ───────────────────────
-function RevealScreen({ experienceLevel, onDone }: {
-  experienceLevel: string;
-  onDone: () => void;
-}) {
-  const nodeCount = EXP_TO_REVEAL_NODES[experienceLevel] ?? 6;
-  const [imgSharp,      setImgSharp]      = useState(false);
-  const [visibleNodes,  setVisibleNodes]  = useState(0);
-  const [drawLine,      setDrawLine]      = useState(false);
-  const [showTagline,   setShowTagline]   = useState(false);
-
-  const pathD = REVEAL_NODES.slice(0, nodeCount)
-    .map((n, i) => `${i === 0 ? "M" : "L"} ${n.x} ${n.y}`)
-    .join(" ");
-
-  const ghostD = REVEAL_NODES
-    .map((n, i) => `${i === 0 ? "M" : "L"} ${n.x} ${n.y}`)
-    .join(" ");
-
-  useEffect(() => {
-    const T: ReturnType<typeof setTimeout>[] = [];
-
-    T.push(setTimeout(() => setImgSharp(true), 80));
-
-    // Nodes pop in from 600ms, 80ms apart
-    for (let i = 0; i < nodeCount; i++) {
-      T.push(setTimeout(() => setVisibleNodes(v => v + 1), 600 + i * 80));
-    }
-
-    const allNodesAt = 600 + nodeCount * 80;
-
-    // Line draws 100ms after last node
-    T.push(setTimeout(() => setDrawLine(true), allNodesAt + 100));
-
-    // Tagline appears when line starts
-    T.push(setTimeout(() => setShowTagline(true), allNodesAt + 200));
-
-    // Navigate after line (1000ms) + hold (800ms)
-    T.push(setTimeout(onDone, allNodesAt + 100 + 1000 + 800));
-
-    return () => T.forEach(clearTimeout);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      style={{ position: "fixed", inset: 0, zIndex: 70, overflow: "hidden" }}
-    >
-      {/* Mountain image — blurs clear as it enters */}
-      <Image
-        src="/ref/upscale.png" alt="" fill priority
-        style={{
-          objectFit: "contain",
-          objectPosition: "center",
-          filter: imgSharp
-            ? "brightness(0.68) blur(0px)"
-            : "brightness(0.42) blur(22px)",
-          transition: "filter 1.1s cubic-bezier(0.22, 1, 0.36, 1)",
-        }}
-        sizes="100vw"
-      />
-
-      {/* Atmospheric scrim */}
-      <div style={{
-        position: "absolute", inset: 0,
-        background: "linear-gradient(to top, rgba(4,8,14,0.55) 0%, rgba(4,8,14,0.18) 50%, rgba(4,8,14,0.36) 100%)",
-      }} />
-
-      {/* SVG overlay — ghost path + animated nodes + drawing line */}
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", overflow: "visible" }}
-      >
-        <defs>
-          <filter id="rvGlow" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="b1"/>
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2"   result="b2"/>
-            <feMerge>
-              <feMergeNode in="b2"/>
-              <feMergeNode in="b1"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Dim ghost — full path always present */}
-        <path d={ghostD} fill="none"
-          stroke="rgba(255,255,255,0.06)" strokeWidth="0.35"
-          strokeLinecap="round" strokeLinejoin="round"
-        />
-
-        {/* Neon line draws from node 1 to user's level */}
-        {drawLine && (
-          <motion.path
-            d={pathD} fill="none" stroke={GREEN} strokeWidth="0.55"
-            strokeLinecap="round" strokeLinejoin="round"
-            filter="url(#rvGlow)"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{
-              pathLength: { duration: 1.0, ease: [0.22, 1, 0.36, 1] },
-              opacity:    { duration: 0.18 },
-            }}
-          />
-        )}
-
-        {/* Nodes pop in one by one */}
-        {REVEAL_NODES.slice(0, visibleNodes).map((node, i) => (
-          <motion.circle
-            key={i}
-            cx={node.x} cy={node.y} r="1.1"
-            fill={GREEN}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 18, duration: 0.3 }}
-            style={{
-              filter: `drop-shadow(0 0 1.5px ${GREEN})`,
-              transformOrigin: `${node.x}px ${node.y}px`,
-            }}
-          />
-        ))}
-      </svg>
-
-      {/* Tagline — appears when line starts drawing */}
-      <AnimatePresence>
-        {showTagline && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              position: "absolute",
-              bottom: "10%", left: 0, right: 0,
-              display: "flex", justifyContent: "center",
-              pointerEvents: "none",
-            }}
-          >
-            <p style={{
-              fontFamily: F_SERIF,
-              fontSize: "clamp(18px, 2.4vw, 26px)",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.88)",
-              letterSpacing: "-0.02em",
-              margin: 0,
-              textShadow: "0 2px 20px rgba(0,0,0,0.7)",
-            }}>
-              Your climb starts here.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
@@ -639,7 +457,6 @@ export default function OnboardingContainer({ onFinish }: OnboardingContainerPro
   const [answers,      setAnswers]       = useState<Answers>({});
   const [pending,      setPending]       = useState<string | null>(null);
   const [loading,      setLoading]       = useState(false);
-  const [revealing,    setRevealing]     = useState(false);
   const [savedAnswers, setSavedAnswers]  = useState<Answers>({});
 
   const currentQ    = QUESTIONS[qIdx];
@@ -691,10 +508,10 @@ export default function OnboardingContainer({ onFinish }: OnboardingContainerPro
               justifyContent: "center", padding: "32px 24px 64px",
               overflowY: "auto", position: "relative", zIndex: 1,
             }}>
-              {/* Atmospheric glow */}
+              {/* Atmospheric glow — subtle emerald */}
               <div aria-hidden style={{
                 position: "fixed", inset: 0, pointerEvents: "none",
-                background: "radial-gradient(ellipse at 50% 40%, rgba(34,255,0,0.03) 0%, transparent 65%)",
+                background: "radial-gradient(ellipse at 50% 40%, rgba(16,185,129,0.025) 0%, transparent 65%)",
               }} />
 
               <AnimatePresence mode="wait">
@@ -723,19 +540,7 @@ export default function OnboardingContainer({ onFinish }: OnboardingContainerPro
 
       <AnimatePresence>
         {loading && (
-          <LoadingScreen onDone={() => {
-            setLoading(false);
-            setRevealing(true);
-          }} />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {revealing && (
-          <RevealScreen
-            experienceLevel={savedAnswers.experienceLevel ?? "new"}
-            onDone={() => doFinish(savedAnswers)}
-          />
+          <LoadingScreen onDone={() => doFinish(savedAnswers)} />
         )}
       </AnimatePresence>
     </div>

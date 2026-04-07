@@ -25,6 +25,14 @@ type LessonLearnStepProps =
   | LegacyLessonLearnStepProps
   | ModernLessonLearnStepProps;
 
+const EMERALD = "#10b981";
+const CREAM = "#e8e2d4";
+const TEXT = "#cbd5e1";
+const MUTED = "#94a3b8";
+const DIM = "#5f687a";
+const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
 export function LessonLearnStep(props: LessonLearnStepProps) {
   const content = (
     "content" in props
@@ -60,33 +68,29 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       return;
     }
     setPanelIndex((current) => current + 1);
-    // Slide-in the next panel body
     requestAnimationFrame(() => {
       const el = panelBodyRef.current;
       if (!el) return;
       el.style.animation = "none";
-      // Force reflow so animation restarts
       void el.offsetWidth;
       el.style.animation = "ha-slam-in 300ms cubic-bezier(0.22,1,0.36,1) both";
     });
   }
 
-  const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-
   return (
-    <div style={{ fontFamily: font }}>
+    <div style={{ fontFamily: sans }}>
       {/* Panel counter dots */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <span style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.12em", color: "#22c55e" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>
           {panel.eyebrow ?? "Learn"}
         </span>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {panels.map((item, index) => (
             <span key={item.id} style={{
-              width: index === panelIndex ? 20 : 10,
-              height: 10,
+              width: index === panelIndex ? 20 : 8,
+              height: 8,
               borderRadius: 99,
-              background: index <= panelIndex ? "#22c55e" : "#e5e7eb",
+              background: index <= panelIndex ? EMERALD : "rgba(255,255,255,0.08)",
               transition: "all 300ms",
             }} />
           ))}
@@ -95,10 +99,10 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
 
       {/* Content */}
       <div ref={panelBodyRef} style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: "clamp(20px,3.5vw,36px)", fontWeight: 900, color: "#172b4d", lineHeight: 1.2, letterSpacing: "-0.5px", marginBottom: 12 }}>
+        <h2 style={{ fontSize: "clamp(24px,3.8vw,38px)", fontFamily: serif, fontWeight: 600, color: CREAM, lineHeight: 1.12, letterSpacing: "-0.01em", marginBottom: 16 }}>
           {capitalizeLead(panel.title)}
         </h2>
-        <p style={{ fontSize: "clamp(14px,2.5vw,18px)" as string, color: "#4b5563", lineHeight: 1.55 }}>{capitalizeLead(panel.copy)}</p>
+        <p style={{ fontSize: "clamp(14px,2.5vw,17px)" as string, color: MUTED, lineHeight: 1.65 }}>{capitalizeLead(panel.copy)}</p>
       </div>
 
       {panel.activityKind ? (
@@ -121,7 +125,7 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       {panel.highlights?.length ? (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
           {panel.highlights.map((item) => (
-            <span key={item} style={{ background: "#f9fafb", border: "2px solid #e5e7eb", borderRadius: 99, padding: "6px 14px", fontSize: 14, color: "#4b5563", fontWeight: 600 }}>
+            <span key={item} style={{ background: "rgba(255,255,255,0.05)", borderRadius: 99, padding: "5px 13px", fontSize: 13, color: DIM, fontWeight: 500 }}>
               {capitalizeLead(item)}
             </span>
           ))}
@@ -129,75 +133,50 @@ export function LessonLearnStep(props: LessonLearnStepProps) {
       ) : null}
 
       {panel.note ? (
-        <div style={{ background: "#f0fdf4", borderRadius: 16, padding: 12, marginBottom: 16, boxShadow: "inset 0 0 0 1px #bbf7d0" }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <LightbulbIcon style={{ width: 20, height: 20, color: "#16a34a", flexShrink: 0, marginTop: 2 }} />
-            <div>
-              <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>{capitalizeLead(panel.noteLabel ?? "What this means")}</p>
-              <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>{capitalizeLead(panel.note)}</p>
-            </div>
-          </div>
+        <div style={{ borderLeft: `2px solid ${EMERALD}`, paddingLeft: 16, marginBottom: 16 }}>
+          <p style={{ fontWeight: 600, fontSize: 13, color: TEXT, marginBottom: 4 }}>{capitalizeLead(panel.noteLabel ?? "What this means")}</p>
+          <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.6 }}>{capitalizeLead(panel.note)}</p>
         </div>
       ) : null}
 
       {!content.panels?.length ? (
         <>
-          <div style={{ background: "#f0fdf4", borderRadius: 16, padding: 12, marginBottom: 10, boxShadow: "inset 0 0 0 1px #bbf7d0" }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <LightbulbIcon style={{ width: 20, height: 20, color: "#16a34a", flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>What this means</p>
-                <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.5 }}>{capitalizeLead(content.whatThisMeans)}</p>
-              </div>
-            </div>
+          <div style={{ borderLeft: `2px solid ${EMERALD}`, paddingLeft: 16, marginBottom: 14 }}>
+            <p style={{ fontWeight: 600, fontSize: 13, color: TEXT, marginBottom: 4 }}>What this means</p>
+            <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.6 }}>{capitalizeLead(content.whatThisMeans)}</p>
           </div>
-          <div style={{ background: "#fff1f2", borderRadius: 16, padding: 12, marginBottom: 16, boxShadow: "inset 0 0 0 1px #fecdd3" }}>
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <AlertCircleIcon style={{ width: 20, height: 20, color: "#e11d48", flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <p style={{ fontWeight: 800, fontSize: 14, color: "#172b4d", marginBottom: 4 }}>Common mistake</p>
-                <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6 }}>{capitalizeLead(content.commonMistake)}</p>
-              </div>
-            </div>
+          <div style={{ borderLeft: "2px solid rgba(239,68,68,0.4)", paddingLeft: 16, marginBottom: 16 }}>
+            <p style={{ fontWeight: 600, fontSize: 13, color: TEXT, marginBottom: 4 }}>Common mistake</p>
+            <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.6 }}>{capitalizeLead(content.commonMistake)}</p>
           </div>
         </>
       ) : null}
 
       {/* Bottom CTA */}
-      <div style={{ marginTop: 20 }}>
+      <div style={{ marginTop: 24 }}>
         <button
           disabled={!isPanelReady}
           onClick={handleAdvance}
           type="button"
           style={{
             width: "100%",
-            padding: "16px",
-            fontSize: 16,
-            fontFamily: font,
-            fontWeight: 800,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: "#fff",
-            background: isPanelReady ? "#22c55e" : "#d1d5db",
-            boxShadow: isPanelReady ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3",
+            padding: "14px",
+            fontSize: 14,
+            fontFamily: sans,
+            fontWeight: 500,
+            letterSpacing: "0.01em",
+            color: isPanelReady ? "#111" : "#5f687a",
+            background: isPanelReady ? CREAM : "rgba(255,255,255,0.06)",
             border: "none",
-            borderRadius: 16,
+            borderRadius: 10,
             cursor: isPanelReady ? "pointer" : "not-allowed",
-            transition: "background 200ms",
-          }}
-          onMouseDown={(e) => {
-            if (!isPanelReady) return;
-            const el = e.currentTarget;
-            el.style.transform = "translateY(3px)";
-            el.style.boxShadow = "0 2px 0 #16a34a";
-          }}
-          onMouseUp={(e) => {
-            const el = e.currentTarget;
-            el.style.transform = "";
-            el.style.boxShadow = isPanelReady ? "0 5px 0 #16a34a" : "0 5px 0 #b0b7c3";
+            transition: "all 200ms",
+            boxShadow: isPanelReady
+              ? "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)"
+              : "none",
           }}
         >
-          {isLastPanel ? "Start practice →" : "Continue →"}
+          {isLastPanel ? "Start practice" : "Continue"}
         </button>
       </div>
     </div>

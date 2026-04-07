@@ -11,16 +11,23 @@ import {
   validateUsername,
 } from "../lib/user-profiles";
 
+const EMERALD = "#10b981";
+const BG = "#0a0f1a";
+const SURFACE = "#1a2942";
+const CREAM = "#e8e2d4";
+const TEXT = "#cbd5e1";
+const MUTED = "#94a3b8";
+const DIM = "#5f687a";
+const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+const sans = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
+
 function StokedLogo() {
   return (
     <Link href="/" className="inline-flex items-end gap-0.5">
-      <span
-        className="text-2xl font-black tracking-tight text-[#1a2b4a]"
-        style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
-      >
+      <span className="text-xl font-medium tracking-tight" style={{ fontFamily: serif, color: CREAM }}>
         stoked
       </span>
-      <span className="mb-[0.2em] h-3 w-3 flex-shrink-0 rounded-full bg-[#22c55e]" />
+      <span className="mb-[0.22em] h-2 w-2 flex-shrink-0 rounded-full" style={{ background: EMERALD }} />
     </Link>
   );
 }
@@ -125,115 +132,116 @@ export function UsernameSetupScreen() {
   }
 
   return (
-    <main
-      className="min-h-screen bg-[#f7faf8]"
-      style={{ fontFamily: "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)" }}
-    >
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8 lg:px-8">
+    <main className="min-h-screen" style={{ fontFamily: sans, background: BG }}>
+      <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-8 lg:px-8">
         <div className="flex items-center justify-between">
           <StokedLogo />
-          <span className="rounded-2xl border-2 border-[#dcfce7] bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-[#22c55e] shadow-[0_3px_0_#dcfce7]">
+          <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>
             One last step
           </span>
         </div>
 
         <div className="mx-auto mt-14 w-full max-w-2xl">
-          <div className="rounded-[32px] border-2 border-[#dcfce7] bg-white p-8 shadow-[0_10px_0_#dcfce7] sm:p-10">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#22c55e]">
+          <div style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", background: SURFACE, padding: 32 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>
               One last step
             </p>
-            <h1 className="mt-3 text-4xl font-black tracking-tight text-[#172b4d]">
+            <h1 style={{ fontSize: "clamp(28px,4vw,38px)", fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 8, letterSpacing: "-0.01em" }}>
               Choose your username
             </h1>
-            <p className="mt-4 text-base leading-7 text-gray-500">
+            <p style={{ fontSize: 15, color: MUTED, lineHeight: 1.6, marginTop: 8, maxWidth: 520 }}>
               This is how your progress, streak, and future friends will recognize you in Stoked.
             </p>
 
-            <div className="mt-8 space-y-4">
-              <label className="block">
-                <span className="mb-2 block text-sm font-black uppercase tracking-[0.14em] text-[#64748b]">
+            <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 16 }}>
+              <label style={{ display: "block" }}>
+                <span style={{ display: "block", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM, marginBottom: 8 }}>
                   Username
                 </span>
-                <div className="overflow-hidden rounded-[24px] border-2 border-[#dbe4f0] bg-[#f8fafc] shadow-[0_4px_0_#e5edf7] focus-within:border-[#22c55e] focus-within:shadow-[0_4px_0_#bbf7d0]">
-                  <input
-                    autoCapitalize="none"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    className="w-full bg-transparent px-5 py-4 text-xl font-black tracking-tight text-[#172b4d] outline-none placeholder:text-[#94a3b8]"
-                    inputMode="text"
-                    maxLength={20}
-                    onChange={(event) => {
-                      setUsernameDraft(event.target.value);
-                      setErrorMessage(null);
-                      setSuccessMessage(null);
-                    }}
-                    placeholder="yourname"
-                    spellCheck={false}
-                    type="text"
-                    value={usernameDraft}
-                  />
-                </div>
+                <input
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  inputMode="text"
+                  maxLength={20}
+                  onChange={(event) => {
+                    setUsernameDraft(event.target.value);
+                    setErrorMessage(null);
+                    setSuccessMessage(null);
+                  }}
+                  placeholder="yourname"
+                  spellCheck={false}
+                  type="text"
+                  value={usernameDraft}
+                  style={{
+                    width: "100%", padding: "14px 16px",
+                    borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.03)", color: CREAM,
+                    fontFamily: sans, fontSize: 17, fontWeight: 500,
+                    outline: "none",
+                  }}
+                />
               </label>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                <span className="rounded-full bg-[#f1f5f9] px-3 py-1 font-semibold text-[#64748b]">
-                  3-20 characters
-                </span>
-                <span className="rounded-full bg-[#f1f5f9] px-3 py-1 font-semibold text-[#64748b]">
-                  letters, numbers, and underscores only
-                </span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <span style={{ fontSize: 12, color: DIM, fontWeight: 500 }}>3-20 characters</span>
+                <span style={{ fontSize: 12, color: DIM, fontWeight: 500 }}>Letters, numbers, underscores</span>
               </div>
 
-              <div className="min-h-[28px] text-sm font-semibold">
+              <div style={{ minHeight: 20, fontSize: 13, fontWeight: 500 }}>
                 {errorMessage ? (
-                  <p className="text-[#dc2626]">{errorMessage}</p>
+                  <p style={{ color: "#f87171" }}>{errorMessage}</p>
                 ) : !validation.valid ? (
-                  <p className="text-[#64748b]">{validation.error}</p>
+                  <p style={{ color: DIM }}>{validation.error}</p>
                 ) : checking ? (
-                  <p className="text-[#64748b]">Checking availability...</p>
+                  <p style={{ color: DIM }}>Checking availability...</p>
                 ) : availabilityMessage ? (
-                  <p
-                    className={
-                      availabilityMessage === "Username available."
-                        ? "text-[#16a34a]"
-                        : "text-[#dc2626]"
-                    }
-                  >
+                  <p style={{ color: availabilityMessage === "Username available." ? EMERALD : "#f87171" }}>
                     {availabilityMessage}
                   </p>
                 ) : successMessage ? (
-                  <p className="text-[#16a34a]">{successMessage}</p>
+                  <p style={{ color: EMERALD }}>{successMessage}</p>
                 ) : (
-                  <p className="text-[#64748b]">3–20 characters. Letters, numbers, and underscores only.</p>
+                  <p style={{ color: DIM }}>3–20 characters. Letters, numbers, and underscores only.</p>
                 )}
               </div>
             </div>
 
-            <div className="mt-8 rounded-[24px] border-2 border-[#e2e8f0] bg-[#f8fafc] p-5">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-[#64748b]">
+            {/* Preview */}
+            <div style={{ marginTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 20 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: DIM, marginBottom: 8 }}>
                 Preview
               </p>
-              <div className="mt-3 flex items-center justify-between gap-4">
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
                 <div>
-                  <p className="text-sm text-[#64748b]">This is how you will appear in Stoked.</p>
-                  <p className="mt-1 text-2xl font-black tracking-tight text-[#172b4d]">
+                  <p style={{ fontSize: 13, color: MUTED }}>This is how you will appear in Stoked.</p>
+                  <p style={{ fontSize: 22, fontFamily: serif, fontWeight: 600, color: CREAM, marginTop: 4 }}>
                     @{normalizedDraft || "yourname"}
                   </p>
                 </div>
-                <div className="rounded-2xl border-2 border-[#dcfce7] bg-white px-4 py-3 text-right shadow-[0_4px_0_#dcfce7]">
-                  <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#22c55e]">
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: EMERALD }}>
                     Saved progress
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-[#172b4d]">Ready once your username is set</p>
+                  <p style={{ fontSize: 13, color: MUTED, marginTop: 4 }}>Ready once your username is set</p>
                 </div>
               </div>
             </div>
 
             <button
-              className="mt-8 w-full rounded-[26px] bg-[#22c55e] px-6 py-4 text-lg font-black uppercase tracking-[0.12em] text-white shadow-[0_8px_0_#16a34a] transition active:translate-y-[3px] active:shadow-[0_5px_0_#16a34a] disabled:cursor-not-allowed disabled:bg-[#86efac] disabled:shadow-[0_8px_0_#4ade80]"
               disabled={!validation.valid || checking || availabilityMessage === "That username is already taken." || saving}
               onClick={() => void handleSubmit()}
               type="button"
+              style={{
+                width: "100%", marginTop: 28, padding: "16px",
+                fontFamily: sans, fontWeight: 500, fontSize: 15,
+                letterSpacing: "0.01em", color: "#111", border: "none",
+                borderRadius: 10, cursor: "pointer",
+                background: CREAM,
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28)",
+                opacity: (!validation.valid || checking || availabilityMessage === "That username is already taken." || saving) ? 0.5 : 1,
+                transition: "opacity 200ms",
+              }}
             >
               {saving ? "Saving..." : "Continue"}
             </button>
