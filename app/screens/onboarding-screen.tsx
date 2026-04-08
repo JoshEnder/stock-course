@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { GoogleAccountButton } from "../components/google-account-button";
 import { useAuth } from "../lib/auth-context";
 import { queueRoadmapLoginGate } from "../lib/post-onboarding-login-gate";
 import { getNickname, setNickname } from "../lib/course-storage";
@@ -230,10 +229,8 @@ type QuizStep = "hidden" | 0 | 1 | 2 | "loading" | "results";
 
 export function OnboardingScreen() {
   const router = useRouter();
-  const { loading: authLoading, signInWithGoogle, user } = useAuth();
+  const { user } = useAuth();
   const [nickname, setNicknameDraft] = useState("");
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
   // Quiz state
   const [quizStep, setQuizStep]         = useState<QuizStep>(0);
@@ -242,7 +239,6 @@ export function OnboardingScreen() {
   const [isExiting, setIsExiting]       = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
 
-  const signedInEmail = user?.email ?? null;
   const signedInName =
     typeof user?.user_metadata?.nickname === "string"
       ? user.user_metadata.nickname
@@ -251,60 +247,16 @@ export function OnboardingScreen() {
         : typeof user?.user_metadata?.name === "string"
           ? user.user_metadata.name
           : null;
-  const photoUrl =
-    typeof user?.user_metadata?.avatar_url === "string"
-      ? user.user_metadata.avatar_url
-      : typeof user?.user_metadata?.picture === "string"
-        ? user.user_metadata.picture
-        : null;
 
   useEffect(() => {
     setNicknameDraft((current) => current || signedInName || getNickname());
   }, [signedInName]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const authError = params.get("auth_error");
-    if (authError) setAuthErrorMessage(authError);
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(onboardingGoogleContinueKey);
     }
   }, []);
-  const handleContinueWithGoogle = useCallback(async () => {
-    if (googleLoading) return;
-    if (user) {
-      return;
-    }
-    try {
-      setGoogleLoading(true);
-      setAuthErrorMessage(null);
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem(onboardingGoogleContinueKey, "1");
-      }
-      await signInWithGoogle("/onboarding");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to sign in with Google.";
-      setAuthErrorMessage(message);
-      setGoogleLoading(false);
-    }
-  }, [googleLoading, signInWithGoogle, user]);
-
-  async function handleGoogleSignIn() {
-    if (googleLoading) return;
-    try {
-      if (user) { router.push("/profile"); return; }
-      setGoogleLoading(true);
-      setAuthErrorMessage(null);
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem(onboardingGoogleContinueKey, "1");
-      }
-      await signInWithGoogle("/onboarding");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to sign in with Google.";
-      setAuthErrorMessage(message);
-      setGoogleLoading(false);
-    }
-  }
 
   // Quiz navigation — with exit-animation delay
   function handleQuizNext() {

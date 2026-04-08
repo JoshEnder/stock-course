@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import {
   acceptFriendRequest,
@@ -139,26 +139,6 @@ export function FriendsPanel() {
       window.clearTimeout(timeoutId);
     };
   }, [socialReady, trimmedQuery]);
-
-  const outgoingIds = useMemo(
-    () =>
-      new Set(
-        outgoingRequests
-          .map((request) => request.user?.user_id)
-          .filter((value): value is string => Boolean(value)),
-      ),
-    [outgoingRequests],
-  );
-
-  const incomingIds = useMemo(
-    () =>
-      new Set(
-        incomingRequests
-          .map((request) => request.user?.user_id)
-          .filter((value): value is string => Boolean(value)),
-      ),
-    [incomingRequests],
-  );
 
   async function handleSendRequest(result: FriendSearchResult) {
     if (!result.user_id || busyKey) {
