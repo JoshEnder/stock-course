@@ -69,7 +69,7 @@ export function useAuth() {
 
 function normalizePostAuthPath(next?: string) {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/course";
+    return "/onboarding";
   }
 
   return next;
@@ -284,7 +284,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [session?.user, supabase]);
 
-  async function signInWithGoogle(next = "/course") {
+  async function signInWithGoogle(next = "/onboarding") {
     const safeNext = normalizePostAuthPath(next);
 
     if (typeof window !== "undefined") {

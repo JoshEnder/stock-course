@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import HeroScene from "@/app/components/HeroScene";
-import { useAuth } from "../lib/auth-context";
+import { WaitlistSection } from "@/app/components/waitlist-section";
 import { getQuizData, type QuizData } from "./onboarding-screen";
 
 // ─── Shared font ──────────────────────────────────────────────────────────────
 const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-const onboardingGoogleContinueKey = "stoked-onboarding-continue-google";
 
 // ─── Gamification helpers ─────────────────────────────────────────────────────
 const XP_KEY     = "stoked_xp";
@@ -206,47 +205,70 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   );
 }
 
-// ─── Google Account Button ────────────────────────────────────────────────────
-function GoogleAccountButton({
-  disabled = false,
-  onClick,
-  photoUrl,
-  signedInHref,
-  signedIn,
-}: {
-  disabled?: boolean;
-  onClick: () => void;
-  photoUrl?: string | null;
-  signedInHref?: string;
-  signedIn: boolean;
-}) {
-  const sharedStyle: React.CSSProperties = {
-    width: 44, height: 44, borderRadius: 999,
-    border: "2px solid #e5e7eb", background: "#fff",
-    boxShadow: "0 4px 0 #e5e7eb",
-    display: "inline-flex", alignItems: "center", justifyContent: "center",
-    cursor: disabled ? "not-allowed" : "pointer",
-    opacity: disabled ? 0.7 : 1,
-    overflow: "hidden", textDecoration: "none",
-  };
-
-  const icon = signedIn && photoUrl ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={photoUrl} alt="Google account" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-  ) : signedIn ? (
-    <span style={{ fontSize: 20 }}>👤</span>
-  ) : (
-    <span aria-hidden="true" style={{ display: "inline-flex", width: 22, height: 22, borderRadius: "50%", alignItems: "center", justifyContent: "center", background: "conic-gradient(from 180deg, #34a853 0 25%, #fbbc05 25% 50%, #ea4335 50% 75%, #4285f4 75% 100%)" }}>
-      <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fff" }} />
-    </span>
-  );
-
-  if (signedIn && signedInHref) {
-    return <Link href={signedInHref} style={sharedStyle} aria-label="Open account">{icon}</Link>;
-  }
+function PreviewStatus() {
   return (
-    <button type="button" onClick={onClick} disabled={disabled} style={sharedStyle} aria-label={signedIn ? "Open account" : "Log in with Google"}>
-      {icon}
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "8px 14px",
+        borderRadius: 999,
+        border: "2px solid #dcfce7",
+        background: "#f7fff9",
+        color: "#15803d",
+        fontSize: 12,
+        fontWeight: 800,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+      }}
+    >
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          background: "#22c55e",
+          flexShrink: 0,
+        }}
+      />
+      Landing Preview
+    </div>
+  );
+}
+
+function PreviewOnlyButton({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <button
+      aria-disabled="true"
+      type="button"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: font,
+        fontWeight: 800,
+        fontSize: 15,
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+        borderRadius: 16,
+        border: "2px solid #dbe4dd",
+        background: "#edf3ee",
+        color: "#6c7f73",
+        boxShadow: "0 5px 0 #d7e1d9",
+        cursor: "default",
+        padding: "16px 28px",
+        width: "100%",
+        ...style,
+      }}
+    >
+      {children}
     </button>
   );
 }
@@ -258,48 +280,6 @@ function StokedLogo({ large = false }: { large?: boolean }) {
       <span style={{ fontFamily: font, fontWeight: 900, fontSize: large ? 40 : 24, color: "#172b4d", letterSpacing: "-0.5px", lineHeight: 1 }}>stoked</span>
       <span style={{ width: large ? 14 : 9, height: large ? 14 : 9, borderRadius: "50%", backgroundColor: "#22c55e", flexShrink: 0, marginBottom: large ? 6 : 4 }} />
     </Link>
-  );
-}
-
-// ─── DuoBtn ───────────────────────────────────────────────────────────────────
-function DuoBtn({
-  href, children, variant = "primary", big = false, style: extraStyle = {},
-}: {
-  href?: string; children: React.ReactNode;
-  variant?: "primary" | "outline" | "white-on-green"; big?: boolean; style?: React.CSSProperties;
-}) {
-  const base: React.CSSProperties = {
-    display: "inline-flex", alignItems: "center", justifyContent: "center",
-    fontFamily: font, fontWeight: 800, fontSize: big ? 16 : 14,
-    letterSpacing: "0.05em", textTransform: "uppercase",
-    textDecoration: "none", padding: big ? "16px 40px" : "12px 28px",
-    borderRadius: 16, cursor: "pointer", border: "none",
-    transition: "filter 80ms, transform 80ms",
-    userSelect: "none", whiteSpace: "nowrap", ...extraStyle,
-  };
-  const variants: Record<string, React.CSSProperties> = {
-    primary: { backgroundColor: "#22c55e", color: "#fff", boxShadow: "0 5px 0 #16a34a" },
-    outline:  { backgroundColor: "#fff", color: "#172b4d", boxShadow: "0 5px 0 #d1d5db", border: "2px solid #e5e7eb" },
-    "white-on-green": { backgroundColor: "#fff", color: "#22c55e", boxShadow: "0 5px 0 rgba(0,0,0,0.15)" },
-  };
-  const combined = { ...base, ...variants[variant] };
-  const isGreen = variant === "primary";
-  const pressStyle = (variants[variant].boxShadow as string)?.replace("5px", "2px") ?? "";
-
-  if (href) {
-    return (
-      <Link href={href} style={combined}
-        className={`l-btn${isGreen ? " l-btn-green" : ""}`}
-        onMouseDown={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(3px)"; el.style.boxShadow = pressStyle; }}
-        onMouseUp={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; el.style.boxShadow = variants[variant].boxShadow as string; }}
-      >{children}</Link>
-    );
-  }
-  return (
-    <button style={combined} className={`l-btn${isGreen ? " l-btn-green" : ""}`}
-      onMouseDown={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(3px)"; el.style.boxShadow = pressStyle; }}
-      onMouseUp={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; el.style.boxShadow = variants[variant].boxShadow as string; }}
-    >{children}</button>
   );
 }
 
@@ -382,9 +362,9 @@ function StreakCard({ quiz }: { quiz?: QuizData | null }) {
           </div>
           <h3 style={{ fontWeight: 900, fontSize: 22, color: "#172b4d", marginBottom: 12, lineHeight: 1.25 }}>{lessonInfo.lesson}</h3>
           <p style={{ fontSize: 15, color: "#4b5563", lineHeight: 1.65, marginBottom: 24 }}>{lessonInfo.desc}</p>
-          <DuoBtn href="/onboarding" variant="primary" big style={{ width: "100%" }}>
-            Start Lesson → +5 XP
-          </DuoBtn>
+          <PreviewOnlyButton>
+            Preview Only
+          </PreviewOnlyButton>
         </Modal>
       )}
     </>
@@ -522,9 +502,9 @@ function LessonCard() {
 
           <div style={{ marginTop: 20 }}>
             {tab === "check" ? (
-              <DuoBtn href="/onboarding" variant="primary" big style={{ width: "100%" }}>
-                Start for real → +5 XP
-              </DuoBtn>
+              <PreviewOnlyButton>
+                Preview Only
+              </PreviewOnlyButton>
             ) : (
               <button
                 type="button"
@@ -599,9 +579,9 @@ function ProgressCard() {
                   Complete <strong>Chart Basics</strong> first to unlock this module.
                 </p>
               </div>
-              <DuoBtn href="/onboarding" variant="primary" big style={{ width: "100%" }}>
-                Start Course Free
-              </DuoBtn>
+              <PreviewOnlyButton>
+                Preview Only
+              </PreviewOnlyButton>
             </>
           ) : (
             <>
@@ -632,9 +612,9 @@ function ProgressCard() {
                   🎓 Module complete! +50 XP earned
                 </div>
               ) : (
-                <DuoBtn href="/onboarding" variant="primary" big style={{ width: "100%" }}>
-                  Continue Learning →
-                </DuoBtn>
+                <PreviewOnlyButton>
+                  Preview Only
+                </PreviewOnlyButton>
               )}
             </>
           )}
@@ -810,7 +790,6 @@ function StatCard({ icon, value, label, tip, font: f = font }: {
 
 // ─── Landing screen ───────────────────────────────────────────────────────────
 export function LandingScreen() {
-  const { loading: authLoading, signInWithGoogle, user } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -830,27 +809,7 @@ export function LandingScreen() {
     setUnlockedBadges(getStoredBadges());
     setQuizData(getQuizData());
   }, []);
-
-
-
-  const photoUrl =
-    typeof user?.user_metadata?.avatar_url === "string"
-      ? user.user_metadata.avatar_url
-      : typeof user?.user_metadata?.picture === "string"
-        ? user.user_metadata.picture
-        : null;
-
-  async function handleGoogleLogin() {
-    try {
-      if (user) { window.location.href = "/profile"; return; }
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem(onboardingGoogleContinueKey, "1");
-      }
-      await signInWithGoogle("/onboarding");
-    } catch (error) {
-      console.error("Failed to start Google sign-in", error);
-    }
-  }
+  const desktopTopChromeHeight = 128;
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: font }}>
@@ -867,59 +826,34 @@ export function LandingScreen() {
                 ⚡ {xp} XP
               </span>
             )}
-            {user ? (
-              <GoogleAccountButton
-                disabled={authLoading && !user}
-                onClick={handleGoogleLogin}
-                photoUrl={photoUrl}
-                signedInHref="/profile"
-                signedIn
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={authLoading}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: "#6b7280",
-                  fontFamily: font,
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: authLoading ? "not-allowed" : "pointer",
-                  padding: "8px 4px",
-                  opacity: authLoading ? 0.7 : 1,
-                }}
-              >
-                Log in
-              </button>
-            )}
+            <PreviewStatus />
           </nav>
         </div>
       </header>
 
+      <WaitlistSection showBannerSubtitle={false} variant="banner" />
+
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section style={{
-        minHeight: isMobile ? "auto" : "calc(100vh - 64px)",
+        minHeight: isMobile ? "auto" : `calc(100vh - ${desktopTopChromeHeight}px)`,
         display: "flex", alignItems: "center",
         background: "#f0fdf4", borderBottom: "2px solid #dcfce7", overflow: "hidden",
       }}>
         <div style={{
           maxWidth: 1600, margin: "0 auto",
-          padding: isMobile ? "12px 16px 20px" : "60px 0 60px 48px",
+          padding: isMobile ? "16px 16px 24px" : "36px 0 36px 40px",
           width: "100%", display: "flex",
           flexDirection: isMobile ? "column-reverse" : "row",
-          alignItems: "center", gap: isMobile ? 8 : 0,
+          alignItems: "center", gap: isMobile ? 16 : 0,
           flexWrap: isMobile ? "nowrap" : "wrap", justifyContent: "center",
         }}>
           {/* Left text */}
           <div style={{
-            flex: isMobile ? "none" : "0 0 460px",
-            minWidth: isMobile ? 0 : 300,
+            flex: isMobile ? "none" : "0 1 420px",
+            minWidth: isMobile ? 0 : 280,
             width: isMobile ? "100%" : undefined,
             textAlign: isMobile ? "center" : "left",
-            marginTop: 0,
+            marginTop: isMobile ? 16 : 0,
           }}>
             <h1 style={{
               fontFamily: font, fontWeight: 900,
@@ -935,34 +869,14 @@ export function LandingScreen() {
               marginTop: isMobile ? 10 : 20, marginBottom: isMobile ? 14 : 36,
               lineHeight: isMobile ? 1.5 : 1.6, maxWidth: isMobile ? "100%" : 440,
             }}>
-              Interactive lessons that make stocks actually click. Beginner-friendly, fast to start, and completely free.
+              Fun, bite-sized lessons that make the stock market finally click. No jargon. No confusion.
             </p>
 
-            {/* Buttons */}
-            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", flexWrap: "wrap", gap: isMobile ? 8 : 12 }}>
-              {user ? (
-                <DuoBtn href="/course" variant="primary" big style={isMobile ? { width: "100%", padding: "14px 16px" } : {}}>
-                  Start Learning
-                </DuoBtn>
-              ) : (
-                <DuoBtn href="/onboarding" variant="primary" big style={isMobile ? { width: "100%", padding: "14px 16px" } : {}}>
-                  Start Free
-                </DuoBtn>
-              )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: isMobile ? "stretch" : "flex-start" }}>
+              <PreviewOnlyButton style={isMobile ? { padding: "14px 16px" } : { width: 320 }}>
+                Preview Only
+              </PreviewOnlyButton>
             </div>
-            {!user && (
-              <p
-                style={{
-                  marginTop: isMobile ? 10 : 14,
-                  fontSize: isMobile ? 13 : 14,
-                  color: "#6b7280",
-                  lineHeight: 1.6,
-                  maxWidth: isMobile ? "100%" : 360,
-                }}
-              >
-                Start free, then choose Google or guest on the next step.
-              </p>
-            )}
 
             {/* Social proof — mobile only */}
             {isMobile && (
@@ -995,7 +909,7 @@ export function LandingScreen() {
             <div className="st-stats-grid" style={{
               display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10,
               marginTop: isMobile ? 14 : 28,
-              width: isMobile ? "100%" : 380,
+              width: isMobile ? "100%" : 340,
             }}>
               <StatCard icon={<ModulesIcon />} value="10"    label="Modules"  tip="Complete at your pace" font={font} />
               <StatCard icon={<BookIcon />}    value="100+"  label="Lessons"  tip="Bite-sized learning"  font={font} />
@@ -1007,8 +921,8 @@ export function LandingScreen() {
           {/* Right — 3D hero scene */}
           <div style={{
             flex: isMobile ? "none" : "1 1 660px",
-            height: isMobile ? 290 : "min(740px, calc(100vh - 100px))",
-            minHeight: isMobile ? 0 : 620,
+            height: isMobile ? 260 : `min(680px, calc(100vh - ${desktopTopChromeHeight + 32}px))`,
+            minHeight: isMobile ? 0 : 600,
             width: isMobile ? "100%" : undefined,
             position: "relative", overflow: "visible",
           }}>
@@ -1072,21 +986,6 @@ export function LandingScreen() {
         />
       </Section>
 
-      {/* ── CTA BANNER ───────────────────────────────────────── */}
-      <section className="full-section" style={{ display: "flex", alignItems: "center", background: "#22c55e", borderTop: "2px solid #16a34a" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: "clamp(48px,10vw,80px) clamp(16px,3vw,24px)", textAlign: "center", width: "100%" }}>
-          <h2 style={{ fontFamily: font, fontWeight: 900, fontSize: "clamp(24px,5vw,48px)", color: "#fff", letterSpacing: "-0.5px", lineHeight: 1.15, marginBottom: 12 }}>
-            Start learning today.<br />It&apos;s free, forever.
-          </h2>
-          <p style={{ fontSize: "clamp(14px,2vw,18px)" as string, color: "rgba(255,255,255,0.85)", marginBottom: 28, lineHeight: 1.6 }}>
-            Start free, then choose Google or guest on the next step.
-          </p>
-          <DuoBtn href="/onboarding" variant="white-on-green" big style={isMobile ? { width: "100%", padding: "14px 16px" } : {}}>
-            Start Free
-          </DuoBtn>
-        </div>
-      </section>
-
       {/* ── FOOTER ───────────────────────────────────────────── */}
       <footer style={{ background: "#f9fafb", borderTop: "2px solid #f3f4f6" }}>
         <div style={{
@@ -1096,7 +995,7 @@ export function LandingScreen() {
           <StokedLogo />
           <span style={{ fontSize: 13, color: "#9ca3af" }}>© 2025 Stoked. Stock learning that actually clicks.</span>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-            {[["Learn", "/course"], ["Guest", "/onboarding"], ["Privacy", "/privacy"]].map(([label, href]) => (
+            {[["Home", "/"], ["Privacy", "/privacy"]].map(([label, href]) => (
               <Link key={label} href={href} style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", textDecoration: "none" }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#22c55e"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "#9ca3af"; }}

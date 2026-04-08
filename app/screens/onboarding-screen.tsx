@@ -270,7 +270,6 @@ export function OnboardingScreen() {
       window.sessionStorage.removeItem(onboardingGoogleContinueKey);
     }
   }, []);
-
   const handleContinueWithGoogle = useCallback(async () => {
     if (googleLoading) return;
     if (user) {
@@ -573,5 +572,4 @@ export function OnboardingScreen() {
       </div>
     );
   }
-
 }
