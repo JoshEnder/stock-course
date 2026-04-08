@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const serif = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
+const INTRO_VIDEO_SRC = "/finalvid.mp4";
+const LOOP_VIDEO_SRC = "/hero-loop.mp4";
 
 export interface HeroProps {
   /** Called immediately on CTA click — parent uses this to start background blur */
@@ -40,9 +42,11 @@ const T = {
 } as const;
 
 export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const introVideoRef = useRef<HTMLVideoElement>(null);
+  const loopVideoRef = useRef<HTMLVideoElement>(null);
   const revealTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasRevealedRef = useRef(false);
+  const [introFinished, setIntroFinished] = useState(false);
   const [logoVisible, setLogoVisible] = useState(false);
   const [revealed,    setRevealed]    = useState(false);
   const [dissolving,  setDissolving]  = useState(false);
@@ -83,7 +87,11 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
 
   // Headline + CTA fire at video end, with timeout/error fallbacks if playback never completes.
   useEffect(() => {
-    const video = videoRef.current;
+    if (introFinished) {
+      return;
+    }
+
+    const video = introVideoRef.current;
     if (!video) return;
 
     const scheduleFromVideoState = () => {
@@ -95,8 +103,19 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
       scheduleRevealFallback(durationMs);
     };
 
-    const handleEnded = () => revealOnce();
-    const handleError = () => revealOnce();
+    const handleEnded = () => {
+      const loopVideo = loopVideoRef.current;
+      if (loopVideo) {
+        loopVideo.currentTime = 0;
+        void loopVideo.play().catch(() => {});
+      }
+      setIntroFinished(true);
+      revealOnce();
+    };
+    const handleError = () => {
+      setIntroFinished(true);
+      revealOnce();
+    };
 
     scheduleFromVideoState();
 
@@ -116,12 +135,52 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
       video.removeEventListener("error", handleError);
       video.removeEventListener("abort", handleError);
     };
-  }, [clearRevealTimeout, revealOnce, scheduleRevealFallback]);
+  }, [clearRevealTimeout, introFinished, revealOnce, scheduleRevealFallback]);
+
+  useEffect(() => {
+    if (!introFinished) {
+      return;
+    }
+
+    const loopVideo = loopVideoRef.current;
+    if (!loopVideo) {
+      return;
+    }
+
+    const startLoop = () => {
+      loopVideo.currentTime = 0;
+      void loopVideo.play().catch(() => {});
+    };
+
+    if (loopVideo.readyState >= 2) {
+      startLoop();
+      return;
+    }
+
+    loopVideo.addEventListener("canplay", startLoop, { once: true });
+    return () => {
+      loopVideo.removeEventListener("canplay", startLoop);
+    };
+  }, [introFinished]);
 
   function handleCTAClick() {
     setDissolving(true);
     onCTAClick?.();
   }
+
+  const videoStyle: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    objectPosition: "center center",
+    filter: overlayActive
+      ? "brightness(0.52) blur(9px) saturate(1.08)"
+      : "brightness(0.84)",
+    transition: "filter 1.0s cubic-bezier(0.4, 0, 0.2, 1), opacity 180ms ease",
+    transform: "scale(1.04)",
+  };
 
   return (
     <section style={{
@@ -135,26 +194,34 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
 
       {/* ── Video — stays mounted, blurs when overlay is active ────────────── */}
       <video
-        ref={videoRef}
+        ref={introVideoRef}
         autoPlay
         muted
         playsInline
+        preload="auto"
+        aria-hidden={introFinished}
         style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center center",
-          filter: overlayActive
-            ? "brightness(0.52) blur(9px) saturate(1.08)"
-            : "brightness(0.84)",
-          transition: "filter 1.0s cubic-bezier(0.4, 0, 0.2, 1)",
-          // Slight scale prevents blur fringe at edges
-          transform: "scale(1.04)",
+          ...videoStyle,
+          opacity: introFinished ? 0 : 1,
         }}
       >
-        <source src="/finalvid.mp4" type="video/mp4" />
+        <source src={INTRO_VIDEO_SRC} type="video/mp4" />
+      </video>
+
+      <video
+        ref={loopVideoRef}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden={!introFinished}
+        style={{
+          ...videoStyle,
+          opacity: introFinished ? 1 : 0,
+        }}
+      >
+        <source src={LOOP_VIDEO_SRC} type="video/mp4" />
       </video>
 
       {/*
