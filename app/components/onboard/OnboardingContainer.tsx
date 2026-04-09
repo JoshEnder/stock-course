@@ -11,7 +11,6 @@ const F_SERIF = "var(--font-eb-garamond,'EB Garamond',Georgia,serif)";
 const F_SANS  = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 const EMERALD = "var(--alpine-emerald)";
 const EMERALD_GLOW = "rgba(39,211,195,0.46)";
-const BG      = "var(--alpine-bg)";
 const SURFACE = "rgba(16,36,58,0.86)";
 const SURFACE_HOVER = "rgba(22,49,74,0.96)";
 const CREAM   = "var(--alpine-cream)";
@@ -260,58 +259,269 @@ function QuestionScreen({ q, qIdx, selected, onSelect }: {
   );
 }
 
-// ─── Message pool ────────────────────────────────────────────────────────────
-const MSG_POOL = [
-  "Building your curriculum...",
-  "Mapping your path...",
-  "Processing your answers...",
-  "Preparing your course...",
-  "Shaping your experience...",
-  "Setting things up...",
-  "Configuring lessons...",
-  "Tailoring your content...",
-  "Laying the groundwork...",
-  "Personalizing your route...",
-  "Analyzing your profile...",
-  "Calibrating difficulty...",
-  "Structuring your modules...",
-  "Fine-tuning your plan...",
-  "Almost ready...",
-  "One more moment...",
-];
+const ROADMAP_BUILD_MS = 4700;
+const STAGES = [
+  { label: "Analyzing your starting point", threshold: 0.28 },
+  { label: "Mapping your climb", threshold: 0.64 },
+  { label: "Preparing basecamp", threshold: 0.92 },
+] as const;
+const ROUTE_POINTS = [
+  { x: 24, y: 118 },
+  { x: 64, y: 102 },
+  { x: 102, y: 88 },
+  { x: 140, y: 76 },
+  { x: 178, y: 60 },
+  { x: 210, y: 38 },
+] as const;
+const ROUTE_PATH_D = `M 24 118
+  C 40 114, 52 108, 64 102
+  S 88 92, 102 88
+  S 128 80, 140 76
+  S 166 66, 178 60
+  S 198 46, 210 38`;
 
-function pickMessages(): [string, string, string] {
-  const shuffled = [...MSG_POOL].sort(() => Math.random() - 0.5);
-  return [shuffled[0], shuffled[1], shuffled[2]];
+function getStageIndex(progress: number) {
+  if (progress < STAGES[0].threshold) return 0;
+  if (progress < STAGES[1].threshold) return 1;
+  if (progress < STAGES[2].threshold) return 2;
+  return 2;
 }
 
-// ─── Loading screen ────────────────────────────────────────────────────────────
-function LoadingScreen({ onDone }: { onDone: () => void }) {
-  const [msgs] = useState<[string, string, string]>(pickMessages);
+function BuildRouteVisual({
+  progress,
+  stageIndex,
+}: {
+  progress: number;
+  stageIndex: number;
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 286,
+        padding: "2px 0 0",
+        borderRadius: 20,
+        position: "relative",
+        background:
+          "radial-gradient(16rem 8rem at 50% 92%, rgba(39,211,195,0.09) 0%, transparent 72%)",
+      }}
+    >
+      <svg viewBox="0 0 236 150" width="100%" height="150" aria-hidden>
+        <defs>
+          <linearGradient id="obRouteGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(127,231,242,0.08)" />
+            <stop offset="50%" stopColor={EMERALD} />
+            <stop offset="100%" stopColor="rgba(255,244,224,0.72)" />
+          </linearGradient>
+          <linearGradient id="obRouteBase" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(140,158,176,0.12)" />
+            <stop offset="100%" stopColor="rgba(140,158,176,0.04)" />
+          </linearGradient>
+          <filter id="obSoftGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-  const [msgKey,      setMsgKey]      = useState(0);
-  const [msgText,     setMsgText]     = useState("");
-  const [dotsVisible, setDotsVisible] = useState(true);
-  const [showButton,  setShowButton]  = useState(false);
-  const [btnLoading,  setBtnLoading]  = useState(false);
+        <path
+          d="M8 132 C44 122, 78 110, 116 92 C152 74, 190 56, 228 34"
+          fill="none"
+          stroke="rgba(155,176,194,0.07)"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 140 C54 126, 92 116, 132 98 C166 84, 198 66, 232 48"
+          fill="none"
+          stroke="rgba(155,176,194,0.05)"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+        <path
+          d="M0 132 C44 122, 84 118, 122 98 C158 80, 196 66, 236 50"
+          fill="none"
+          stroke="rgba(255,255,255,0.035)"
+          strokeWidth="22"
+          strokeLinecap="round"
+          filter="url(#obSoftGlow)"
+        />
+
+        <path
+          d={ROUTE_PATH_D}
+          fill="none"
+          stroke="url(#obRouteBase)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeDasharray="3 8"
+        />
+
+        <motion.path
+          d={ROUTE_PATH_D}
+          fill="none"
+          stroke="url(#obRouteGlow)"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter="url(#obSoftGlow)"
+          initial={{ pathLength: 0, opacity: 0.45 }}
+          animate={{ pathLength: Math.max(progress, 0.02), opacity: 1 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        />
+
+        <motion.circle
+          cx={ROUTE_POINTS[0].x}
+          cy={ROUTE_POINTS[0].y}
+          r="4"
+          fill={EMERALD}
+          filter="url(#obSoftGlow)"
+          animate={{ opacity: [0.4, 0.9, 0.4] }}
+          transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {ROUTE_POINTS.slice(1).map((point, index) => {
+          const threshold = (index + 1) / (ROUTE_POINTS.length - 1);
+          const active = progress >= threshold;
+          const almostActive = progress >= threshold - 0.14;
+          const destination = index === ROUTE_POINTS.length - 2;
+
+          return (
+            <g key={`${point.x}-${point.y}`}>
+              <motion.circle
+                cx={point.x}
+                cy={point.y}
+                r={destination && active ? 7 : active ? 5.25 : 3.6}
+                fill={destination && active ? "#f6eddd" : active ? "#f4ead8" : "rgba(130,151,170,0.24)"}
+                stroke={active ? EMERALD : "rgba(130,151,170,0.16)"}
+                strokeWidth={destination && active ? 1.8 : active ? 1.35 : 1}
+                filter={active ? "url(#obSoftGlow)" : undefined}
+                initial={false}
+                animate={{
+                  opacity: active ? 1 : almostActive ? 0.68 : 0.28,
+                  scale: destination && active ? [1, 1.16, 1] : active ? [1, 1.06, 1] : 1,
+                }}
+                transition={{
+                  opacity: { duration: 0.35 },
+                  scale: active
+                    ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" }
+                    : { duration: 0.2 },
+                }}
+                style={{ transformOrigin: `${point.x}px ${point.y}px` }}
+              />
+              <motion.circle
+                cx={point.x}
+                cy={point.y}
+                r={destination && active ? 13 : active ? 9 : 0}
+                fill="none"
+                stroke={active ? "rgba(39,211,195,0.28)" : "transparent"}
+                strokeWidth="1"
+                initial={false}
+                animate={{ opacity: active ? [0.28, 0, 0.28] : 0 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+              />
+            </g>
+          );
+        })}
+
+        {stageIndex >= 1 && (
+          <motion.path
+            d="M36 112 C46 104, 56 102, 68 100"
+            fill="none"
+            stroke="rgba(244,234,216,0.28)"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.9 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          />
+        )}
+
+        {stageIndex >= 2 && (
+          <motion.path
+            d="M158 70 C170 62, 182 58, 196 54"
+            fill="none"
+            stroke="rgba(244,234,216,0.3)"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 0.9 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          />
+        )}
+
+        {stageIndex >= 2 && (
+          <motion.circle
+            cx={210}
+            cy={38}
+            r="16"
+            fill="none"
+            stroke="rgba(244,234,216,0.18)"
+            strokeWidth="1"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: "210px 38px" }}
+          />
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function LoadingScreen({ onDone }: { onDone: () => void }) {
+  const [progress, setProgress] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [btnLoading, setBtnLoading] = useState(false);
 
   useEffect(() => {
-    const T: ReturnType<typeof setTimeout>[] = [];
-    T.push(setTimeout(() => { setMsgText(msgs[0]); setMsgKey(k => k + 1); },  500));
-    T.push(setTimeout(() => { setMsgText("");      setMsgKey(k => k + 1); }, 2000));
-    T.push(setTimeout(() => { setMsgText(msgs[1]); setMsgKey(k => k + 1); }, 2200));
-    T.push(setTimeout(() => { setMsgText("");      setMsgKey(k => k + 1); }, 3800));
-    T.push(setTimeout(() => { setMsgText(msgs[2]); setMsgKey(k => k + 1); }, 4000));
-    T.push(setTimeout(() => { setMsgText("");      setMsgKey(k => k + 1); }, 5600));
-    T.push(setTimeout(() => setDotsVisible(false),                            5800));
-    T.push(setTimeout(() => setShowButton(true),                              6000));
-    return () => T.forEach(clearTimeout);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const start = window.performance.now();
+    let frame = 0;
+
+    const tick = (now: number) => {
+      const elapsed = now - start;
+      const next = Math.min(elapsed / ROADMAP_BUILD_MS, 1);
+      const eased = 1 - Math.pow(1 - next, 2.2);
+      setProgress(eased);
+
+      if (next < 1) {
+        frame = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      setProgress(1);
+      setReady(true);
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   function handleClick() {
+    if (!ready || btnLoading) return;
     setBtnLoading(true);
     onDone();
   }
+
+  const stageIndex = getStageIndex(progress);
+  const stageLabel = ready ? "Preparing basecamp" : STAGES[stageIndex].label;
+  const buttonUnlocked = progress >= 0.9;
+  const buttonLifted = progress >= 0.64;
+  const buttonSealed = progress < 0.3;
+
+  const loadingCopy = {
+    title: "Mapping your climb",
+    subtitle: "Preparing your personalized learning path.",
+  };
+
+  const readyCopy = {
+    title: "Your path is ready",
+    subtitle: "Basecamp is set. Start with your first lesson.",
+  };
+
+  const copy = ready ? readyCopy : loadingCopy;
 
   return (
     <motion.div
@@ -320,127 +530,337 @@ function LoadingScreen({ onDone }: { onDone: () => void }) {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.32 }}
       style={{
-        position: "fixed", inset: 0, zIndex: 60,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "24px", background: BG,
+        position: "fixed",
+        inset: 0,
+        zIndex: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        background: "transparent",
+        overflow: "hidden",
       }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+      <div
+        aria-hidden
         style={{
-          width: "100%", maxWidth: 480,
-          background: "linear-gradient(180deg, rgba(22,49,74,0.94) 0%, rgba(10,22,38,0.98) 100%)",
-          border: `1px solid rgba(95,143,179,0.22)`,
-          borderRadius: 24, padding: "56px 44px 52px",
-          display: "flex", flexDirection: "column", alignItems: "center", gap: 36,
-          backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-          boxShadow: "0 40px 100px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset",
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          opacity: 0.58,
+          background:
+            "radial-gradient(34rem 16rem at 50% 88%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 60%), radial-gradient(30rem 14rem at 50% 92%, rgba(39,211,195,0.09) 0%, rgba(39,211,195,0) 64%)",
+        }}
+      />
+      <svg
+        aria-hidden
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="none"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          opacity: 0.16,
         }}
       >
-        {/* ── Fixed-height slot holds dots OR button — no layout shift ── */}
-        <div style={{ width: "100%", minHeight: 56, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 36 }}>
+        <path d="M0 650 C180 610, 320 632, 480 596 C620 566, 780 492, 930 470 C1080 446, 1220 382, 1440 330" fill="none" stroke="rgba(216,225,235,0.26)" strokeWidth="1.2" />
+        <path d="M0 720 C170 684, 320 692, 500 654 C690 614, 850 562, 1040 526 C1196 494, 1308 450, 1440 400" fill="none" stroke="rgba(216,225,235,0.18)" strokeWidth="1" />
+        <path d="M0 788 C210 740, 406 748, 614 700 C808 656, 996 600, 1188 548 C1292 520, 1378 482, 1440 448" fill="none" stroke="rgba(39,211,195,0.16)" strokeWidth="1" />
+        <path d="M0 830 C192 796, 382 786, 580 742 C790 694, 1030 622, 1248 560 C1332 536, 1396 510, 1440 486" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.9" />
+      </svg>
 
-          {/* Pulsing dots */}
-          <AnimatePresence>
-            {dotsVisible && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                style={{ display: "flex", gap: 14, alignItems: "center" }}
-              >
-                {[0, 1, 2, 3].map(i => (
-                  <motion.div
-                    key={i}
-                    animate={{ opacity: [0.25, 1, 0.25], scale: [0.85, 1.15, 0.85] }}
-                    transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.28 }}
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.06 }}
+        style={{
+          width: "100%",
+          maxWidth: 496,
+          padding: "20px 26px 22px",
+          borderRadius: 26,
+          border: "1px solid rgba(109,138,161,0.11)",
+          background:
+            "linear-gradient(180deg, rgba(5,12,22,0.88) 0%, rgba(7,17,29,0.95) 100%)",
+          boxShadow:
+            "0 24px 72px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.03)",
+          position: "relative",
+          overflow: "hidden",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(24rem 12rem at 50% 0%, rgba(112,150,183,0.08) 0%, transparent 58%), radial-gradient(18rem 10rem at 50% 84%, rgba(39,211,195,0.05) 0%, transparent 60%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 14,
+          }}
+        >
+          <BuildRouteVisual progress={progress} stageIndex={stageIndex} />
+
+          <div style={{ maxWidth: 356 }}>
+            <motion.p
+              key={`stage-${stageLabel}`}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: ready ? 0.54 : 0.72, y: 0 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              style={{
+                margin: "0 0 8px",
+                fontFamily: F_SANS,
+                fontSize: 11,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "rgba(200,216,228,0.72)",
+              }}
+            >
+              {stageLabel}
+            </motion.p>
+
+            <motion.h2
+              key={`title-${copy.title}`}
+              initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                fontFamily: F_SERIF,
+                fontSize: "clamp(28px, 4vw, 38px)",
+                fontWeight: 600,
+                color: CREAM,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.02,
+                margin: 0,
+              }}
+            >
+              {copy.title}
+            </motion.h2>
+
+            <motion.p
+              key={`subtitle-${copy.subtitle}`}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.34, ease: "easeOut", delay: 0.04 }}
+              style={{
+                margin: "6px 0 0",
+                fontFamily: F_SANS,
+                fontSize: 14,
+                lineHeight: 1.5,
+                color: "rgba(224,231,239,0.66)",
+              }}
+            >
+              {copy.subtitle}
+            </motion.p>
+          </div>
+
+          <motion.button
+            whileHover={ready && !btnLoading ? { scale: 1.015, y: -1 } : {}}
+            whileTap={ready && !btnLoading ? { scale: 0.985 } : {}}
+            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            onClick={handleClick}
+            disabled={!ready || btnLoading}
+            style={{
+              width: "100%",
+              maxWidth: 360,
+              height: 58,
+              borderRadius: 15,
+              border: ready
+                ? "1px solid rgba(255,248,238,0.24)"
+                : buttonUnlocked
+                ? "1px solid rgba(168,197,219,0.24)"
+                : "1px solid rgba(109,138,161,0.12)",
+              background: ready
+                ? "linear-gradient(180deg, #f0e7d8 0%, #dfd3bc 100%)"
+                : buttonUnlocked
+                ? "linear-gradient(180deg, rgba(26,39,53,0.98) 0%, rgba(16,28,40,0.98) 100%)"
+                : "linear-gradient(180deg, rgba(11,20,31,0.96) 0%, rgba(8,16,25,0.96) 100%)",
+              color: ready ? "#09111a" : buttonLifted ? "rgba(231,239,245,0.92)" : "rgba(231,239,245,0.68)",
+              fontFamily: F_SANS,
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "0.012em",
+              cursor: ready && !btnLoading ? "pointer" : "default",
+              outline: "none",
+              boxShadow: ready
+                ? "inset 0 1px 0 rgba(255,255,255,0.64), 0 18px 36px rgba(0,0,0,0.26)"
+                : buttonUnlocked
+                ? "inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 30px rgba(0,0,0,0.2), 0 0 0 1px rgba(39,211,195,0.06)"
+                : "inset 0 1px 0 rgba(255,255,255,0.015), inset 0 -1px 0 rgba(0,0,0,0.26), 0 8px 18px rgba(0,0,0,0.16)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 18px 0 16px",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <motion.div
+              aria-hidden
+              initial={false}
+              animate={{
+                opacity: ready ? 0 : buttonUnlocked ? 0.2 : buttonLifted ? 0.11 : 0.05,
+                backgroundPositionX: progress > 0.2 ? "100%" : "0%",
+              }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(120deg, rgba(39,211,195,0) 0%, rgba(39,211,195,0.08) 36%, rgba(127,231,242,0.12) 52%, rgba(39,211,195,0.05) 68%, rgba(39,211,195,0) 100%)",
+                backgroundSize: "180% 100%",
+                pointerEvents: "none",
+              }}
+            />
+
+            <motion.span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 26,
+                height: 26,
+                borderRadius: "999px",
+                background: ready
+                  ? "rgba(9,17,26,0.08)"
+                  : buttonUnlocked
+                  ? "rgba(127,231,242,0.14)"
+                  : "rgba(127,231,242,0.05)",
+                border: ready
+                  ? "1px solid rgba(9,17,26,0.12)"
+                  : buttonUnlocked
+                  ? "1px solid rgba(127,231,242,0.18)"
+                  : "1px solid rgba(127,231,242,0.08)",
+                flexShrink: 0,
+                position: "relative",
+                zIndex: 1,
+                boxShadow: ready || buttonUnlocked ? `0 0 18px ${EMERALD_GLOW}` : "none",
+              }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {btnLoading ? (
+                  <motion.span
+                    key="btn-load"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
                     style={{
-                      width: 10, height: 10, borderRadius: "50%",
-                      background: EMERALD,
-                      boxShadow: `0 0 10px ${EMERALD_GLOW}`,
+                      width: 10,
+                      height: 10,
+                      borderRadius: "999px",
+                      border: "2px solid rgba(9,17,26,0.24)",
+                      borderTopColor: "#09111a",
+                      display: "inline-block",
                     }}
                   />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                ) : ready ? (
+                  <motion.svg
+                    key="btn-arrow"
+                    initial={{ opacity: 0, x: -3 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 3 }}
+                    transition={{ duration: 0.22 }}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                  >
+                    <path
+                      d="M2.5 7H11.5M11.5 7L8.25 3.75M11.5 7L8.25 10.25"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </motion.svg>
+                ) : (
+                  <motion.svg
+                    key="btn-lock"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.22 }}
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M3.5 5V3.75C3.5 2.51 4.51 1.5 5.75 1.5C6.99 1.5 8 2.51 8 3.75V5M3 5H8.5C8.78 5 9 5.22 9 5.5V9C9 9.28 8.78 9.5 8.5 9.5H3C2.72 9.5 2.5 9.28 2.5 9V5.5C2.5 5.22 2.72 5 3 5Z"
+                      stroke="currentColor"
+                      strokeWidth="1.1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </motion.svg>
+                )}
+              </AnimatePresence>
+            </motion.span>
 
-          {/* CTA button — warm cream, matching hero */}
-          <AnimatePresence>
-            {showButton && (
-              <motion.div
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                style={{ width: "100%" }}
-              >
-                <motion.button
-                  whileHover={!btnLoading ? { scale: 1.03, y: -2 } : {}}
-                  whileTap={!btnLoading ? { scale: 0.97 } : {}}
-                  transition={{ type: "spring", stiffness: 300, damping: 28 }}
-                  onClick={handleClick}
-                  disabled={btnLoading}
-                  style={{
-                    width: "100%", height: 56, borderRadius: 12, border: "none",
-                    background: "linear-gradient(180deg, #efe8d9 0%, var(--alpine-cream) 100%)", color: "#08111d",
-                    fontFamily: F_SANS, fontSize: 15, fontWeight: 600,
-                    letterSpacing: "0.012em",
-                    cursor: btnLoading ? "default" : "pointer",
-                    outline: "none",
-                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.58), 0 2px 8px rgba(0,0,0,0.28), 0 8px 28px rgba(0,0,0,0.22)`,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    opacity: btnLoading ? 0.75 : 1,
-                    transition: "opacity 0.2s, background-color 0.18s, transform 0.18s",
-                  }}
-                >
-                  {btnLoading ? (
-                    <>
-                      <motion.span
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                        style={{ display: "inline-block", width: 16, height: 16, borderRadius: "50%",
-                          border: "2px solid rgba(8,17,29,0.3)", borderTopColor: "#08111d" }}
-                      />
-                      Loading...
-                    </>
-                  ) : (
-                    "Continue"
-                  )}
-                </motion.button>
-                <p style={{
-                  fontFamily: F_SANS, fontSize: 12, color: MUTED,
-                  textAlign: "center", margin: "10px 0 0", fontStyle: "italic",
-                }}>
-                  Your course is ready.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            <span
+              style={{
+                position: "relative",
+                zIndex: 1,
+                flex: 1,
+                textAlign: "center",
+              }}
+            >
+              {btnLoading
+                ? "Opening basecamp..."
+                : ready
+                ? "Enter basecamp"
+                : stageIndex === 0
+                ? "Route sealed"
+                : stageIndex === 1
+                ? "Unlocking access"
+                : "Preparing basecamp"}
+            </span>
 
-        {/* ── Message ───────────────────────────────────────────────── */}
-        <div style={{ height: 24, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
-          <AnimatePresence mode="wait">
-            {msgText && (
-              <motion.p
-                key={msgKey}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.82 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
+            <span
+              style={{
+                position: "relative",
+                zIndex: 1,
+                minWidth: 18,
+                textAlign: "right",
+                fontSize: 14,
+                color: ready
+                  ? "rgba(9,17,26,0.62)"
+                  : buttonUnlocked
+                  ? "rgba(231,239,245,0.74)"
+                  : "rgba(200,216,228,0.34)",
+              }}
+            >
+              {btnLoading ? "" : ready ? "→" : ""}
+            </span>
+            {buttonSealed && (
+              <div
+                aria-hidden
                 style={{
-                  fontFamily: F_SANS, fontSize: 15, fontWeight: 400,
-                  color: BODY, letterSpacing: "0.4px",
-                  margin: 0, textAlign: "center", whiteSpace: "nowrap",
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 15,
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.015) 0%, rgba(255,255,255,0) 24%)",
+                  pointerEvents: "none",
                 }}
-              >
-                {msgText}
-              </motion.p>
+              />
             )}
-          </AnimatePresence>
+          </motion.button>
         </div>
       </motion.div>
     </motion.div>

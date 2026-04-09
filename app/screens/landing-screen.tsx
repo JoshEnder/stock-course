@@ -5,7 +5,6 @@ import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import { Hero } from "../components/hero";
-import OnboardingContainer from "../components/onboard/OnboardingContainer";
 
 const sans  = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
 const serif = "var(--font-cormorant,'Cormorant Garamond',Georgia,serif)";
@@ -26,29 +25,6 @@ function useReveal(threshold = 0.08) {
     return () => obs.disconnect();
   }, [threshold]);
   return { ref, vis };
-}
-
-// ─── NAVBAR ───────────────────────────────────────────────────────────────────
-function Navbar({ isAuthed }: { isAuthed: boolean }) {
-  return (
-    <nav className="l-nav">
-      <div className="l-nav-inner">
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{ fontFamily: sans, fontSize: 20, fontWeight: 800, color: "#0d0d0d", letterSpacing: "-0.04em" }}>
-            Stoked
-          </span>
-        </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Link href={isAuthed ? "/course" : "/experience"} className="l-btn-ghost">
-            {isAuthed ? "Continue" : "Log in"}
-          </Link>
-          <Link href="/experience" className="l-btn-primary">
-            Get started
-          </Link>
-        </div>
-      </div>
-    </nav>
-  );
 }
 
 // ─── HERO (legacy, replaced by components/hero) ─────────────────────────────
@@ -863,60 +839,39 @@ const CSS = `
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 // Dissolve timing — must match T.dissolveDuration in Hero.tsx
 const DISSOLVE_MS = 360;
-// Onboarding panel arrives after text is fully gone + a brief beat
-const ONBOARD_OPEN_DELAY_MS = DISSOLVE_MS + 80;
+// Route transition happens after the hero text has dissolved.
+const ONBOARD_ROUTE_DELAY_MS = DISSOLVE_MS + 80;
 
 export function LandingScreen() {
   const { user } = useAuth();
   const isAuthed = !!user;
   const router = useRouter();
-  // overlayActive: video starts blurring immediately on click
-  const [overlayActive,  setOverlayActive]  = useState(false);
-  // onboardingOpen: panel mounts after text has dissolved
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const onboardingRouteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [overlayActive, setOverlayActive] = useState(false);
 
   const handleCTAClick = useCallback(() => {
-    // Start video blur immediately — runs in parallel with text dissolve
     setOverlayActive(true);
-    // Panel opens after text is gone
-    const id = setTimeout(() => setOnboardingOpen(true), ONBOARD_OPEN_DELAY_MS);
-    return () => clearTimeout(id);
-  }, []);
-
-  const handleOnboardingFinish = useCallback(() => {
-    router.push("/course");
+    if (onboardingRouteTimeoutRef.current !== null) {
+      clearTimeout(onboardingRouteTimeoutRef.current);
+    }
+    onboardingRouteTimeoutRef.current = window.setTimeout(() => {
+      router.push("/onboarding");
+    }, ONBOARD_ROUTE_DELAY_MS);
   }, [router]);
+
+  useEffect(() => {
+    return () => {
+      if (onboardingRouteTimeoutRef.current !== null) {
+        clearTimeout(onboardingRouteTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div style={{ backgroundColor: "#faf9f6" }}>
       <style>{CSS}</style>
-      <style>{`
-        @keyframes ob-panel-in {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
 
-      {/* Hero stays mounted — text dissolves in place, video blurs on overlayActive */}
       <Hero onCTAClick={handleCTAClick} overlayActive={overlayActive} />
-
-      {/* Onboarding mounts after text has dissolved — over the blurred final frame */}
-      {onboardingOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 100,
-          }}
-        >
-          <div style={{
-            height: "100%",
-            animation: "ob-panel-in 0.58s cubic-bezier(0.22, 1, 0.36, 1) both",
-          }}>
-            <OnboardingContainer onFinish={handleOnboardingFinish} />
-          </div>
-        </div>
-      )}
 
       <MethodSection />
       <ChallengeDemoSection />

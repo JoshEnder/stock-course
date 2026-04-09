@@ -16,8 +16,8 @@ export interface HeroProps {
 
 // ── Timing constants — all values in ms ──────────────────────────────────────
 const T = {
-  logoDelay:          40,
-  logoDuration:      580,
+  logoDelay:         500,
+  logoDuration:     1200,
 
   lineOneDelay:        0,
   lineOneDuration:  1380,
@@ -283,6 +283,7 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
             justifyContent: "center",
             alignItems: "center",
             pointerEvents: "none",
+            visibility: logoVisible ? "visible" : "hidden",
           }}
         >
           <Image
@@ -318,11 +319,15 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
             color: "#ede8de",
             margin: 0,
             padding: 0,
+            visibility: revealed ? "visible" : "hidden",
           }}>
             <span
               className={`ch-line1${revealed ? " ch-line1--in" : ""}`}
               style={{
                 display: "block",
+                opacity: revealed ? undefined : 0,
+                transform: revealed ? undefined : `translateY(${T.settleDistance})`,
+                filter: revealed ? undefined : `blur(${T.blurAmount})`,
                 textShadow: "0 1px 16px rgba(0,0,0,0.68), 0 4px 32px rgba(0,0,0,0.36)",
               }}
             >
@@ -333,6 +338,9 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
               style={{
                 display: "block",
                 marginTop: "0.09em",
+                opacity: revealed ? undefined : 0,
+                transform: revealed ? undefined : `translateY(${T.settleDistance})`,
+                filter: revealed ? undefined : `blur(${T.blurAmount})`,
                 textShadow: "0 1px 16px rgba(0,0,0,0.68), 0 4px 32px rgba(0,0,0,0.36)",
               }}
             >
@@ -342,7 +350,12 @@ export function Hero({ onCTAClick, overlayActive = false }: HeroProps = {}) {
 
           <div
             className={`ch-cta-wrap${revealed ? " ch-cta-wrap--in" : ""}`}
-            style={{ marginTop: 34 }}
+            style={{
+              marginTop: 34,
+              visibility: revealed ? "visible" : "hidden",
+              opacity: revealed ? undefined : 0,
+              transform: revealed ? undefined : `translateY(${T.ctaSettle})`,
+            }}
           >
             <button
               className="ch-cta"

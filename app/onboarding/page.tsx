@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import OnboardingContainer from "../components/onboard/OnboardingContainer";
 
 export const metadata: Metadata = {
   title: "Onboarding | Stock Academy",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function OnboardingPage() {
-  redirect("/onboard");
+  return <OnboardingContainer />;
 }
