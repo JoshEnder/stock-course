@@ -9,7 +9,7 @@ import {
   useSyncExternalStore,
   type ComponentType,
 } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { CourseLesson, CourseModule } from "../data/course-data";
 import {
   ClockIcon,
@@ -53,6 +53,7 @@ import { navigateWithJourney } from "../lib/journey-motion";
 type LessonShellScreenProps = {
   lesson: CourseLesson;
   module: CourseModule;
+  qaUnlocked?: boolean;
 };
 
 type PlayerStep = "learn" | "practice" | "check" | "reward";
@@ -229,9 +230,9 @@ const FinalMasteryBossCheck = loadBossComponent(
 export function LessonShellScreen({
   lesson,
   module,
+  qaUnlocked = false,
 }: LessonShellScreenProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
   const storedProgress = useSyncExternalStore(
     subscribeToCourseProgress,
@@ -306,7 +307,6 @@ export function LessonShellScreen({
   }, [lesson, module]);
   const currentStepIndex = stepSequence.indexOf(currentStep);
   const stepProgress = ((currentStepIndex + 1) / stepSequence.length) * 100;
-  const qaUnlocked = searchParams.get("qa") === "1";
   const isFoundationsBoss = module.id === 1 && lesson.lessonNumber === 10;
   const isChartBasicsBoss = module.id === 2 && lesson.lessonNumber === 10;
   const isTrendBoss = module.id === 3 && lesson.lessonNumber === 10;

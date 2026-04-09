@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 import {
   checkUsernameAvailability,
@@ -33,9 +33,12 @@ function normalizeNextPath(next: string | null) {
   return next;
 }
 
-export function UsernameSetupScreen() {
+export function UsernameSetupScreen({
+  nextPath,
+}: {
+  nextPath: string | null;
+}) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { loading, needsUsername, profile, refreshProfile, user } = useAuth();
   const [usernameDraft, setUsernameDraft] = useState("");
   const [checking, setChecking] = useState(false);
@@ -44,10 +47,7 @@ export function UsernameSetupScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const next = useMemo(
-    () => normalizeNextPath(searchParams?.get("next") ?? null),
-    [searchParams],
-  );
+  const next = normalizeNextPath(nextPath);
   const normalizedDraft = normalizeUsername(usernameDraft);
   const validation = validateUsername(usernameDraft);
 

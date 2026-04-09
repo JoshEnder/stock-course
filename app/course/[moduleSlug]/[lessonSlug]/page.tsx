@@ -8,6 +8,9 @@ type LessonRoutePageProps = {
     lessonSlug: string;
     moduleSlug: string;
   }>;
+  searchParams?: Promise<{
+    qa?: string | string[];
+  }>;
 };
 
 export async function generateMetadata({
@@ -33,8 +36,10 @@ export async function generateMetadata({
 
 export default async function LessonRoutePage({
   params,
+  searchParams,
 }: LessonRoutePageProps) {
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
   const lessonContext = getLessonBySlug(
     resolvedParams.moduleSlug,
     resolvedParams.lessonSlug,
@@ -48,6 +53,11 @@ export default async function LessonRoutePage({
     <LessonShellScreen
       lesson={lessonContext.lesson}
       module={lessonContext.module}
+      qaUnlocked={
+        (Array.isArray(resolvedSearchParams?.qa)
+          ? resolvedSearchParams?.qa[0]
+          : resolvedSearchParams?.qa) === "1"
+      }
     />
   );
 }

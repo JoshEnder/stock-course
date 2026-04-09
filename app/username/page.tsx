@@ -6,6 +6,18 @@ export const metadata: Metadata = {
   description: "Set your unique Stoked username to unlock friends and saved identity.",
 };
 
-export default function UsernamePage() {
-  return <UsernameSetupScreen />;
+type UsernamePageProps = {
+  searchParams?: Promise<{
+    next?: string | string[];
+  }>;
+};
+
+export default async function UsernamePage({
+  searchParams,
+}: UsernamePageProps) {
+  const resolvedSearchParams = await searchParams;
+  const nextParam = resolvedSearchParams?.next;
+  const nextPath = Array.isArray(nextParam) ? nextParam[0] : nextParam;
+
+  return <UsernameSetupScreen nextPath={nextPath ?? null} />;
 }
