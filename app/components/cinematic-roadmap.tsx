@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { DerivedLesson } from "../lib/course-engine";
 
 // ─── Coordinate space ─────────────────────────────────────────────────────────
@@ -19,19 +19,11 @@ const SVG_W = 712;
 const SVG_H = 648;
 const IMG_RATIO = "1536 / 1024";
 
-// ─── Exact path from tracedline.svg, REVERSED (base→summit) ──────────────────
-// Original path: M586.501 3.5 ... C419 551.5, 7.5 636.5, 7.5 636.5
-// Reversed so Framer Motion pathLength animates base → summit (ascending).
+// ─── Exact path from public/ref/tracedline.svg ───────────────────────────────
 const ROUTE_PATH =
-  "M 7.501 636.501 " +
-  "C 7.501 636.501 419.001 551.501 419.001 533.001 " +
-  "C 419.001 514.501 178.001 470.001 165.715 446.063 " +
-  "C 153.428 422.126 571.501 333 571.476 313.61 " +
-  "C 571.451 294.219 387.501 281.001 374.48 262.513 " +
-  "C 361.458 244.026 715.001 188.501 704.001 168.754 " +
-  "C 693.001 149.008 490.001 123.5 493.001 101.501 " +
-  "C 496.001 79.501 704.001 55.657 704.001 38.501 " +
-  "C 704.001 21.344 586.501 3.501 586.501 3.501";
+  "M586.501 3.50049C586.501 3.50049 704.001 21.3437 704.001 38.5005C704.001 55.6573 496.001 79.501 493.001 101.501C490.001 123.5 693.001 149.008 704.001 168.754C715.001 188.501 361.458 244.026 374.48 262.513C387.501 281.001 571.451 294.219 571.476 313.61C571.501 333 153.428 422.126 165.715 446.063C178.001 470.001 419.001 514.501 419.001 533.001C419.001 551.501 7.50069 636.501 7.50069 636.501";
+
+const NODE_STOPS = [0.02, 0.17, 0.34, 0.53, 0.67, 0.81, 0.91, 0.975] as const;
 
 // ─── Node config ──────────────────────────────────────────────────────────────
 
@@ -40,8 +32,7 @@ export type NodeVariant = "start" | "completed" | "current" | "locked";
 export interface NodeConfig {
   id: number;
   // SVG coordinate space (0 0 712 648) — matches tracedline.svg
-  x: number;
-  y: number;
+  stop: number;
   sizePct: number; // % of stage width
   minPx: number;
   maxPx: number;
@@ -50,17 +41,15 @@ export interface NodeConfig {
   route?: string;
 }
 
-// Positions sampled along the reversed path waypoints (base → summit).
-// CSS: left=(x/712)*100%,  top=(y/648)*100%
 const DEFAULT_NODES: NodeConfig[] = [
-  { id: 1,  x: 174, y: 577, sizePct: 5.6, minPx: 52, maxPx: 88,  variant: "start",     label: "Start"     },
-  { id: 2,  x: 380, y: 516, sizePct: 3.3, minPx: 36, maxPx: 54,  variant: "completed", label: "Lesson 2"  },
-  { id: 3,  x: 190, y: 447, sizePct: 3.5, minPx: 36, maxPx: 56,  variant: "completed", label: "Lesson 3"  },
-  { id: 4,  x: 468, y: 350, sizePct: 3.5, minPx: 36, maxPx: 56,  variant: "completed", label: "Lesson 4"  },
-  { id: 5,  x: 372, y: 263, sizePct: 3.9, minPx: 40, maxPx: 62,  variant: "current",   label: "Lesson 5"  },
-  { id: 6,  x: 616, y: 174, sizePct: 3.1, minPx: 32, maxPx: 50,  variant: "locked",    label: "Lesson 6"  },
-  { id: 7,  x: 491, y: 104, sizePct: 2.8, minPx: 30, maxPx: 46,  variant: "locked",    label: "Lesson 7"  },
-  { id: 8,  x: 564, y:  72, sizePct: 2.6, minPx: 28, maxPx: 42,  variant: "locked",    label: "Lesson 8"  },
+  { id: 1, stop: NODE_STOPS[0], sizePct: 5.6, minPx: 52, maxPx: 88, variant: "start", label: "Start" },
+  { id: 2, stop: NODE_STOPS[1], sizePct: 3.3, minPx: 36, maxPx: 54, variant: "completed", label: "Lesson 2" },
+  { id: 3, stop: NODE_STOPS[2], sizePct: 3.5, minPx: 36, maxPx: 56, variant: "completed", label: "Lesson 3" },
+  { id: 4, stop: NODE_STOPS[3], sizePct: 3.5, minPx: 36, maxPx: 56, variant: "completed", label: "Lesson 4" },
+  { id: 5, stop: NODE_STOPS[4], sizePct: 3.9, minPx: 40, maxPx: 62, variant: "current", label: "Lesson 5" },
+  { id: 6, stop: NODE_STOPS[5], sizePct: 3.1, minPx: 32, maxPx: 50, variant: "locked", label: "Lesson 6" },
+  { id: 7, stop: NODE_STOPS[6], sizePct: 2.8, minPx: 30, maxPx: 46, variant: "locked", label: "Lesson 7" },
+  { id: 8, stop: NODE_STOPS[7], sizePct: 2.6, minPx: 28, maxPx: 42, variant: "locked", label: "Lesson 8" },
 ];
 
 // ─── Lesson → config mapping ──────────────────────────────────────────────────
@@ -109,7 +98,7 @@ export function RoadmapPath() {
 
       {/* Soft outer bloom */}
       <motion.path d={ROUTE_PATH} fill="none"
-        stroke="rgba(205, 145, 18, 0.20)" strokeWidth={32} strokeLinecap="round"
+        stroke="rgba(205, 145, 18, 0.16)" strokeWidth={22} strokeLinecap="round"
         filter="url(#rp-bloom)"
         initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
         // @ts-expect-error number[] is valid cubic-bezier ease
@@ -118,7 +107,7 @@ export function RoadmapPath() {
 
       {/* Warm body */}
       <motion.path d={ROUTE_PATH} fill="none"
-        stroke="rgba(225, 158, 28, 0.58)" strokeWidth={5} strokeLinecap="round"
+        stroke="rgba(225, 158, 28, 0.48)" strokeWidth={4.2} strokeLinecap="round"
         filter="url(#rp-glow)"
         initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
         // @ts-expect-error number[] is valid cubic-bezier ease
@@ -127,7 +116,7 @@ export function RoadmapPath() {
 
       {/* Crisp bright core */}
       <motion.path d={ROUTE_PATH} fill="none"
-        stroke="rgba(255, 220, 118, 0.92)" strokeWidth={1.6} strokeLinecap="round"
+        stroke="rgba(255, 220, 118, 0.88)" strokeWidth={1.15} strokeLinecap="round"
         initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
         // @ts-expect-error number[] is valid cubic-bezier ease
         transition={{ duration: dur, delay, ease }}
@@ -185,10 +174,12 @@ function nodeSurface(variant: NodeVariant, hovered: boolean) {
 // ─── RoadmapNode ─────────────────────────────────────────────────────────────
 
 export function RoadmapNode({
-  node, index, isHovered, onHover, onClick,
+  node, index, x, y, isHovered, onHover, onClick,
 }: {
   node: NodeConfig;
   index: number;
+  x: number;
+  y: number;
   isHovered: boolean;
   onHover: (id: number | null) => void;
   onClick: (node: NodeConfig) => void;
@@ -218,8 +209,8 @@ export function RoadmapNode({
       className={isCurrent ? "rn-current" : undefined}
       style={{
         position: "absolute",
-        left: `${(node.x / SVG_W) * 100}%`,
-        top: `${(node.y / SVG_H) * 100}%`,
+        left: `${(x / SVG_W) * 100}%`,
+        top: `${(y / SVG_H) * 100}%`,
         transform: "translate(-50%, -50%)",
         width: `clamp(${node.minPx}px, ${node.sizePct}%, ${node.maxPx}px)`,
         height: `clamp(${node.minPx}px, ${node.sizePct}%, ${node.maxPx}px)`,
@@ -329,7 +320,24 @@ interface MountainRoadmapProps {
 
 export function MountainRoadmap({ lessons, onNodeClick }: MountainRoadmapProps) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const samplePathRef = useRef<SVGPathElement>(null);
   const nodes = lessons && lessons.length > 0 ? buildNodes(lessons) : DEFAULT_NODES;
+  const [nodePositions, setNodePositions] = useState<Record<number, { x: number; y: number }>>({});
+
+  useEffect(() => {
+    const path = samplePathRef.current;
+    if (!path) return;
+
+    const totalLength = path.getTotalLength();
+    const nextPositions = nodes.reduce<Record<number, { x: number; y: number }>>((acc, node) => {
+      // SVG source path runs summit -> base. Our stop values are base -> summit.
+      const point = path.getPointAtLength(totalLength * (1 - node.stop));
+      acc[node.id] = { x: point.x, y: point.y };
+      return acc;
+    }, {});
+
+    setNodePositions(nextPositions);
+  }, [nodes]);
 
   return (
     <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#0b0f18" }}>
@@ -365,6 +373,21 @@ export function MountainRoadmap({ lessons, onNodeClick }: MountainRoadmapProps) 
 
         {/* Traced path */}
         <RoadmapPath />
+        <svg
+          aria-hidden="true"
+          viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+          preserveAspectRatio="none"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+            opacity: 0,
+          }}
+        >
+          <path ref={samplePathRef} d={ROUTE_PATH} fill="none" stroke="transparent" strokeWidth={1} />
+        </svg>
 
         {/* Nodes */}
         {nodes.map((node, i) => (
@@ -372,6 +395,8 @@ export function MountainRoadmap({ lessons, onNodeClick }: MountainRoadmapProps) 
             key={node.id}
             node={node}
             index={i}
+            x={nodePositions[node.id]?.x ?? SVG_W / 2}
+            y={nodePositions[node.id]?.y ?? SVG_H / 2}
             isHovered={hoveredId === node.id}
             onHover={setHoveredId}
             onClick={(n) => onNodeClick?.(n.id, n.route)}
