@@ -1,28 +1,6 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Serif_Display, DM_Sans } from "next/font/google";
 import { AppProviders } from "./components/app-providers";
 import "./globals.css";
-
-const cormorantGaramond = Cormorant_Garamond({
-  weight: ["400", "600"],
-  subsets: ["latin"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
-const dmSerifDisplay = DM_Serif_Display({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-dm-serif",
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  weight: ["400", "600"],
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Stock Course",
@@ -35,7 +13,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorantGaramond.variable} ${dmSerifDisplay.variable} ${dmSans.variable}`}>
+    <html
+      lang="en"
+      style={
+        {
+          "--font-cormorant":
+            "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+          "--font-dm-serif": "'DM Serif Display', Georgia, serif",
+          "--font-dm-sans": "'DM Sans', system-ui, sans-serif",
+        } as React.CSSProperties
+      }
+    >
       <body>
         <AppProviders>{children}</AppProviders>
       </body>
