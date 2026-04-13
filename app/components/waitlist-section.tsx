@@ -96,53 +96,51 @@ export function WaitlistSection({
 
   if (isBanner) {
     return (
-      <section className="border-b border-[#dcf1e3] bg-[#f7fff9] px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full border border-[#b9e8c8] bg-white px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-[#18864a]">
-                Waitlist
-              </span>
-              <p className="text-sm font-medium leading-6 text-[#244031] sm:text-[0.95rem]">
-                Get launch updates and early access before Stoked opens publicly.
-              </p>
-            </div>
-          </div>
-
-          {submissionState === "success" ? (
-            <div
-              aria-live="polite"
-              className="inline-flex items-center gap-2 rounded-full border border-[#b9e8c8] bg-white px-4 py-2 text-sm font-medium text-[#1f5134]"
-            >
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22c55e] text-[0.7rem] font-bold text-white">
+      <section className="scroll-mt-28 w-full max-w-[42rem]" id="waitlist">
+        {submissionState === "success" ? (
+          <div
+            aria-live="polite"
+            className="rounded-[1.6rem] border border-[#d7e4db] bg-white px-5 py-4 text-left shadow-[0_20px_44px_rgba(23,43,32,0.1)] sm:px-6 sm:py-5"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#22c55e] text-sm font-bold text-white">
                 ✓
               </span>
-              You&apos;re on the list.
+              <div>
+                <p className="text-sm font-semibold text-[#183225]">
+                  You&apos;re in.
+                </p>
+                <p className="text-sm text-[#5b6d62]">
+                  We&apos;ll email you when early access opens.
+                </p>
+              </div>
             </div>
-          ) : (
-            <form
-              className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto lg:min-w-[420px]"
-              noValidate
-              onSubmit={handleSubmit}
-            >
-              <label className="sr-only" htmlFor={inputId}>
-                Email address
-              </label>
+          </div>
+        ) : (
+          <form
+            className="w-full rounded-[1.6rem] border border-[#d7e4db] bg-white px-4 py-4 shadow-[0_20px_44px_rgba(23,43,32,0.1)] sm:px-5 sm:py-5"
+            noValidate
+            onSubmit={handleSubmit}
+          >
+            <label className="sr-only" htmlFor={inputId}>
+              Email address
+            </label>
 
-              <input
-                aria-hidden="true"
-                autoComplete="off"
-                className="sr-only"
-                name="company"
-                tabIndex={-1}
-                type="text"
-              />
+            <input
+              aria-hidden="true"
+              autoComplete="off"
+              className="sr-only"
+              name="company"
+              tabIndex={-1}
+              type="text"
+            />
 
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 aria-describedby={describedBy}
                 aria-invalid={Boolean(errorMessage)}
                 autoComplete="email"
-                className="h-10 min-w-0 flex-1 rounded-full border border-[#cfe8d8] bg-white px-4 text-sm text-[#172b1f] outline-none transition placeholder:text-[#7a9484] focus:border-[#38b26b] focus:ring-2 focus:ring-[#38b26b]/20 disabled:cursor-not-allowed disabled:opacity-70"
+                className="h-[3.25rem] min-w-0 flex-1 rounded-full border border-[#d6e2da] bg-[#fbfdfb] px-5 text-[0.98rem] text-[#172b1f] outline-none transition placeholder:text-[#839488] focus:border-[#38b26b] focus:bg-white focus:ring-2 focus:ring-[#38b26b]/15 disabled:cursor-not-allowed disabled:opacity-70"
                 id={inputId}
                 inputMode="email"
                 name="email"
@@ -159,38 +157,38 @@ export function WaitlistSection({
               />
 
               <button
-                className="inline-flex h-10 items-center justify-center rounded-full bg-[#22c55e] px-4 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(34,197,94,0.22)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex h-[3.25rem] items-center justify-center rounded-full bg-[linear-gradient(135deg,#16994c_0%,#22c55e_100%)] px-7 text-sm font-semibold uppercase tracking-[0.04em] text-white shadow-[0_14px_30px_rgba(22,153,76,0.22)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={submissionState === "submitting"}
                 type="submit"
               >
                 {submissionState === "submitting"
                   ? "Joining..."
-                  : "Join waitlist"}
+                  : "Get early access"}
               </button>
-            </form>
-          )}
-        </div>
+            </div>
 
-        {submissionState !== "success" && (showBannerSubtitle || errorMessage) ? (
-          <div className="mx-auto mt-2 flex max-w-6xl flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-            {showBannerSubtitle ? (
-              <p className="text-xs leading-5 text-[#6f897a]" id={hintId}>
-                No spam. Just launch updates and early access.
-              </p>
-            ) : null}
+            {(showBannerSubtitle || errorMessage) && (
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                {showBannerSubtitle ? (
+                  <p className="text-[0.92rem] leading-6 text-[#66786d]" id={hintId}>
+                    No spam. Early access only.
+                  </p>
+                ) : null}
 
-            {errorMessage ? (
-              <p
-                aria-live="polite"
-                className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700"
-                id={errorId}
-                role="status"
-              >
-                {errorMessage}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
+                {errorMessage ? (
+                  <p
+                    aria-live="polite"
+                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700"
+                    id={errorId}
+                    role="status"
+                  >
+                    {errorMessage}
+                  </p>
+                ) : null}
+              </div>
+            )}
+          </form>
+        )}
       </section>
     );
   }

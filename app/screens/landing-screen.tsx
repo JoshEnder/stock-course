@@ -2,33 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import HeroScene from "@/app/components/HeroScene";
 import { WaitlistSection } from "@/app/components/waitlist-section";
 import { getQuizData, type QuizData } from "./onboarding-screen";
 
 // ─── Shared font ──────────────────────────────────────────────────────────────
 const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
-
-// ─── Gamification helpers ─────────────────────────────────────────────────────
-const XP_KEY     = "stoked_xp";
-const BADGES_KEY = "stoked_badges";
-
-function getStoredXP(): number {
-  if (typeof window === "undefined") return 0;
-  return Number(localStorage.getItem(XP_KEY) ?? 0);
-}
-function getStoredBadges(): string[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(BADGES_KEY) ?? "[]"); } catch { return []; }
-}
-
-const ALL_BADGES = [
-  { id: "foundations", emoji: "🎓", label: "Foundations Complete" },
-  { id: "streak7",     emoji: "🔥", label: "7-Day Streak" },
-  { id: "quick",       emoji: "🚀", label: "Quick Learner" },
-  { id: "chart",       emoji: "📊", label: "Chart Master" },
-  { id: "allstar",     emoji: "💎", label: "All-Star" },
-];
 
 // ─── All CSS ──────────────────────────────────────────────────────────────────
 const LANDING_CSS = `
@@ -201,38 +179,6 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
         >×</button>
         {children}
       </div>
-    </div>
-  );
-}
-
-function PreviewStatus() {
-  return (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "8px 14px",
-        borderRadius: 999,
-        border: "2px solid #dcfce7",
-        background: "#f7fff9",
-        color: "#15803d",
-        fontSize: 12,
-        fontWeight: 800,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-      }}
-    >
-      <span
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          background: "#22c55e",
-          flexShrink: 0,
-        }}
-      />
-      Landing Preview
     </div>
   );
 }
@@ -624,37 +570,6 @@ function ProgressCard() {
   );
 }
 
-// ─── Badges row ───────────────────────────────────────────────────────────────
-function BadgesRow({ unlockedIds }: { unlockedIds: string[] }) {
-  return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-      {ALL_BADGES.map(b => {
-        const unlocked = unlockedIds.includes(b.id);
-        return (
-          <div
-            key={b.id}
-            title={b.label}
-            className={unlocked ? "badge-pop" : ""}
-            style={{
-              width: 40, height: 40, borderRadius: 12,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 20,
-              background: unlocked ? "#f0fdf4" : "#f3f4f6",
-              border: "2px solid " + (unlocked ? "#22c55e" : "#e5e7eb"),
-              boxShadow: unlocked ? "0 2px 8px rgba(34,197,94,0.25)" : "none",
-              filter: unlocked ? "none" : "grayscale(1) opacity(0.4)",
-              transition: "all 300ms",
-              cursor: unlocked ? "default" : "help",
-            }}
-          >
-            {b.emoji}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({ children, bg = "#fff", border = false, className = "" }: {
   children: React.ReactNode; bg?: string; border?: boolean; className?: string;
@@ -696,98 +611,6 @@ function FeatureRow({ tag, tagColor, heading, body, illustration, flip = false }
   );
 }
 
-// ─── Stat icons ───────────────────────────────────────────────────────────────
-function ModulesIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <rect className="st-s1" x="2"  y="34" width="10" height="8"  rx="2.5" />
-      <rect className="st-s2" x="13" y="24" width="10" height="18" rx="2.5" />
-      <rect className="st-s3" x="24" y="14" width="10" height="28" rx="2.5" />
-      <rect className="st-s4" x="35" y="4"  width="8"  height="38" rx="2.5" />
-      <circle cx="39" cy="3" r="2.5" fill="#16a34a" opacity="0.7" />
-    </svg>
-  );
-}
-function BookIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <path d="M22 10 L7 14 L7 37 L22 33 Z" fill="#dcfce7" stroke="#22c55e" strokeWidth="1.5" strokeLinejoin="round" />
-      <line x1="10" y1="19" x2="20" y2="18" stroke="#86efac" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="10" y1="24" x2="20" y2="23" stroke="#86efac" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="10" y1="29" x2="20" y2="28" stroke="#86efac" strokeWidth="1.5" strokeLinecap="round" />
-      <rect x="20" y="9" width="4" height="25" rx="2" fill="#22c55e" />
-      <g className="st-page">
-        <path d="M22 10 L37 14 L37 37 L22 33 Z" fill="#bbf7d0" stroke="#22c55e" strokeWidth="1.5" strokeLinejoin="round" />
-      </g>
-    </svg>
-  );
-}
-function LockIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <g className="st-shackle">
-        <path d="M13 25 L13 15 Q22 5 31 15 L31 25" stroke="#16a34a" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-      </g>
-      <rect x="7" y="23" width="30" height="18" rx="5" fill="#22c55e" />
-      <circle cx="22" cy="30" r="4" fill="rgba(255,255,255,0.85)" />
-      <rect x="20.5" y="30" width="3" height="6" rx="1.5" fill="rgba(255,255,255,0.85)" />
-    </svg>
-  );
-}
-function HourglassIcon() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-      <rect x="6"  y="4"    width="32" height="4.5" rx="2.25" fill="#22c55e" />
-      <rect x="6"  y="35.5" width="32" height="4.5" rx="2.25" fill="#22c55e" />
-      <path d="M8 8.5 L36 8.5 L22 22 Z" fill="#dcfce7" stroke="#22c55e" strokeWidth="1.2" strokeLinejoin="round" />
-      <path d="M8 35.5 L36 35.5 L22 22 Z" fill="#22c55e" stroke="#22c55e" strokeWidth="1.2" strokeLinejoin="round" />
-      <circle className="st-sand"  cx="22" cy="14" r="2"   fill="#22c55e" />
-      <circle className="st-sand2" cx="22" cy="14" r="1.5" fill="#16a34a" />
-      <circle className="st-sand3" cx="22" cy="14" r="1"   fill="#22c55e" />
-    </svg>
-  );
-}
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
-function StatCard({ icon, value, label, tip, font: f = font }: {
-  icon: React.ReactNode; value: string; label: string; tip: string; font?: string;
-}) {
-  const [on, setOn] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const timerRef = useRef<any>(undefined);
-
-  function activate() { setOn(true); clearTimeout(timerRef.current); }
-  function deactivate() { clearTimeout(timerRef.current); setOn(false); }
-  function tap() {
-    if (on) { deactivate(); return; }
-    activate();
-    timerRef.current = setTimeout(deactivate, 1800);
-  }
-  useEffect(() => () => clearTimeout(timerRef.current), []);
-
-  return (
-    <div
-      className={`st-card${on ? " st-on" : ""}`}
-      onClick={tap}
-      onMouseEnter={activate}
-      onMouseLeave={deactivate}
-      role="button" tabIndex={0}
-      onKeyDown={e => { if (e.key === "Enter" || e.key === " ") tap(); }}
-      style={{
-        background: "#fff", border: "2px solid #e5e7eb", borderRadius: 18,
-        padding: "16px 12px 12px",
-        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-        boxShadow: "0 4px 0 #e5e7eb", minHeight: 56, fontFamily: f, textAlign: "center",
-      }}
-    >
-      {icon}
-      <span className="st-num" style={{ fontWeight: 900, fontSize: 28, color: "#172b4d", lineHeight: 1.1, display: "block" }}>{value}</span>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#6b7280", letterSpacing: "0.02em" }}>{label}</span>
-      <span className="st-tip">{tip}</span>
-    </div>
-  );
-}
-
 // ─── Landing screen ───────────────────────────────────────────────────────────
 export function LandingScreen() {
   const [isMobile, setIsMobile] = useState(false);
@@ -799,17 +622,12 @@ export function LandingScreen() {
   }, []);
 
   // ── Gamification + quiz state ────────────────────────────────────────────
-  const [xp, setXp] = useState(0);
-  const [unlockedBadges, setUnlockedBadges] = useState<string[]>([]);
   const [toasts] = useState<Toast[]>([]);
   const [quizData, setQuizData] = useState<QuizData | null>(null);
 
   useEffect(() => {
-    setXp(getStoredXP());
-    setUnlockedBadges(getStoredBadges());
     setQuizData(getQuizData());
   }, []);
-  const desktopTopChromeHeight = 128;
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: font }}>
@@ -818,115 +636,132 @@ export function LandingScreen() {
 
       {/* ── NAV ──────────────────────────────────────────────── */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: "#fff", borderBottom: "2px solid #f3f4f6" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center" }}>
           <StokedLogo />
-          <nav style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {xp > 0 && (
-              <span style={{ fontSize: 13, fontWeight: 800, color: "#22c55e", background: "#f0fdf4", border: "2px solid #bbf7d0", borderRadius: 99, padding: "4px 12px" }}>
-                ⚡ {xp} XP
-              </span>
-            )}
-            <PreviewStatus />
-          </nav>
         </div>
       </header>
 
-      <WaitlistSection showBannerSubtitle={false} variant="banner" />
-
       {/* ── HERO ─────────────────────────────────────────────── */}
       <section style={{
-        minHeight: isMobile ? "auto" : `calc(100vh - ${desktopTopChromeHeight}px)`,
-        display: "flex", alignItems: "center",
-        background: "#f0fdf4", borderBottom: "2px solid #dcfce7", overflow: "hidden",
+        background: "linear-gradient(180deg, #f8fbf9 0%, #f3f8f5 100%)",
+        borderBottom: "2px solid #e1ece5",
+        minHeight: "calc(100dvh - 64px)",
+        display: "flex",
+        alignItems: "center",
       }}>
         <div style={{
-          maxWidth: 1600, margin: "0 auto",
-          padding: isMobile ? "16px 16px 24px" : "36px 0 36px 40px",
-          width: "100%", display: "flex",
-          flexDirection: isMobile ? "column-reverse" : "row",
-          alignItems: "center", gap: isMobile ? 16 : 0,
-          flexWrap: isMobile ? "nowrap" : "wrap", justifyContent: "center",
+          maxWidth: 680,
+          margin: "0 auto",
+          padding: isMobile ? "20px 16px 28px" : "32px 24px 36px",
+          width: "100%",
         }}>
-          {/* Left text */}
           <div style={{
-            flex: isMobile ? "none" : "0 1 420px",
-            minWidth: isMobile ? 0 : 280,
-            width: isMobile ? "100%" : undefined,
-            textAlign: isMobile ? "center" : "left",
-            marginTop: isMobile ? 16 : 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: isMobile ? "stretch" : "center",
+            textAlign: isMobile ? "left" : "center",
           }}>
+            <div style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 14px",
+              borderRadius: 999,
+              border: "1px solid #d8e7dd",
+              background: "rgba(255,255,255,0.8)",
+              color: "#1f5134",
+              fontSize: 12,
+              fontWeight: 800,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              boxShadow: "0 8px 24px rgba(23,43,32,0.04)",
+              alignSelf: isMobile ? "flex-start" : "center",
+            }}>
+              Built for complete beginners
+            </div>
             <h1 style={{
               fontFamily: font, fontWeight: 900,
-              fontSize: isMobile ? "clamp(24px,7vw,28px)" : "clamp(40px,6vw,64px)",
+              fontSize: isMobile ? "clamp(1.95rem,6.4vw,2.25rem)" : "clamp(2.55rem,4.4vw,3.35rem)",
               color: "#172b4d", lineHeight: 1.1,
-              letterSpacing: isMobile ? "-0.5px" : "-1.5px", margin: 0,
+              letterSpacing: isMobile ? "-0.5px" : "-1.2px",
+              margin: isMobile ? "12px 0 0" : "14px 0 0",
+              maxWidth: 620,
             }}>
-              Learn stocks.<br />
-              <span style={{ color: "#22c55e" }}>For free.</span>
+              Learn stocks before you risk real money.
             </h1>
             <p style={{
-              fontSize: isMobile ? 14 : 20, color: "#4b5563",
-              marginTop: isMobile ? 10 : 20, marginBottom: isMobile ? 14 : 36,
-              lineHeight: isMobile ? 1.5 : 1.6, maxWidth: isMobile ? "100%" : 440,
+              fontSize: isMobile ? 15 : 18,
+              color: "#4b5563",
+              marginTop: isMobile ? 8 : 12,
+              marginBottom: isMobile ? 14 : 16,
+              lineHeight: isMobile ? 1.55 : 1.6,
+              maxWidth: 520,
             }}>
-              Fun, bite-sized lessons that make the stock market finally click. No jargon. No confusion.
+              Short interactive lessons that help beginners understand stocks
+              clearly, step by step.
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: isMobile ? "stretch" : "flex-start" }}>
-              <PreviewOnlyButton style={isMobile ? { padding: "14px 16px" } : { width: 320 }}>
-                Preview Only
-              </PreviewOnlyButton>
-            </div>
+            <WaitlistSection showBannerSubtitle variant="banner" />
 
-            {/* Social proof — mobile only */}
-            {isMobile && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 14 }}>
-                <div style={{ display: "flex" }}>
-                  {["#22c55e", "#3b82f6", "#f59e0b", "#e11d48"].map((color, i) => (
-                    <div key={i} style={{
-                      width: 26, height: 26, borderRadius: "50%",
-                      background: color, border: "2px solid #fff",
-                      marginLeft: i === 0 ? 0 : -8, fontSize: 11,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: "#fff", fontWeight: 800,
-                    }}>
-                      {["A", "B", "C", "D"][i]}
-                    </div>
-                  ))}
-                </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#6b7280" }}>Join 50K+ learners</span>
-              </div>
-            )}
-
-            {/* Badges */}
-            {unlockedBadges.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <BadgesRow unlockedIds={unlockedBadges} />
-              </div>
-            )}
-
-            {/* Animated stat cards */}
-            <div className="st-stats-grid" style={{
-              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10,
-              marginTop: isMobile ? 14 : 28,
-              width: isMobile ? "100%" : 340,
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
+              gap: isMobile ? 8 : 18,
+              marginTop: isMobile ? 12 : 14,
+              width: "100%",
+              maxWidth: 620,
+              paddingTop: isMobile ? 2 : 4,
             }}>
-              <StatCard icon={<ModulesIcon />} value="10"    label="Modules"  tip="Complete at your pace" font={font} />
-              <StatCard icon={<BookIcon />}    value="100+"  label="Lessons"  tip="Bite-sized learning"  font={font} />
-              <StatCard icon={<LockIcon />}    value="Free"  label="Always"   tip="Forever free"         font={font} />
-              <StatCard icon={<HourglassIcon />} value="5 min" label="Per day" tip="Quick daily habit"   font={font} />
+              {[
+                {
+                  title: "Built for beginners",
+                  body: "Clear from the start.",
+                },
+                {
+                  title: "Practice as you learn",
+                  body: "Use each idea right away.",
+                },
+                {
+                  title: "Educational only",
+                  body: "No picks. No signals.",
+                },
+              ].map(({ title, body }) => (
+                <div
+                  key={title}
+                  style={{
+                    padding: isMobile ? "10px 0" : "0 12px",
+                    textAlign: isMobile ? "left" : "center",
+                    borderTop: isMobile ? "1px solid #dbe7df" : undefined,
+                    borderLeft:
+                      !isMobile && title !== "Built for beginners"
+                        ? "1px solid #dbe7df"
+                        : undefined,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 800,
+                      color: "#183225",
+                      marginBottom: 3,
+                      letterSpacing: "0.01em",
+                    }}
+                  >
+                    {title}
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      lineHeight: 1.45,
+                      color: "#6a7b70",
+                      margin: 0,
+                    }}
+                  >
+                    {body}
+                  </p>
+                </div>
+              ))}
             </div>
-          </div>
-
-          {/* Right — 3D hero scene */}
-          <div style={{
-            flex: isMobile ? "none" : "1 1 660px",
-            height: isMobile ? 260 : `min(680px, calc(100vh - ${desktopTopChromeHeight + 32}px))`,
-            minHeight: isMobile ? 0 : 600,
-            width: isMobile ? "100%" : undefined,
-            position: "relative", overflow: "visible",
-          }}>
-            <HeroScene width="100%" height="100%" minHeight={isMobile ? 0 : 600} />
           </div>
         </div>
       </section>
