@@ -147,7 +147,8 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.48)",
+        background: "rgba(12,18,15,0.58)",
+        backdropFilter: "blur(10px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 16,
       }}
@@ -156,26 +157,34 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
         className="modal-in"
         onClick={e => e.stopPropagation()}
         style={{
-          background: "#fff", borderRadius: 20,
-          border: "2px solid #22c55e",
-          boxShadow: "0 12px 40px rgba(0,0,0,0.22)",
-          width: "100%", maxWidth: 480,
+          background: "#fcfdfc",
+          borderRadius: 28,
+          border: "1px solid #dde7e0",
+          boxShadow: "0 28px 80px rgba(0,0,0,0.22)",
+          width: "100%", maxWidth: 460,
           maxHeight: "90vh", overflowY: "auto",
-          padding: 28, position: "relative", fontFamily: font,
+          padding: 24, position: "relative", fontFamily: font,
         }}
       >
         <button
           onClick={onClose} type="button" aria-label="Close"
           style={{
             position: "absolute", top: 14, right: 14,
-            width: 32, height: 32, borderRadius: "50%",
-            border: "none", background: "#f3f4f6",
-            cursor: "pointer", fontSize: 20, lineHeight: 1,
+            width: 36, height: 36, borderRadius: "50%",
+            border: "1px solid #dbe6df",
+            background: "rgba(255,255,255,0.96)",
+            cursor: "pointer", fontSize: 18, lineHeight: 1,
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#6b7280", transition: "background 150ms",
+            color: "#4f6258", transition: "background 150ms, border-color 150ms",
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#e5e7eb"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#f3f4f6"; }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLElement).style.background = "#f3f7f4";
+            (e.currentTarget as HTMLElement).style.borderColor = "#cfdcd4";
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.96)";
+            (e.currentTarget as HTMLElement).style.borderColor = "#dbe6df";
+          }}
         >×</button>
         {children}
       </div>
@@ -614,6 +623,7 @@ function FeatureRow({ tag, tagColor, heading, body, illustration, flip = false }
 // ─── Landing screen ───────────────────────────────────────────────────────────
 export function LandingScreen() {
   const [isMobile, setIsMobile] = useState(false);
+  const [isWaitlistModalOpen, setIsWaitlistModalOpen] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -636,8 +646,32 @@ export function LandingScreen() {
 
       {/* ── NAV ──────────────────────────────────────────────── */}
       <header style={{ position: "sticky", top: 0, zIndex: 50, background: "#fff", borderBottom: "2px solid #f3f4f6" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <StokedLogo />
+          <button
+            onClick={() => setIsWaitlistModalOpen(true)}
+            type="button"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 42,
+              padding: "0 18px",
+              borderRadius: 999,
+              border: "none",
+              background: "#1f3227",
+              color: "#fff",
+              fontFamily: font,
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              boxShadow: "0 10px 24px rgba(23,43,32,0.08)",
+            }}
+          >
+            Join Waitlist
+          </button>
         </div>
       </header>
 
@@ -652,7 +686,7 @@ export function LandingScreen() {
         <div style={{
           maxWidth: 680,
           margin: "0 auto",
-          padding: isMobile ? "20px 16px 28px" : "32px 24px 36px",
+          padding: isMobile ? "8px 16px 28px" : "12px 24px 28px",
           width: "100%",
         }}>
           <div style={{
@@ -687,7 +721,28 @@ export function LandingScreen() {
               margin: isMobile ? "12px 0 0" : "14px 0 0",
               maxWidth: 620,
             }}>
-              Learn stocks before you risk real money.
+              <span style={{ display: "block", color: "#172b4d" }}>
+                Stock learning
+              </span>
+              <span
+                style={{
+                  display: "block",
+                  color: "#1c9a52",
+                  marginTop: isMobile ? 0 : 2,
+                }}
+              >
+                Made simple
+                <span
+                  style={{
+                    color: "#1c9a52",
+                    position: "relative",
+                    top: isMobile ? 3 : 4,
+                    fontSize: "0.88em",
+                  }}
+                >
+                  •
+                </span>
+              </span>
             </h1>
             <p style={{
               fontSize: isMobile ? 15 : 18,
@@ -697,70 +752,32 @@ export function LandingScreen() {
               lineHeight: isMobile ? 1.55 : 1.6,
               maxWidth: 520,
             }}>
-              Short interactive lessons that help beginners understand stocks
-              clearly, step by step.
+              Short interactive lessons that make stock market basics finally
+              click.
             </p>
 
             <WaitlistSection showBannerSubtitle variant="banner" />
 
             <div style={{
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))",
-              gap: isMobile ? 8 : 18,
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: isMobile ? "flex-start" : "center",
+              alignItems: "center",
+              gap: 0,
               marginTop: isMobile ? 12 : 14,
               width: "100%",
               maxWidth: 620,
               paddingTop: isMobile ? 2 : 4,
+              color: "#486055",
+              fontSize: 13,
+              fontWeight: 700,
+              lineHeight: 1.6,
             }}>
-              {[
-                {
-                  title: "Built for beginners",
-                  body: "Clear from the start.",
-                },
-                {
-                  title: "Practice as you learn",
-                  body: "Use each idea right away.",
-                },
-                {
-                  title: "Educational only",
-                  body: "No picks. No signals.",
-                },
-              ].map(({ title, body }) => (
-                <div
-                  key={title}
-                  style={{
-                    padding: isMobile ? "10px 0" : "0 12px",
-                    textAlign: isMobile ? "left" : "center",
-                    borderTop: isMobile ? "1px solid #dbe7df" : undefined,
-                    borderLeft:
-                      !isMobile && title !== "Built for beginners"
-                        ? "1px solid #dbe7df"
-                        : undefined,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 800,
-                      color: "#183225",
-                      marginBottom: 3,
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    {title}
-                  </div>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      lineHeight: 1.45,
-                      color: "#6a7b70",
-                      margin: 0,
-                    }}
-                  >
-                    {body}
-                  </p>
-                </div>
-              ))}
+              <span>Built for beginners</span>
+              <span style={{ margin: "0 10px", color: "#7f9387" }}>•</span>
+              <span>Practice as you learn</span>
+              <span style={{ margin: "0 10px", color: "#7f9387" }}>•</span>
+              <span>Educational only</span>
             </div>
           </div>
         </div>
@@ -839,6 +856,57 @@ export function LandingScreen() {
           </div>
         </div>
       </footer>
+
+      {isWaitlistModalOpen && (
+        <Modal onClose={() => setIsWaitlistModalOpen(false)}>
+          <div style={{ maxWidth: 420 }}>
+            <div style={{ marginBottom: 10 }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  border: "1px solid #dbe6df",
+                  borderRadius: 999,
+                  padding: "7px 12px",
+                  background: "#f7fbf8",
+                  color: "#3d5749",
+                  fontSize: 11,
+                  fontWeight: 800,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Early Access
+              </span>
+            </div>
+            <h3
+              style={{
+                margin: 0,
+                fontWeight: 900,
+                fontSize: 30,
+                lineHeight: 1.1,
+                letterSpacing: "-0.04em",
+                color: "#172b4d",
+              }}
+            >
+              Join the waitlist
+            </h3>
+            <p
+              style={{
+                margin: "10px 0 20px",
+                fontSize: 15,
+                lineHeight: 1.65,
+                color: "#5f7067",
+                maxWidth: 340,
+              }}
+            >
+              Get early access to Stoked when we launch.
+            </p>
+
+            <WaitlistSection showBannerSubtitle variant="modal" />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
