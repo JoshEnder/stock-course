@@ -232,15 +232,21 @@ export function WaitlistSection({
     return submissionState === "success" ? (
       <div
         aria-live="polite"
-        className="rounded-[1.6rem] border border-[#dde7e0] bg-white px-5 py-5 shadow-[0_20px_50px_rgba(23,43,32,0.06)]"
+        className="rounded-[1.8rem] border border-[#dce7df] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbf8_100%)] px-5 py-6 shadow-[0_20px_50px_rgba(23,43,32,0.06)]"
       >
         <div className="flex items-start gap-4">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1fa855] text-sm font-bold text-white">
-            ✓
-          </span>
+          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center">
+            <span className="absolute inset-0 rounded-full bg-[#22c55e]/18 animate-ping" />
+            <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#4e8958_0%,#417b4c_100%)] text-base font-bold text-white shadow-[0_10px_24px_rgba(63,120,74,0.2)]">
+              ✓
+            </span>
+          </div>
           <div>
             <p className="text-base font-semibold text-[#183225]">
-              You&apos;re in. We&apos;ll update you at launch.
+              You&apos;re on the waitlist.
+            </p>
+            <p className="mt-1 text-sm leading-6 text-[#5b6d62]">
+              We&apos;ll email you as soon as early access opens.
             </p>
           </div>
         </div>

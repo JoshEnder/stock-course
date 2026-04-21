@@ -1056,8 +1056,9 @@ export function LandingScreen() {
               <StokedLogo />
             </div>
 
-            <Link
-              href="#waitlist"
+            <button
+              type="button"
+              onClick={() => setIsWaitlistModalOpen(true)}
               style={{
                 pointerEvents: "auto",
                 display: isMobile ? "none" : "inline-flex",
@@ -1077,10 +1078,11 @@ export function LandingScreen() {
                 letterSpacing: "-0.01em",
                 boxShadow:
                   "0 10px 20px rgba(63,120,74,0.12), inset 0 1px 0 rgba(255,255,255,0.14)",
+                cursor: "pointer",
               }}
             >
               Join waitlist
-            </Link>
+            </button>
           </div>
         </header>
 
@@ -1432,7 +1434,8 @@ export function LandingScreen() {
                 maxWidth: 340,
               }}
             >
-              Get early access to Stoked when we launch.
+              Drop your email below and we&apos;ll save your spot for early
+              access.
             </p>
 
             <WaitlistSection showBannerSubtitle variant="modal" />
