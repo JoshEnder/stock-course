@@ -24,8 +24,6 @@ const formShellClassName =
 const bannerFormShellClassName =
   "w-full rounded-full border border-[#f0f2ee] bg-[rgba(255,255,255,0.74)] p-[0.1rem] shadow-[0_4px_12px_rgba(23,43,32,0.016),inset_0_1px_0_rgba(255,255,255,0.98)] backdrop-blur-[10px] sm:p-[0.24rem] sm:border-[#e7ebe5] sm:shadow-[0_8px_22px_rgba(23,43,32,0.035),inset_0_1px_0_rgba(255,255,255,0.98)]";
 const formStackClassName = "flex flex-col gap-2.5";
-const inlineFormStackClassName =
-  "flex flex-col gap-2.5 sm:flex-row sm:items-center";
 const bannerInlineFormStackClassName = "flex items-center gap-1";
 const inputClassName =
   "h-[3.55rem] min-w-0 w-full rounded-[1.35rem] border border-[#dfe7e1] bg-[linear-gradient(180deg,#ffffff_0%,#f6faf7_100%)] px-5 text-[0.98rem] font-medium tracking-[-0.018em] text-[#172b1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.98),0_1px_2px_rgba(23,43,32,0.04)] outline-none transition placeholder:text-[#7f9085] focus:border-[#2fa25d] focus:bg-white focus:ring-4 focus:ring-[#2fa25d]/10 disabled:cursor-not-allowed disabled:opacity-70";
