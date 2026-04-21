@@ -22,6 +22,7 @@ import {
 import {
   clearSupabaseBrowserSession,
   getSupabaseBrowserClient,
+  hasSupabaseBrowserEnv,
 } from "./supabase-browser";
 import {
   applyRemoteIdentityDefaults,
@@ -146,7 +147,11 @@ async function mergeRemoteProgressForUser(user: User) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const supabaseEnabled = hasSupabaseBrowserEnv();
+  const supabase = useMemo(
+    () => (supabaseEnabled ? getSupabaseBrowserClient() : null),
+    [supabaseEnabled],
+  );
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [didHydrateSession, setDidHydrateSession] = useState(false);
@@ -174,6 +179,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      setDidHydrateSession(true);
+      return;
+    }
+
     let active = true;
 
     supabase.auth
@@ -245,6 +256,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [didHydrateSession, supabase]);
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     const currentUser = session?.user ?? null;
 
     if (!currentUser?.id) {
@@ -285,6 +300,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session?.user, supabase]);
 
   async function signInWithGoogle(next = "/onboarding") {
+    if (!supabase) {
+      console.warn("Supabase auth is unavailable because environment variables are missing.");
+      return;
+    }
+
     const safeNext = normalizePostAuthPath(next);
 
     if (typeof window !== "undefined") {
@@ -305,6 +325,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    if (!supabase) {
+      clearSupabaseBrowserSession();
+      setProfile(null);
+      setSession(null);
+      return;
+    }
+
     if (session?.user) {
       setStoredProgressOwner(session.user.id);
 

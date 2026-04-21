@@ -5,6 +5,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 let supabaseClient: SupabaseClient | null = null;
 
+export function hasSupabaseBrowserEnv() {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
+  );
+}
+
 function getSupabaseProjectRef() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
@@ -57,13 +64,13 @@ export function getSupabaseBrowserClient() {
     return supabaseClient;
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const publishableKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
-
-  if (!url || !publishableKey) {
+  if (!hasSupabaseBrowserEnv()) {
     throw new Error("Supabase environment variables are missing.");
   }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const publishableKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
 
   supabaseClient = createBrowserClient(url, publishableKey, {
     auth: {
