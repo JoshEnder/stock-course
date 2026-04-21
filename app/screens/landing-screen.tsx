@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WaitlistSection } from "@/app/components/waitlist-section";
@@ -102,9 +103,20 @@ const LANDING_CSS = `
   .full-section { min-height: 100vh; }
   @media (max-width: 767px) { .full-section { min-height: 0 !important; } }
 
+  /* ── Hero ── */
+  .st-hero-phone {
+    animation: hero-phone-float 8.5s ease-in-out infinite;
+    transform-origin: 50% 96%;
+    will-change: transform;
+  }
+  @keyframes hero-phone-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-9px); }
+  }
+
   @media(prefers-reduced-motion:reduce){
     .st-s1,.st-s2,.st-s3,.st-s4,.st-page,.st-shackle,.st-sand,.st-sand2,.st-sand3,
-    .fire-pulse,.bar-fill,.badge-pop,.str-circle,.circle-bounce { animation:none !important; transition:none !important; }
+    .fire-pulse,.bar-fill,.badge-pop,.str-circle,.circle-bounce,.st-hero-phone { animation:none !important; transition:none !important; }
   }
 `;
 
@@ -235,6 +247,368 @@ function StokedLogo({ large = false }: { large?: boolean }) {
       <span style={{ fontFamily: font, fontWeight: 900, fontSize: large ? 40 : 24, color: "#172b4d", letterSpacing: "-0.5px", lineHeight: 1 }}>stoked</span>
       <span style={{ width: large ? 14 : 9, height: large ? 14 : 9, borderRadius: "50%", backgroundColor: "#22c55e", flexShrink: 0, marginBottom: large ? 6 : 4 }} />
     </Link>
+  );
+}
+
+function HeroLessonPhone({ isMobile }: { isMobile: boolean }) {
+  const phoneWidth = isMobile ? 252 : 318;
+  const phoneMinHeight = isMobile ? 514 : 650;
+  const frameRadius = isMobile ? 38 : 46;
+  const answerRadius = isMobile ? 18 : 20;
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        width: isMobile ? 292 : 430,
+        height: isMobile ? 568 : 772,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          width: isMobile ? 220 : 308,
+          height: isMobile ? 220 : 308,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(31,163,89,0.13) 0%, rgba(31,163,89,0.06) 34%, rgba(31,163,89,0) 72%)",
+          filter: "blur(24px)",
+          transform: "translate(-10%, -18%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          bottom: isMobile ? 54 : 72,
+          width: isMobile ? 172 : 232,
+          height: isMobile ? 28 : 34,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse at center, rgba(18,33,26,0.18) 0%, rgba(18,33,26,0.06) 42%, rgba(18,33,26,0) 74%)",
+          filter: "blur(11px)",
+        }}
+      />
+      <div
+        className="st-hero-phone"
+        style={{
+          position: "relative",
+          width: phoneWidth,
+        }}
+      >
+        <div
+          style={{
+            position: "relative",
+            borderRadius: frameRadius,
+            padding: 7,
+            background:
+              "linear-gradient(160deg, #191b1e 0%, #090a0c 54%, #1d2022 100%)",
+            boxShadow:
+              "0 28px 54px rgba(12,16,13,0.18), 0 10px 24px rgba(12,16,13,0.12), inset 0 1px 0 rgba(255,255,255,0.12)",
+          }}
+        >
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 7,
+              borderRadius: frameRadius - 7,
+              background:
+                "linear-gradient(120deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 72%, rgba(255,255,255,0.06) 100%)",
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "relative",
+              overflow: "hidden",
+              minHeight: phoneMinHeight,
+              borderRadius: frameRadius - 7,
+              background: "#fbfaf7",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.96), inset 0 -1px 0 rgba(17,24,20,0.03)",
+            }}
+          >
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: 6,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: isMobile ? 86 : 94,
+                height: isMobile ? 26 : 28,
+                borderRadius: "0 0 24px 24px",
+                background: "#0d1012",
+                boxShadow: "0 1px 0 rgba(255,255,255,0.08)",
+              }}
+            />
+
+            <div style={{ padding: isMobile ? "14px 16px 18px" : "16px 18px 20px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "4px 2px 0",
+                }}
+              >
+                  <div
+                    style={{
+                    fontSize: isMobile ? 12 : 13,
+                      fontWeight: 700,
+                      letterSpacing: "-0.02em",
+                      color: "#3e4349",
+                    }}
+                  >
+                    9:41
+                  </div>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 2,
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 18,
+                      height: 10,
+                      borderRadius: 3,
+                      border: "1.5px solid #3e4349",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      padding: "1px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 10,
+                        height: 6,
+                        borderRadius: 1.5,
+                        background: "#3e4349",
+                      }}
+                    />
+                  </span>
+                  <span
+                    style={{
+                      width: 2,
+                      height: 5,
+                      borderRadius: 1,
+                      background: "#3e4349",
+                      opacity: 0.9,
+                    }}
+                  />
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: isMobile ? 34 : 38,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: isMobile ? 11 : 12,
+                    fontWeight: 800,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    color: "#21834a",
+                  }}
+                >
+                  Module 1 • Lesson 3
+                </div>
+                <h3
+                  style={{
+                    margin: "10px 0 0",
+                    fontSize: isMobile ? 25 : 31,
+                    lineHeight: 1.06,
+                    letterSpacing: "-0.05em",
+                    color: "#172b4d",
+                    fontWeight: 800,
+                  }}
+                >
+                  What is a stock?
+                </h3>
+              </div>
+              <div
+                style={{
+                  marginTop: 20,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: 8,
+                  borderRadius: 22,
+                  background: "#eceee7",
+                  padding: "8px",
+                  boxShadow: "inset 0 1px 1px rgba(255,255,255,0.6)",
+                }}
+              >
+                {["Learn", "Practice", "Check"].map((tab) => {
+                  const isActive = tab === "Practice";
+
+                  return (
+                    <div
+                      key={tab}
+                      style={{
+                        borderRadius: 17,
+                        background: isActive ? "#ffffff" : "transparent",
+                        color: isActive ? "#1e293b" : "#7a8591",
+                        fontSize: isMobile ? 12 : 13,
+                        fontWeight: 700,
+                        textAlign: "center",
+                        padding: "10px 0",
+                        boxShadow: isActive
+                          ? "0 3px 10px rgba(17,24,39,0.08)"
+                          : "none",
+                      }}
+                    >
+                      {tab}
+                    </div>
+                  );
+                })}
+              </div>
+              <div
+                style={{
+                  marginTop: 30,
+                }}
+              >
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: isMobile ? 24 : 27,
+                    lineHeight: 1.18,
+                    letterSpacing: "-0.045em",
+                    color: "#172b4d",
+                    fontWeight: 800,
+                  }}
+                >
+                  Which of these best describes a stock?
+                </h4>
+              </div>
+              <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
+                {[
+                  "A loan you give to a company",
+                  "Partial ownership in a company",
+                  "A guaranteed return on investment",
+                  "A type of bank account",
+                ].map((option, index) => {
+                  const isSelected = index === 1;
+
+                  return (
+                    <div
+                      key={option}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        borderRadius: answerRadius,
+                        border: isSelected
+                          ? "2px solid rgba(105,199,122,0.82)"
+                          : "1px solid rgba(220,224,219,0.96)",
+                        background: isSelected
+                          ? "#eff9ef"
+                          : "#ffffff",
+                        padding: isMobile ? "14px 16px" : "15px 17px",
+                        boxShadow: isSelected
+                          ? "0 8px 18px rgba(35,136,80,0.06)"
+                          : "0 2px 8px rgba(20,30,23,0.03)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 34,
+                          height: 34,
+                          flexShrink: 0,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: isSelected ? "#e4f2e4" : "#f2f2ee",
+                          color: isSelected ? "#24864b" : "#7c8592",
+                          fontSize: 12,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {["A", "B", "C", "D"][index]}
+                      </span>
+                      <span
+                        style={{
+                          flex: 1,
+                          fontSize: isMobile ? 13 : 14.5,
+                          lineHeight: 1.35,
+                          color: isSelected ? "#243041" : "#5a6677",
+                          fontWeight: isSelected ? 700 : 600,
+                          letterSpacing: "-0.015em",
+                        }}
+                      >
+                        {option}
+                      </span>
+                      {isSelected ? (
+                        <span
+                          style={{
+                            width: 28,
+                            height: 28,
+                            flexShrink: 0,
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#e4f2e4",
+                            color: "#24864b",
+                            fontSize: 16,
+                            fontWeight: 800,
+                          }}
+                        >
+                          ✓
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+              <div
+                aria-hidden="true"
+                style={{
+                  width: "100%",
+                  marginTop: 22,
+                  borderRadius: 18,
+                  padding: "15px 18px",
+                  background:
+                    "linear-gradient(180deg, #2f874f 0%, #2a7f4a 100%)",
+                  boxShadow:
+                    "0 10px 22px rgba(42,127,74,0.16), inset 0 1px 0 rgba(255,255,255,0.12)",
+                  color: "#ffffff",
+                  fontFamily: font,
+                  fontSize: isMobile ? 14 : 15,
+                  fontWeight: 800,
+                  textAlign: "center",
+                }}
+              >
+                Continue
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: "14%",
+            right: -8,
+            width: 6,
+            height: 78,
+            borderRadius: 999,
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.04) 100%)",
+            opacity: 0.28,
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -644,140 +1018,298 @@ export function LandingScreen() {
       <style dangerouslySetInnerHTML={{ __html: LANDING_CSS }} />
       <ToastStack toasts={toasts} />
 
-      {/* ── NAV ──────────────────────────────────────────────── */}
-      <header style={{ position: "sticky", top: 0, zIndex: 50, background: "#fff", borderBottom: "2px solid #f3f4f6" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <StokedLogo />
-          <button
-            onClick={() => setIsWaitlistModalOpen(true)}
-            type="button"
+      {/* ── HERO ─────────────────────────────────────────────── */}
+      <section
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          background:
+            "radial-gradient(circle at 50% 38%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.45) 14%, rgba(250,248,244,0) 42%), #faf8f4",
+          borderBottom: "1px solid #ecefe7",
+          minHeight: "100dvh",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <header
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        >
+          <div
             style={{
-              display: "inline-flex",
+              maxWidth: 1440,
+              margin: "0 auto",
+              padding: isMobile ? "6px 18px 0" : "26px 34px 0",
+              display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              minHeight: 42,
-              padding: "0 18px",
-              borderRadius: 999,
-              border: "none",
-              background: "#1f3227",
-              color: "#fff",
-              fontFamily: font,
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              boxShadow: "0 10px 24px rgba(23,43,32,0.08)",
+              justifyContent: "space-between",
+              gap: 16,
             }}
           >
-            Join Waitlist
-          </button>
-        </div>
-      </header>
-
-      {/* ── HERO ─────────────────────────────────────────────── */}
-      <section style={{
-        background: "linear-gradient(180deg, #f8fbf9 0%, #f3f8f5 100%)",
-        borderBottom: "2px solid #e1ece5",
-        minHeight: "calc(100dvh - 64px)",
-        display: "flex",
-        alignItems: "center",
-      }}>
-        <div style={{
-          maxWidth: 680,
-          margin: "0 auto",
-          padding: isMobile ? "8px 16px 28px" : "12px 24px 28px",
-          width: "100%",
-        }}>
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: isMobile ? "stretch" : "center",
-            textAlign: isMobile ? "left" : "center",
-          }}>
-            <div style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 14px",
-              borderRadius: 999,
-              border: "1px solid #d8e7dd",
-              background: "rgba(255,255,255,0.8)",
-              color: "#1f5134",
-              fontSize: 12,
-              fontWeight: 800,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              boxShadow: "0 8px 24px rgba(23,43,32,0.04)",
-              alignSelf: isMobile ? "flex-start" : "center",
-            }}>
-              Built for complete beginners
+            <div style={{ pointerEvents: "auto" }}>
+              <StokedLogo />
             </div>
-            <h1 style={{
-              fontFamily: font, fontWeight: 900,
-              fontSize: isMobile ? "clamp(1.95rem,6.4vw,2.25rem)" : "clamp(2.55rem,4.4vw,3.35rem)",
-              color: "#172b4d", lineHeight: 1.1,
-              letterSpacing: isMobile ? "-0.5px" : "-1.2px",
-              margin: isMobile ? "12px 0 0" : "14px 0 0",
-              maxWidth: 620,
-            }}>
-              <span style={{ display: "block", color: "#172b4d" }}>
-                Stock learning
-              </span>
-              <span
+
+            <Link
+              href="#waitlist"
+              style={{
+                pointerEvents: "auto",
+                display: isMobile ? "none" : "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: isMobile ? 38 : 40,
+                padding: isMobile ? "0 14px" : "0 16px",
+                borderRadius: 999,
+                border: "1px solid rgba(59,116,74,0.14)",
+                background:
+                  "linear-gradient(180deg, rgba(76,137,88,0.98) 0%, rgba(65,123,76,0.98) 100%)",
+                color: "#f6f8f4",
+                textDecoration: "none",
+                fontFamily: font,
+                fontSize: isMobile ? 13 : 13.5,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                boxShadow:
+                  "0 10px 20px rgba(63,120,74,0.12), inset 0 1px 0 rgba(255,255,255,0.14)",
+              }}
+            >
+              Join waitlist
+            </Link>
+          </div>
+        </header>
+
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            overflow: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: -24,
+              left: -26,
+              width: isMobile ? 120 : 220,
+              height: isMobile ? 120 : 220,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.48) 38%, rgba(255,255,255,0) 72%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 170,
+              width: isMobile ? 110 : 180,
+              height: isMobile ? 110 : 180,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.28) 36%, rgba(255,255,255,0) 72%)",
+              filter: "blur(4px)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: -68,
+              left: -30,
+              width: isMobile ? 160 : 250,
+              height: isMobile ? 160 : 250,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.28) 42%, rgba(255,255,255,0) 72%)",
+              filter: "blur(4px)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: -34,
+              bottom: -34,
+              width: isMobile ? 150 : 220,
+              height: isMobile ? 150 : 220,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.26) 40%, rgba(255,255,255,0) 72%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: 44,
+              bottom: 44,
+              width: 40,
+              height: 40,
+              opacity: 0.48,
+              transform: "rotate(45deg)",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.34) 40%, rgba(255,255,255,0) 70%)",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            maxWidth: 1440,
+            margin: "0 auto",
+            padding: isMobile ? "24px 18px 8px" : "74px 34px 120px",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: isMobile
+                ? "1fr"
+                : "minmax(500px, 620px) minmax(500px, 700px)",
+              gap: isMobile ? 0 : 42,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: isMobile ? "center" : "flex-end",
+                paddingTop: isMobile ? 0 : 40,
+                paddingLeft: isMobile ? 0 : 0,
+                paddingRight: isMobile ? 0 : 4,
+                order: 0,
+              }}
+            >
+              <div
+                className="st-hero-phone"
                 style={{
-                  display: "block",
-                  color: "#1c9a52",
-                  marginTop: isMobile ? 0 : 2,
+                  position: "relative",
+                  width: isMobile ? 248 : 552,
+                  maxWidth: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "flex-end",
+                  paddingBottom: isMobile ? 1 : 70,
+                  transform: isMobile
+                    ? "translate(0px, -52px)"
+                    : "translate(8px, -18px)",
                 }}
               >
-                Made simple
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    bottom: isMobile ? 0 : 14,
+                    width: isMobile ? 74 : 208,
+                    height: isMobile ? 13 : 42,
+                    transform: "translateX(-50%)",
+                    borderRadius: "999px",
+                    background:
+                      "radial-gradient(ellipse at center, rgba(95,88,78,0.24) 0%, rgba(130,122,112,0.12) 42%, rgba(250,248,244,0) 76%)",
+                    filter: isMobile ? "blur(4px)" : "blur(8px)",
+                    opacity: isMobile ? 0.46 : 0.8,
+                  }}
+                />
+                <Image
+                  alt="Stoked lesson screen shown on an iPhone"
+                  height={1748}
+                  priority
+                  src="/ref/stoked-hero-phone.png"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    display: "block",
+                    position: "relative",
+                    zIndex: 1,
+                  }}
+                  width={972}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                maxWidth: 700,
+                justifySelf: isMobile ? "stretch" : "start",
+                textAlign: "left",
+                paddingTop: isMobile ? 0 : 12,
+                paddingLeft: isMobile ? 0 : 0,
+                marginLeft: isMobile ? 0 : -22,
+                order: 0,
+              }}
+            >
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: isMobile ? "5px 9px" : "9px 22px",
+                  borderRadius: 999,
+                  border: "1px solid rgba(235,236,230,0.98)",
+                  background: "rgba(242,238,231,0.84)",
+                  color: "#202321",
+                  fontSize: isMobile ? 8.5 : 11,
+                  fontWeight: 800,
+                  letterSpacing: "0.09em",
+                  textTransform: "uppercase",
+                  boxShadow: "0 8px 16px rgba(23,43,32,0.02)",
+                  marginTop: isMobile ? "-28px" : 0,
+                }}
+              >
+                Built for complete beginners
+              </div>
+              <h1
+                style={{
+                  fontFamily: font,
+                  fontWeight: 900,
+                  fontSize: isMobile
+                    ? "clamp(22px, 6.4vw, 25px)"
+                    : "clamp(36px, 5.2vw, 56px)",
+                  color: "#172b4d",
+                  lineHeight: isMobile ? 0.87 : 1.02,
+                  letterSpacing: isMobile ? "-0.5px" : "-1.5px",
+                  margin: isMobile ? "5px 0 0" : 0,
+                  maxWidth: 700,
+                }}
+              >
+                Stock learning
+                <br />
                 <span
                   style={{
-                    color: "#1c9a52",
-                    position: "relative",
-                    top: isMobile ? 3 : 4,
-                    fontSize: "0.88em",
+                    color: "#4e8958",
+                    fontSize: isMobile ? "0.96em" : "0.94em",
                   }}
                 >
-                  •
+                  Made simple.
                 </span>
-              </span>
-            </h1>
-            <p style={{
-              fontSize: isMobile ? 15 : 18,
-              color: "#4b5563",
-              marginTop: isMobile ? 8 : 12,
-              marginBottom: isMobile ? 14 : 16,
-              lineHeight: isMobile ? 1.55 : 1.6,
-              maxWidth: 520,
-            }}>
-              Short interactive lessons that make stock market basics finally
-              click.
-            </p>
+              </h1>
+              <p
+                style={{
+                  fontSize: isMobile ? 15 : 18,
+                  color: "#232323",
+                  marginTop: isMobile ? 5 : 20,
+                  marginBottom: isMobile ? 4 : 24,
+                  lineHeight: isMobile ? 1.42 : 1.5,
+                  maxWidth: 520,
+                }}
+              >
+                Short interactive lessons that help you understand the market
+                without feeling lost.
+              </p>
 
-            <WaitlistSection showBannerSubtitle variant="banner" />
-
-            <div style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: isMobile ? "flex-start" : "center",
-              alignItems: "center",
-              gap: 0,
-              marginTop: isMobile ? 12 : 14,
-              width: "100%",
-              maxWidth: 620,
-              paddingTop: isMobile ? 2 : 4,
-              color: "#486055",
-              fontSize: 13,
-              fontWeight: 700,
-              lineHeight: 1.6,
-            }}>
-              <span>Built for beginners</span>
-              <span style={{ margin: "0 10px", color: "#7f9387" }}>•</span>
-              <span>Practice as you learn</span>
-              <span style={{ margin: "0 10px", color: "#7f9387" }}>•</span>
-              <span>Educational only</span>
+              <div style={{ maxWidth: 454 }}>
+                <WaitlistSection showBannerSubtitle variant="banner" />
+              </div>
             </div>
           </div>
         </div>

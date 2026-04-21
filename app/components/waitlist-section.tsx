@@ -19,6 +19,30 @@ type WaitlistSectionProps = {
 };
 
 const helperCopy = "No spam. Early access only.";
+const formShellClassName =
+  "w-full rounded-[1.9rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92)_0%,rgba(247,250,247,0.98)_100%)] p-2.5 shadow-[0_18px_48px_rgba(23,43,32,0.08),inset_0_1px_0_rgba(255,255,255,0.88)] backdrop-blur-[10px] sm:p-3";
+const bannerFormShellClassName =
+  "w-full rounded-full border border-[#f0f2ee] bg-[rgba(255,255,255,0.74)] p-[0.1rem] shadow-[0_4px_12px_rgba(23,43,32,0.016),inset_0_1px_0_rgba(255,255,255,0.98)] backdrop-blur-[10px] sm:p-[0.24rem] sm:border-[#e7ebe5] sm:shadow-[0_8px_22px_rgba(23,43,32,0.035),inset_0_1px_0_rgba(255,255,255,0.98)]";
+const formStackClassName = "flex flex-col gap-2.5";
+const inlineFormStackClassName =
+  "flex flex-col gap-2.5 sm:flex-row sm:items-center";
+const bannerInlineFormStackClassName = "flex items-center gap-1";
+const inputClassName =
+  "h-[3.55rem] min-w-0 w-full rounded-[1.35rem] border border-[#dfe7e1] bg-[linear-gradient(180deg,#ffffff_0%,#f6faf7_100%)] px-5 text-[0.98rem] font-medium tracking-[-0.018em] text-[#172b1f] shadow-[inset_0_1px_0_rgba(255,255,255,0.98),0_1px_2px_rgba(23,43,32,0.04)] outline-none transition placeholder:text-[#7f9085] focus:border-[#2fa25d] focus:bg-white focus:ring-4 focus:ring-[#2fa25d]/10 disabled:cursor-not-allowed disabled:opacity-70";
+const bannerInputClassName =
+  "h-[2.16rem] min-w-0 w-full flex-1 rounded-full border-0 bg-transparent px-4 text-[0.86rem] font-medium tracking-[-0.02em] text-[#172b1f] outline-none transition placeholder:text-[#a4ada6] disabled:cursor-not-allowed disabled:opacity-70 sm:h-[2.72rem] sm:px-5 sm:text-[0.95rem]";
+const buttonClassName =
+  "inline-flex h-[3.35rem] w-full items-center justify-center rounded-[1.2rem] border border-[#128344]/30 bg-[linear-gradient(180deg,#1da858_0%,#15934b_100%)] px-6 text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_26px_rgba(21,147,75,0.2),inset_0_1px_0_rgba(255,255,255,0.16)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:min-w-[11rem]";
+const bannerButtonClassName =
+  "inline-flex h-[2.06rem] w-[2.06rem] shrink-0 items-center justify-center rounded-full border border-[#2f7f4e]/8 bg-[linear-gradient(180deg,#4e8958_0%,#417b4c_100%)] text-white shadow-[0_4px_8px_rgba(63,120,74,0.08),inset_0_1px_0_rgba(255,255,255,0.12)] transition hover:brightness-[1.03] disabled:cursor-not-allowed disabled:opacity-70 sm:h-[2.66rem] sm:w-[2.66rem] sm:shadow-[0_8px_16px_rgba(63,120,74,0.14),inset_0_1px_0_rgba(255,255,255,0.12)]";
+const helperBlockClassName = "mt-3 flex flex-col gap-2 px-1";
+const bannerHelperBlockClassName = "mt-0.5 pl-1 sm:mt-4";
+const helperTextClassName =
+  "text-[0.78rem] font-medium tracking-[0.01em] text-[#708176]";
+const bannerHelperTextClassName =
+  "text-[0.76rem] font-medium tracking-[0.01em] text-[#738278]";
+const errorClassName =
+  "inline-flex w-fit max-w-full rounded-full border border-red-200/70 bg-red-50/85 px-3 py-1.5 text-[0.72rem] font-medium text-red-700";
 
 export function WaitlistSection({
   variant = "section",
@@ -136,49 +160,52 @@ export function WaitlistSection({
         {submissionState === "success" ? (
           baseSuccessPanel
         ) : (
-          <form
-            className="w-full rounded-[2rem] border border-[#d3dfd7] bg-white px-4 py-4 shadow-[0_24px_56px_rgba(23,43,32,0.12)] sm:px-5 sm:py-5"
-            noValidate
-            onSubmit={handleSubmit}
-          >
-            {formFields}
+          <>
+            <form
+              className={bannerFormShellClassName}
+              noValidate
+              onSubmit={handleSubmit}
+            >
+              {formFields}
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <input
-                aria-describedby={describedBy}
-                aria-invalid={Boolean(errorMessage)}
-                autoComplete="email"
-                className="h-15 min-w-0 flex-1 rounded-full border border-[#d3dfd7] bg-[#fbfdfb] px-6 text-[1.02rem] text-[#172b1f] outline-none transition placeholder:text-[#86978c] focus:border-[#38b26b] focus:bg-white focus:ring-2 focus:ring-[#38b26b]/15 disabled:cursor-not-allowed disabled:opacity-70"
-                id={inputId}
-                inputMode="email"
-                name="email"
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  if (errorMessage) {
-                    setErrorMessage("");
-                  }
-                }}
-                placeholder="Enter your email"
-                required
-                type="email"
-                value={email}
-              />
+              <div className={bannerInlineFormStackClassName}>
+                <input
+                  aria-describedby={describedBy}
+                  aria-invalid={Boolean(errorMessage)}
+                  autoComplete="email"
+                  className={bannerInputClassName}
+                  id={inputId}
+                  inputMode="email"
+                  name="email"
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    if (errorMessage) {
+                      setErrorMessage("");
+                    }
+                  }}
+                  placeholder="jane@example.com"
+                  required
+                  type="email"
+                  value={email}
+                />
 
-              <button
-                className="inline-flex h-15 items-center justify-center rounded-full bg-[linear-gradient(135deg,#16994c_0%,#22c55e_100%)] px-8 text-sm font-semibold uppercase tracking-[0.05em] text-white shadow-[0_18px_38px_rgba(22,153,76,0.24)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
-                disabled={submissionState === "submitting"}
-                type="submit"
-              >
-                {submissionState === "submitting"
-                  ? "Joining..."
-                  : "Get early access"}
-              </button>
-            </div>
+                <button
+                  aria-label="Join waitlist"
+                  className={bannerButtonClassName}
+                  disabled={submissionState === "submitting"}
+                  type="submit"
+                >
+                  {submissionState === "submitting"
+                    ? "…"
+                    : "→"}
+                </button>
+              </div>
+            </form>
 
             {(showBannerSubtitle || errorMessage) && (
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className={bannerHelperBlockClassName}>
                 {showBannerSubtitle ? (
-                  <p className="text-sm leading-6 text-[#66786d]" id={hintId}>
+                  <p className={bannerHelperTextClassName} id={hintId}>
                     {helperCopy}
                   </p>
                 ) : null}
@@ -186,7 +213,7 @@ export function WaitlistSection({
                 {errorMessage ? (
                   <p
                     aria-live="polite"
-                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700"
+                    className={errorClassName}
                     id={errorId}
                     role="status"
                   >
@@ -195,7 +222,7 @@ export function WaitlistSection({
                 ) : null}
               </div>
             )}
-          </form>
+          </>
         )}
       </section>
     );
@@ -219,41 +246,49 @@ export function WaitlistSection({
         </div>
       </div>
     ) : (
-      <form className="space-y-3.5" noValidate onSubmit={handleSubmit}>
+      <form
+        className={`${formShellClassName} space-y-0`}
+        noValidate
+        onSubmit={handleSubmit}
+      >
         {formFields}
 
-        <input
-          aria-describedby={describedBy}
-          aria-invalid={Boolean(errorMessage)}
-          autoComplete="email"
-          className="h-[3.35rem] w-full rounded-full border border-[#d7e2db] bg-[#fbfdfb] px-5 text-[0.98rem] text-[#172b1f] outline-none transition placeholder:text-[#85968b] focus:border-[#38b26b] focus:bg-white focus:ring-2 focus:ring-[#38b26b]/15 disabled:cursor-not-allowed disabled:opacity-70"
-          id={inputId}
-          inputMode="email"
-          name="email"
-          onChange={(event) => {
-            setEmail(event.target.value);
-            if (errorMessage) {
-              setErrorMessage("");
-            }
-          }}
-          placeholder="Enter your email"
-          required
-          type="email"
-          value={email}
-        />
+        <div className={formStackClassName}>
+          <input
+            aria-describedby={describedBy}
+            aria-invalid={Boolean(errorMessage)}
+            autoComplete="email"
+            className={inputClassName}
+            id={inputId}
+            inputMode="email"
+            name="email"
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (errorMessage) {
+                setErrorMessage("");
+              }
+            }}
+            placeholder="Enter your email"
+            required
+            type="email"
+            value={email}
+          />
 
-        <button
-          className="inline-flex h-[3.35rem] w-full items-center justify-center rounded-full bg-[linear-gradient(135deg,#16994c_0%,#22c55e_100%)] px-8 text-sm font-semibold uppercase tracking-[0.05em] text-white shadow-[0_14px_28px_rgba(22,153,76,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
-          disabled={submissionState === "submitting"}
-          type="submit"
-        >
-          {submissionState === "submitting" ? "Joining..." : "Get early access"}
-        </button>
+          <button
+            className={buttonClassName}
+            disabled={submissionState === "submitting"}
+            type="submit"
+          >
+            {submissionState === "submitting"
+              ? "Joining..."
+              : "Get early access"}
+          </button>
+        </div>
 
         {(showBannerSubtitle || errorMessage) && (
-          <div className="flex flex-col gap-2 pt-0.5">
+          <div className={helperBlockClassName}>
             {showBannerSubtitle ? (
-              <p className="text-[0.92rem] leading-6 text-[#66786d]" id={hintId}>
+              <p className={helperTextClassName} id={hintId}>
                 {helperCopy}
               </p>
             ) : null}
@@ -261,7 +296,7 @@ export function WaitlistSection({
             {errorMessage ? (
               <p
                 aria-live="polite"
-                className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700"
+                className={errorClassName}
                 id={errorId}
                 role="status"
               >
@@ -295,18 +330,18 @@ export function WaitlistSection({
             baseSuccessPanel
           ) : (
             <form
-              className="rounded-[2rem] border border-[#d9e6de] bg-white px-4 py-4 shadow-[0_26px_70px_rgba(23,43,32,0.09)] sm:px-5 sm:py-5"
+              className={formShellClassName}
               noValidate
               onSubmit={handleSubmit}
             >
               {formFields}
 
-              <div className="flex flex-col gap-3">
+              <div className={formStackClassName}>
                 <input
                   aria-describedby={describedBy}
                   aria-invalid={Boolean(errorMessage)}
                   autoComplete="email"
-                  className="h-15 rounded-full border border-[#d7e2db] bg-[#fbfdfb] px-6 text-[1.02rem] text-[#172b1f] outline-none transition placeholder:text-[#85968b] focus:border-[#38b26b] focus:bg-white focus:ring-2 focus:ring-[#38b26b]/15 disabled:cursor-not-allowed disabled:opacity-70"
+                  className={inputClassName}
                   id={inputId}
                   inputMode="email"
                   name="email"
@@ -323,7 +358,7 @@ export function WaitlistSection({
                 />
 
                 <button
-                  className="inline-flex h-15 items-center justify-center rounded-full bg-[linear-gradient(135deg,#16994c_0%,#22c55e_100%)] px-8 text-sm font-semibold uppercase tracking-[0.05em] text-white shadow-[0_18px_38px_rgba(22,153,76,0.24)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+                  className={buttonClassName}
                   disabled={submissionState === "submitting"}
                   type="submit"
                 >
@@ -334,9 +369,9 @@ export function WaitlistSection({
               </div>
 
               {(showBannerSubtitle || errorMessage) && (
-                <div className="mt-3 flex flex-col gap-2">
+                <div className={helperBlockClassName}>
                   {showBannerSubtitle ? (
-                    <p className="text-sm leading-6 text-[#66786d]" id={hintId}>
+                    <p className={helperTextClassName} id={hintId}>
                       {helperCopy}
                     </p>
                   ) : null}
@@ -344,7 +379,7 @@ export function WaitlistSection({
                   {errorMessage ? (
                     <p
                       aria-live="polite"
-                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700"
+                      className={errorClassName}
                       id={errorId}
                       role="status"
                     >
