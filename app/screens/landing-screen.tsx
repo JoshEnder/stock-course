@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WaitlistSection } from "@/app/components/waitlist-section";
-import { getQuizData, type QuizData } from "./onboarding-screen";
 
 // ─── Shared font ──────────────────────────────────────────────────────────────
 const font = "var(--font-dm-sans,'DM Sans',system-ui,sans-serif)";
@@ -114,14 +113,49 @@ const LANDING_CSS = `
     50% { transform: translateY(-9px); }
   }
 
+  .st-scroll-cue {
+    animation: st-scroll-bounce 1.8s ease-in-out infinite;
+    transition: transform 180ms ease, opacity 180ms ease, color 180ms ease;
+  }
+  @media (hover:hover) {
+    .st-scroll-cue:hover {
+      color: #3f7349 !important;
+    }
+  }
+  @keyframes st-scroll-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(9px); }
+  }
+
   @media(prefers-reduced-motion:reduce){
     .st-s1,.st-s2,.st-s3,.st-s4,.st-page,.st-shackle,.st-sand,.st-sand2,.st-sand3,
-    .fire-pulse,.bar-fill,.badge-pop,.str-circle,.circle-bounce,.st-hero-phone { animation:none !important; transition:none !important; }
+    .fire-pulse,.bar-fill,.badge-pop,.str-circle,.circle-bounce,.st-hero-phone,.st-scroll-cue { animation:none !important; transition:none !important; }
   }
 `;
 
 // ─── Toast types ──────────────────────────────────────────────────────────────
 type Toast = { id: number; msg: string; removing?: boolean };
+type QuizData = {
+  nickname: string;
+  experienceLevel: string;
+  goal: string;
+  timeCommitment: string;
+  completedAt: string;
+};
+const QUIZ_KEY = "stoked_quiz";
+
+function getStoredQuizData(): QuizData | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(QUIZ_KEY);
+    return raw ? (JSON.parse(raw) as QuizData) : null;
+  } catch {
+    return null;
+  }
+}
 
 function ToastStack({ toasts }: { toasts: Toast[] }) {
   if (!toasts.length) return null;
@@ -648,8 +682,19 @@ export function LandingScreen() {
   const [quizData, setQuizData] = useState<QuizData | null>(null);
 
   useEffect(() => {
-    setQuizData(getQuizData());
+    setQuizData(getStoredQuizData());
   }, []);
+
+  const scrollToMore = () => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.getElementById("learn-more")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: font }}>
@@ -664,7 +709,8 @@ export function LandingScreen() {
           background:
             "radial-gradient(circle at 50% 38%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.45) 14%, rgba(250,248,244,0) 42%), #faf8f4",
           borderBottom: "1px solid #ecefe7",
-          minHeight: "100dvh",
+          minHeight: isMobile ? "100dvh" : "100vh",
+          height: isMobile ? "auto" : "100vh",
           display: "flex",
           alignItems: "center",
         }}
@@ -804,7 +850,7 @@ export function LandingScreen() {
             zIndex: 1,
             maxWidth: 1440,
             margin: "0 auto",
-            padding: isMobile ? "24px 18px 8px" : "74px 34px 120px",
+            padding: isMobile ? "24px 18px 8px" : "74px 34px 58px",
             width: "100%",
           }}
         >
@@ -838,7 +884,7 @@ export function LandingScreen() {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "flex-end",
-                  paddingBottom: isMobile ? 1 : 70,
+                  paddingBottom: isMobile ? 1 : 54,
                   transform: isMobile
                     ? "translate(0px, -52px)"
                     : "translate(8px, -18px)",
@@ -953,7 +999,50 @@ export function LandingScreen() {
             </div>
           </div>
         </div>
+
+        <button
+          aria-label="Scroll down to learn more"
+          className="st-scroll-cue"
+          onClick={scrollToMore}
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: isMobile ? 14 : 18,
+            transform: "translateX(-50%)",
+            zIndex: 2,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: isMobile ? 28 : 38,
+            height: isMobile ? 28 : 38,
+            border: "none",
+            background: "transparent",
+            boxShadow: "none",
+            color: "#4e8958",
+            cursor: "pointer",
+            padding: 0,
+          }}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height={isMobile ? 22 : 30}
+            viewBox="0 0 24 24"
+            width={isMobile ? 22 : 30}
+          >
+            <path
+              d="M7 10.5 12 15.5l5-5"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={isMobile ? 2.2 : 2.4}
+            />
+          </svg>
+        </button>
       </section>
+
+      <div id="learn-more" />
 
       {/* ── MOBILE FEATURE CARDS (hidden on desktop) ─────────── */}
       <section className="mob-only" style={{ background: "#f9fafb", borderTop: "2px solid #f3f4f6" }}>
