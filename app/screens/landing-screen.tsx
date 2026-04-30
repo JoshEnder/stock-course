@@ -180,6 +180,57 @@ function ToastStack({ toasts }: { toasts: Toast[] }) {
   );
 }
 
+function ScrollCue({
+  isMobile,
+  onClick,
+}: {
+  isMobile: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-label="Scroll down to learn more"
+      className="st-scroll-cue"
+      onClick={onClick}
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: isMobile ? 14 : 18,
+        transform: "translateX(-50%)",
+        zIndex: 2,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: isMobile ? 28 : 38,
+        height: isMobile ? 28 : 38,
+        border: "none",
+        background: "transparent",
+        boxShadow: "none",
+        color: "#4e8958",
+        cursor: "pointer",
+        padding: 0,
+      }}
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height={isMobile ? 22 : 30}
+        viewBox="0 0 24 24"
+        width={isMobile ? 22 : 30}
+      >
+        <path
+          d="M7 10.5 12 15.5l5-5"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={isMobile ? 2.2 : 2.4}
+        />
+      </svg>
+    </button>
+  );
+}
+
 // ─── Modal ────────────────────────────────────────────────────────────────────
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   useEffect(() => {
@@ -626,11 +677,23 @@ function ProgressCard() {
 }
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
-function Section({ children, bg = "#fff", border = false, className = "" }: {
-  children: React.ReactNode; bg?: string; border?: boolean; className?: string;
+function Section({ children, bg = "#fff", border = false, className = "", id, nextId, isMobile = false }: {
+  children: React.ReactNode; bg?: string; border?: boolean; className?: string; id?: string; nextId?: string; isMobile?: boolean;
 }) {
+  const scrollToNext = () => {
+    if (!nextId || typeof document === "undefined") {
+      return;
+    }
+
+    document.getElementById(nextId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
-    <section className={className} style={{
+    <section className={className} id={id} style={{
+      position: "relative",
       display: "flex", alignItems: "center", background: bg,
       borderTop: border ? "2px solid #f3f4f6" : undefined,
       borderBottom: border ? "2px solid #f3f4f6" : undefined,
@@ -638,6 +701,7 @@ function Section({ children, bg = "#fff", border = false, className = "" }: {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(40px,8vw,80px) clamp(16px,3vw,24px)", width: "100%" }}>
         {children}
       </div>
+      {nextId && !isMobile ? <ScrollCue isMobile={false} onClick={scrollToNext} /> : null}
     </section>
   );
 }
@@ -1000,46 +1064,7 @@ export function LandingScreen() {
           </div>
         </div>
 
-        <button
-          aria-label="Scroll down to learn more"
-          className="st-scroll-cue"
-          onClick={scrollToMore}
-          style={{
-            position: "absolute",
-            left: "50%",
-            bottom: isMobile ? 14 : 18,
-            transform: "translateX(-50%)",
-            zIndex: 2,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: isMobile ? 28 : 38,
-            height: isMobile ? 28 : 38,
-            border: "none",
-            background: "transparent",
-            boxShadow: "none",
-            color: "#4e8958",
-            cursor: "pointer",
-            padding: 0,
-          }}
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            fill="none"
-            height={isMobile ? 22 : 30}
-            viewBox="0 0 24 24"
-            width={isMobile ? 22 : 30}
-          >
-            <path
-              d="M7 10.5 12 15.5l5-5"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={isMobile ? 2.2 : 2.4}
-            />
-          </svg>
-        </button>
+        <ScrollCue isMobile={isMobile} onClick={scrollToMore} />
       </section>
 
       <div id="learn-more" />
@@ -1066,7 +1091,7 @@ export function LandingScreen() {
       </section>
 
       {/* ── FEATURE: Streak ──────────────────────────────────── */}
-      <Section className="full-section">
+      <Section className="full-section" id="learn-more" isMobile={isMobile} nextId="feature-lessons">
         <FeatureRow
           tag="🔥 Build a habit"
           tagColor="#ff9600"
@@ -1077,7 +1102,7 @@ export function LandingScreen() {
       </Section>
 
       {/* ── FEATURE: Lessons ─────────────────────────────────── */}
-      <Section className="full-section" bg="#f9fafb" border>
+      <Section className="full-section" id="feature-lessons" isMobile={isMobile} nextId="feature-progress" bg="#f9fafb" border>
         <FeatureRow
           flip
           tag="📚 Learn → Practice → Check"
@@ -1089,7 +1114,7 @@ export function LandingScreen() {
       </Section>
 
       {/* ── FEATURE: Progress ────────────────────────────────── */}
-      <Section className="full-section">
+      <Section className="full-section" id="feature-progress" isMobile={isMobile}>
         <FeatureRow
           tag="📈 Track everything"
           tagColor="#3b82f6"
@@ -1100,7 +1125,7 @@ export function LandingScreen() {
       </Section>
 
       {/* ── FOOTER ───────────────────────────────────────────── */}
-      <footer style={{ background: "#f9fafb", borderTop: "2px solid #f3f4f6" }}>
+      <footer id="site-footer" style={{ background: "#f9fafb", borderTop: "2px solid #f3f4f6" }}>
         <div style={{
           maxWidth: 1100, margin: "0 auto", padding: "40px 24px",
           display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20,
